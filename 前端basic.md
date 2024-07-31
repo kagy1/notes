@@ -178,6 +178,14 @@ arr.unshift(1);
 // [1,2,3]
 ```
 
+arr.include(~) 判断是否有某个元素
+
+```js
+const num1: number[] = [1, 2, 3, 4, 5];
+console.log(num1.includes(1)); // 输出: true
+console.log(num1.includes(6)); // 输出: false
+```
+
 
 
 ## 生成随机数
@@ -257,6 +265,17 @@ console.log(Math.sqrt(2)); // 输出: 1.4142135623730951
 
 ```js
 console.log(Math.PI); // 输出: 3.141592653589793
+```
+
+
+
+## Other
+
+1. var ctx = "\/jf_view\/"
+
+```js
+var ctx = "\/jf_view\/"    
+//字符串中的 \/ 是一种转义序列，用于表示字符 /。在 JavaScript 中，/ 有特殊的含义，它用于表示正则表达式的开始和结束。如果要在字符串中包含 / 字符本身，需要使用 \/ 来转义它，以避免被解释为正则表达式的一部分。
 ```
 
 

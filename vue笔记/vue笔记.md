@@ -137,6 +137,36 @@ export default defineComponent({
 
 
 
+```tsx
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const arr = [1, 2, 3, 4, 5]
+        const flag = true
+
+        function d1() {
+            return (
+                <ul>
+                    {
+                        arr.map((item, index) => {
+                            return <li key={index}>{item}</li>
+                        })
+                    }
+                </ul>
+            )
+        }
+        return () => (
+            <div>
+                {
+                    flag ? d1() : <div>no data</div>
+                }
+            </div>
+        )
+    }
+})
+```
+
 
 
 ## v-if
@@ -964,6 +994,39 @@ export default defineComponent({
 
 1. v-if实现
 2. 动态组件实现
+3. h函数实现
+
+```tsx
+
+import { defineComponent, h, shallowRef } from 'vue'
+import T1 from './child/t1'
+import T2 from './child/t2'
+import T3 from './child/t3'
+import { ElButton } from 'element-plus'
+
+export default defineComponent({
+  setup(props, { slots, expose, emit, attrs }) {
+    const components = [T1, T2, T3]
+    const currentComponent = shallowRef(T1)
+
+    const switchComponent = () => {
+      const index = components.indexOf(currentComponent.value)
+      const nextIndex = (index + 1) % components.length
+      currentComponent.value = components[nextIndex]
+    }
+
+    return () => (
+      <div>
+        <div>{h(currentComponent.value)}</div>
+        <ElButton onClick={switchComponent}>切换组件</ElButton>
+      </div>
+    )
+  },
+})
+
+```
+
+   
 
 # vite
 

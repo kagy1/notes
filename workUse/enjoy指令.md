@@ -150,6 +150,18 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 
 
 
+## R
+
+### \#@response_success_rs_data(~)
+
+```enjoy
+#@response_success_rs_data("成功",rs)
+```
+
+
+
+
+
 ## S
 
 ### #@setAttribute(~)
