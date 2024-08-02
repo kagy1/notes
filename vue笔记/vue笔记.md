@@ -1631,7 +1631,96 @@ export default defineComponent({
 
 
 
+## 生命周期钩子
+
+### onMounted()
+
+注册一个回调函数，在组件挂载完成后执行。
+
+```vue
+function onMounted(callback: () => void): void
+```
+
+- 详细信息
+
+  组件在以下情况下被视为已挂载：
+
+  - 其所有同步子组件都已经被挂载 (不包含异步组件或 `<Suspense>` 树内的组件)。
+  - 其自身的 DOM 树已经创建完成并插入了父容器中。注意仅当根容器在文档中时，才可以保证组件 DOM 树也在文档中。
+
+  这个钩子通常用于执行需要访问组件所渲染的 DOM 树相关的副作用，或是在[服务端渲染应用](https://cn.vuejs.org/guide/scaling-up/ssr.html)中用于确保 DOM 相关代码仅在客户端执行。
+
+  **这个钩子在服务器端渲染期间不会被调用。**
+
+### onUpdated()
+
+注册一个回调函数，在组件因为响应式状态变更而更新其 DOM 树之后调用。
+
+```vue
+function onUpdated(callback: () => void): void
+```
+
+- **详细信息**
+
+  <span style="color:red;">父组件的更新钩子将在其子组件的更新钩子之后调用。</span>
+
+  这个钩子会在组件的任意 DOM 更新后被调用，这些更新可能是由不同的状态变更导致的，因为多个状态变更可以在同一个渲染周期中批量执行 (考虑到性能因素)。如果你需要在某个特定的状态更改后访问更新后的 DOM，请使用 [nextTick()](https://cn.vuejs.org/api/general.html#nexttick) 作为替代。
+
+  **这个钩子在服务器端渲染期间不会被调用。**
+
+  <span style="color:red;">不要在 updated 钩子中更改组件的状态，这可能会导致无限的更新循环！</span>
+
+- **示例**
+
+​		访问更新后的 DOM
+
+```vue
+<script setup>
+import { ref, onUpdated } from 'vue'
+
+const count = ref(0)
+
+onUpdated(() => {
+  // 文本内容应该与当前的 `count.value` 一致
+  console.log(document.getElementById('count').textContent)
+})
+</script>
+
+<template>
+  <button id="count" @click="count++">{{ count }}</button>
+</template>
+```
+
+
+
 ## setup语法糖
+
+## 生命周期和任务队列的顺序
+
+- onMounted在宏任务之前
+
+```tsx
+import { defineComponent, nextTick, onMounted } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        setTimeout(() => {
+            alert('timeout')
+        }, 0);
+        onMounted(() => {
+            alert('mounted')
+        })
+        return () => (
+            <div class="d1">
+
+            </div>
+        )
+    }
+})
+
+//先执行alert('mounted')，后执行alert('timeout')
+```
 
 
 
@@ -1858,8 +1947,11 @@ JS执行的任务分为`同步任务`和`异步任务`
 <span style="color:red;">任务队列</span>又分为两种：微任务队列，宏任务队列。 
 
 - 微任务会直接放进微任务队列中
-
 - 而宏任务会在宿主环境（浏览器/node等）的子线程执行完成后将回调函数会放到宏任务队列中。 
+
+
+
+<span style="color:red;">**微任务在dom渲染前触发，宏任务在dom渲染后触发**</span>
 
 <span style="color:red;">微任务队列只有一个，宏任务队列可以有很多个。</span>
 
@@ -1917,9 +2009,50 @@ console.log("9")
 <span style="color:red;font-weight:bold;font-size:20px">同步任务>>微任务>>宏任务</span>
 
 
-## 事件循环
+## 事件循环 event loop
 
 主线程执行同步任务，将微任务推到任务队列（微任务队列），将宏任务推给宿主环境的其他线程执行并将执行完成后的回调函数推到任务队列（宏任务队列）中，等待主线程中的同步任务全部完成，执行栈会推出任务队列中的首个任务到主线程执行，先执行微任务队列在执行宏任务队列。
+
+<img src="./img/1.jpg" align="left" style="width:70%">
+
+
+
+- event loop 和dom渲染
+  - 每次 Call Stack 清空（即每次轮训结束），即同步任务执行完
+  - 都是DOM重新渲染的机会，DOM结构如有改变则重新渲染
+  - 然后再去触发下一次Event Loop
+
+
+
+- 宏任务
+
+<img src="./img/2.jpg" align="left" style="width:70%">
+
+<img src="./img/3.jpg" align="left" style="width:70%">
+
+
+
+- 微任务
+
+<img src="./img/4.jpg" align="left" style="width:70%">
+
+<img src="./img/5.jpg" align="left" style="width:70%">
+
+Web APIs 是 W3C 组织的标准，是 JS 所独有的部分
+
+微任务是es6语法规定的
+
+宏任务是由浏览器规定的
+
+
+
+## CallStack
+
+CallStack是用来处理函数调用与返回的。每次调用一个函数，Javascript运行时会生成一个新的调用结构压入CallStack。而函数调用结束返回时，JavaScript运行时会将栈顶的调用结构弹出。由于栈的LIFO（后入先出）特性，每次弹出的必然是最新调用的那个函数的结构。
+
+
+
+
 
 
 
