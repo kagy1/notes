@@ -118,9 +118,43 @@ var c = a;
 
 a == b; // false
 a === b; // false
-a == c;
-a === c;
+a == c; // true
+a === c; //true
 ```
+
+<img  src="./img/1.jpg" align="left" style="width:30%">
+
+
+
+#### NaN
+
+NaN 是 JavaScript 中的一个特殊值，表示 "Not-a-Number"（非数值）。当你尝试对非数值类型的值进行数学运算时，或者当计算结果无法表示为数值时，就会出现 NaN。
+
+```js
+// 1.对非数值类型进行算术运算
+"abc" * 2;  // NaN
+undefined + 1;  // NaN
+
+// 2.对非法的数学表达式求值
+Math.sqrt(-1);  // NaN
+parseFloat("abc");  // NaN
+
+// 3.特殊的函数调用
+Math.sqrt(-1);  // NaN
+parseFloat("abc");  // NaN
+
+// 4.NaN 有一个特殊的属性，即它不等于自身
+NaN === NaN;  // false
+
+// 5.要判断一个值是否为 NaN，应该使用 isNaN() 函数
+isNaN(NaN);  // true
+isNaN("abc");  // true
+isNaN(123);  // false
+```
+
+
+
+
 
 
 
@@ -189,9 +223,135 @@ const res = Object.assign(obj,obj1)
 
 
 
+### 箭头函数
+
+参数只有一个或者return 一个元素可以省略return
+
+```js
+const obj = {
+   name: 'zhang',
+   sayName: function () {
+   console.log(this.name);
+   },
+}
+```
+
+```js
+const obj1 = {
+    name: 'zhang',
+    sayName: () => {
+        console.log(obj.name);
+    },
+}
+```
+
+箭头函数不能当做构造函数，箭头函数没有自己的this
+
+箭头函数没有arguments对象
 
 
 
+### 可选链 ?. 运算符
+
+允许你在访问对象的属性或调用对象的方法时，如果对象的某个部分是 `null` 或 `undefined`，运算会短路并返回 `undefined` 而不会继续访问后续属性以及抛出错误。
+
+- 基本语法
+
+```js
+obj?.prop
+obj?.[expr]
+arr?.[index]
+func?.(args)
+```
+
+- 访问对象的嵌套属性
+
+```js
+let user = {
+    profile: {
+        name: "Alice",
+        address: {
+            city: "Wonderland"
+        }
+    }
+};
+
+// 使用可选链访问嵌套属性
+let city = user?.profile?.address?.city;
+console.log(city); // 输出 "Wonderland"
+
+// 如果某个属性不存在，不会抛出错误
+let country = user?.profile?.address?.country;
+console.log(country); // 输出 undefined
+```
+
+- 访问数组元素
+
+```js
+let arr = [1, 2, 3];
+
+// 使用可选链访问数组元素
+let firstElement = arr?.[0];
+console.log(firstElement); // 输出 1
+
+// 访问超出范围的索引，不会抛出错误
+let outOfRangeElement = arr?.[10];
+console.log(outOfRangeElement); // 输出 undefined
+```
+
+- 调用对象的方法
+
+```js
+let user = {
+    greet: function() {
+        return "Hello!";
+    }
+};
+
+// 使用可选链调用方法
+let greeting = user?.greet?.();
+console.log(greeting); // 输出 "Hello!"
+
+// 调用不存在的方法，不会抛出错误
+let farewell = user?.farewell?.();
+console.log(farewell); // 输出 undefined
+```
+
+
+
+### 空位合并 ?? 运算符
+
+`??空位合并运算符`:当左侧操作数为 null 或 undefined 时，其返回右侧的操作数。否则返回左侧的操作数。
+
+```js
+const a = 0 || 'X'   // X
+const b = '' || 'X'   // X
+const c = false || 'X'   // X
+const d = undefined || 'X'   // X
+const e = null || 'X'   // X
+
+//若想使||前的 0 ''  false 均为真 则需要使用空位合并运算符 ?? 
+//空位合并运算符 ??
+const a = 0 ?? 'X' // 0
+const b = '' ?? 'X' // ''
+const c = false ?? 'X' // false
+const d = undefined ?? 'X' // X
+const e = null ?? 'X' // X
+
+```
+
+
+
+
+
+
+
+### 求幂运算符
+
+```js
+const num = Math.pow(4,5) // old
+const num1 = 4 ** 5 // new
+```
 
 
 
@@ -484,7 +644,9 @@ console.log(s4 === s5) // true
 
 ### for in / for of
 
-for…of输出的是数组的值，for…in输出的数组的索引，并且输出的索引是字符串
+<span style="color:red">for…of输出的是数组的值，for…in输出的数组的索引，并且输出的索引是字符串</span>
+
+对象无法使用for of
 
 #### for...in
 
@@ -541,6 +703,63 @@ let str1 = 'hello'
 
 
 
+### find / findIndex
+
+返回第一个匹配条件的元素或索引
+
+- find
+
+```js
+const person = [
+    { name: 'li', age: 25 },
+    { name: 'wang', age: 36 },
+    { name: 'zhang', age: 47 }
+]
+
+const index = person.find(item => item.name === 'wang')  // { name: 'wang', age: 36 }
+const index1 = person.find((item) => {
+    return item.name === 'wang'  
+})
+```
+
+
+
+- findIndex
+
+```js
+const person = [
+    { name: 'li', age: 25 },
+    { name: 'wang', age: 36 },
+    { name: 'zhang', age: 47 }
+]
+
+const index = person.findIndex(item => item.name === 'wang')  //1
+const index1 = person.findIndex((item) => {  //1
+    return item.name === 'wang'  
+})
+
+```
+
+
+
+### includes/indexOf
+
+字符串/数组使用,判断是否含有某个元素
+
+```js
+const str = "hello world"
+const bol = str.includes("world")  // true
+
+const arr = [1, 2, 3, 4, 5]
+const bol1 = arr.includes(6)  // false
+```
+
+```js
+const arr = [1, 2, 3, 4, 5]
+const bol1 = arr.indexOf(6);  // -1
+// index无法判断数组是否含有NaN
+```
+
 
 
 ## 字符串方法
@@ -594,8 +813,6 @@ const str = "hello"
 let s = str.slice(2);
 console.log(s); //llo
 ```
-
-
 
 
 
@@ -658,7 +875,127 @@ fruits.sort();
 console.log(fruits); // 输出: ['apple', 'banana', 'grape', 'orange']
 ```
 
+### arr.forEach(~)
 
+```js
+const arr = ['a', 'b', 'c', 'd', 'e']
+
+arr.forEach((item, index, arr) => {
+    console.log(item, index, arr) // 元素，索引，数组本身
+})
+// a 0 [ 'a', 'b', 'c', 'd', 'e' ]
+// b 1 [ 'a', 'b', 'c', 'd', 'e' ]
+// c 2 [ 'a', 'b', 'c', 'd', 'e' ]
+// d 3 [ 'a', 'b', 'c', 'd', 'e' ]
+// e 4 [ 'a', 'b', 'c', 'd', 'e' ]
+```
+
+### arr.map(~)
+
+```js
+const arr = [1, 2, 3, 4, 5]
+const newArr = arr.map(item => item * 2)
+```
+
+### arr.filter(~)
+
+```js
+const arr = [1, 2, 3, 4, 5]
+const newArr = arr.filter(item => item % 2 === 0)  // [2,4]
+```
+
+### arr.some(~)/arr.every(~)
+
+```js
+const arr = [1, 2, 3, 4, 5]
+
+const flag = arr.some(item => item > 3)    // true
+const flag1 = arr.every(item => item > 3)  //false
+```
+
+### arr.reduce(~)
+
+pre: 上一次调用的返回值
+
+next: 数组中当前被处理的元素
+
+```js
+const arr = [1, 2, 3, 4, 5];
+const sum = arr.reduce((pre, next) => {
+    return pre + next;  // 累加
+}) // 15
+```
+
+```js
+const arr1 = [1, 1, 2, 3, 4, 5, 5]
+const res = []
+arr1.reduce((pre, next) => {
+    if (!pre.get(next)) {
+        pre.set(next, 1)
+        res.push(next)
+    }
+    return pre
+}, new Map())
+
+// pre第一次调用时为初始值 new Map()
+
+```
+
+
+
+
+
+## Object方法
+
+### Object.keys()
+
+- old
+
+```js
+const obj = { name: 'zhangsan', age: 20 };
+const keys = Object.getOwnPropertyNames(obj);  // [ 'name', 'age' ]
+
+for (let key of keys) {
+    console.log(obj[key]);
+} 
+// zhangsan 
+// 20
+
+
+const obj = { name: 'zhangsan', age: 20 };
+
+for (let key in obj) {
+    console.log(obj[key]);
+}
+```
+
+- new
+
+```js
+const obj = { name: 'zhangsan', age: 20 };
+
+
+const keys = Object.keys(obj);  // [ 'name', 'age' ]
+
+for (let key of keys) {
+    console.log(obj[key]);
+}
+// 与Object.getOwnPropertyNames相同
+// zhangsan 
+// 20
+```
+
+### Object.values(~)
+
+
+
+## 默认参数
+
+```js
+function show(name = "li", age = 18) {
+    console.log(name, age);
+}
+```
 
 
 
