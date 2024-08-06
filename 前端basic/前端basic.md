@@ -987,6 +987,18 @@ for (let key of keys) {
 
 ### Object.values(~)
 
+把对象的所有属性值写成一个数组
+
+```js
+const obj = {
+    name: 'li',
+    age: 20,
+    gender: 'male'
+}
+
+const values = Object.values(obj);  // [ 'li', 20, 'male' ]
+```
+
 
 
 ## 默认参数
