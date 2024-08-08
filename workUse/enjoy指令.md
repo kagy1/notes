@@ -4,7 +4,8 @@
 
 ### #bodyget_rs()
 
-**示例1**
+- **示例1**
+
 ```enjoy
 #bodyget_rs()
 {
@@ -13,14 +14,14 @@
 ```
 渲染模板字符串，赋值给rs
 
+- **示例2**
 
-**示例2**
 ```enjoy
 #bodyget_rs("1") 
 ```
 如果type参数为"1"，并且发生了MsgException异常，那么异常消息会被存储到scope中的"rs"变量中。否则会抛出异常
 
-**示例3**
+- **示例3**
 
 ```enjoy
 #bodyget_rs()
@@ -33,38 +34,85 @@
 ```
 
 ```enjoy
-#bodyget_rs(res)   //结果存在res里
+#bodyget_rs(res)   ### 结果存在res里
 xxxxx
 #end    
 ```
 
 
 
-### #@busi_get_obj()
+### \#@busi_get_cache(~)
+
+从缓存中获取业务数据
+
+```enjoy
+#define busi_get_cache(p_table,p_param,p_value,p_var)
+```
+
+- `p_table`: 表名
+- `p_param`: 参数名
+- `p_value`: 参数值
+- `p_var`: 存储结果的变量名
+
+
+
+
+
+- 源码
+
+```enjoy
+#define busi_get_cache(p_table,p_param,p_value,p_var)
+### 设置缓存的超时时间 p_busi_timeout 的默认值为 "30000" (30秒)。
+#set(p_busi_timeout="30000")
+### 如果存在变量 busi_cache_timeout,则使用 busi_cache_timeout 的值作为缓存超时时间。
+#if(busi_cache_timeout!=null)
+#set(p_busi_timeout=busi_cache_timeout)
+#end
+#cache_plug(p_busi_timeout,"//busi_get_cache",["p_param","p_table","p_value"],[p_var])
+#@busi_get_obj(p_table,p_param,p_value,p_var)
+#end
+#end
+```
+
+
+
+### #@busi_get_obj(~)
+
+根据给定的表名、字段名和字段值,从数据库中查询符合条件的记录,并将查询结果赋值给指定的变量
+
+```enjoy
+#@busi_get_obj(p_tablename,p_ids,p_values,p_var)
+#@busi_get_obj("some_table",["field1", "field2"],[value1, value2],"result")
+```
+
+接受四个参数
+
+1. `p_tablename`:要查询的表名
+
+2. `p_ids`:要作为查询条件的字段名列表
+
+3. `p_values`:对应字段的值列表
+
+4. `p_var`:用于存储查询结果的变量名
+
+   
+
+- 示例1
 
 ```enjoy
 #@busi_get_obj("dictmanage.dict_outpat_clinic",["ZS_ID"],[zs_id],"outpat_clinic")
 ```
 
-接受四个参数
-
-- `p_tablename`:要查询的表名
-- `p_ids`:要作为查询条件的字段名列表
-- `p_values`:对应字段的值列表
-- `p_var`:用于存储查询结果的变量名
-  在 Enjoy 模板语言中,方括号 [ ] 用于表示列表(List)类型的数据。
-
 第二个参数 ["ZS_ID"] 表示一个只含有一个元素 "ZS_ID" 的列表,这个列表代表了要作为查询条件的字段名。
 
 第三个参数 [zs_id] 同样表示一个只含有一个元素 zs_id 的列表,这个列表代表了对应字段的值。
 
-**#@busi_get_obj("some_table",["field1", "field2"],[value1, value2],"result")**
+- 示例2
 
 ```enjoy
-#@busi_get_obj("dictmanage.dict_outpat_clinic",["ZS_ID", "CLINIC_CODE"],[zs_id, clinic_code],"outpat_clinic")
+#@busi_get_obj("dictmanage.dict_outpat_clinic",["ZS_ID", "CLINIC_CODE"],[zs_id,clinic_code],"outpat_clinic")
 
-SELECT * FROM dictmanage.dict_outpat_clinic 
-WHERE ZS_ID = ? AND CLINIC_CODE = ?
+### SELECT * FROM dictmanage.dict_outpat_clinic WHERE ZS_ID = ? AND CLINIC_CODE = ?
 ```
 
 
@@ -86,6 +134,8 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 
 ### #@cf_get(~)
 
+查询配置项，结果存入rs
+
 ```enjoy
 #@cf_get("sys.log.save.type","日志保存方式","1")
 ```
@@ -97,8 +147,10 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 #@cf_get(p_key,p_name,"p_value")
 
 - `p_key`: 配置项的名称。
-- `p_name`: 配置项的描述。
+- `p_name`: 配置项的描述。如果该配置项不存在将这个值存入。
 - `p_value`: 配置项的默认值。如果该配置项不存在将这个值存入。
+
+
 
 
 
@@ -136,6 +188,32 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 #define check_empty(p_msg)
 #if(isEmpty(list))
 #@throwBusi(p_msg)
+#end
+#end
+```
+
+
+
+## L
+
+### #@list_record(~)
+
+用于从给定的列表 `p_list` 中获取第一条记录,并将其赋值给变量 `record`
+
+- 示例
+
+```enjoy
+#@list_record(list)
+#set(pat_record=record)
+```
+
+- 源码
+
+```enjoy
+#define list_record(p_list)
+#set(record=kitutil.getRecord())
+#if(!isEmpty(p_list))
+#set(record=p_list[0])
 #end
 #end
 ```
@@ -181,6 +259,8 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 
 将指定的属性键和属性值设置到请求对象中。
 
+
+
 ### #@setMsgNotify?(~)
 
 ```enjoy
@@ -208,7 +288,23 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 
 
 
+### #@setReqNoAllLog()
+
+不记录日志
+
+```enjoy
+#define setReqNoAllLog()
+#@setAttribute("setNoLog","1")
+#@setAttribute("setNoSqlLog","1")
+#@setAttribute("setNoPlumeSqlLog","1")
+#end
+```
+
+
+
 ### #@setReqLog()
+
+记录日志
 
 ```enjoy
 #define setReqLog()
@@ -218,9 +314,9 @@ WHERE ZS_ID = ? AND CLINIC_CODE = ?
 #end
 ```
 
-- `#@setAttribute("setNoLog",null)`将请求的"setNoLog"属性设置为null，表示不记录日志。
-- `#@setAttribute("setNoSqlLog",null)`将请求的"setNoSqlLog"属性设置为null，表示不记录SQL日志。
-- `#@setAttribute("setNoPlumeSqlLog",null)`将请求的"setNoPlumeSqlLog"属性设置为null，表示不记录Plume SQL日志
+- `#@setAttribute("setNoLog",null)`将请求的"setNoLog"属性设置为null，表示记录日志。
+- `#@setAttribute("setNoSqlLog",null)`将请求的"setNoSqlLog"属性设置为null，表示记录SQL日志。
+- `#@setAttribute("setNoPlumeSqlLog",null)`将请求的"setNoPlumeSqlLog"属性设置为null，表示记录Plume SQL日志
 
 
 
@@ -352,6 +448,160 @@ ip`：表示配置键为 "ip"。
 
 
 
+### #@toJsonStr(~)
+
+等同于kitutil.toJSONString(~)
+
+- 源码
+
+```enjoy
+#define toJsonStr(str)
+	#(kitutil.toJSONString(str))
+#end
+```
+
+
+
+### #@totoUrlStr(~)
+
+如果str不为空，执行java.net.URLEncoder::encode(str, "utf-8")
+
+- 源码
+
+```enjoy
+#define toUrlStr(str)
+	#if(str!=null && str!="")
+		#(java.net.URLEncoder::encode(str, "utf-8"))
+	#end
+#end
+```
+
+
+
+### #@toSqlStr(~)
+
+等同于org.apache.commons.lang.StringEscapeUtils::escapeSql(~)
+
+- 源码
+
+```enjoy
+#define toSqlStr(str)
+	#(org.apache.commons.lang.StringEscapeUtils::escapeSql(str))
+#end
+```
+
+
+
+
+
+
+
+## V
+
+### \#@validate_blank_param(~)
+
+对传入的参数数组进行验证,确保每个参数都不为空。如果有任何一个参数为空,就会抛出相应的业务异常,提示该参数不能为空
+
+- 示例
+
+```enjoy
+#@validate_blank_param(["sfz_hm","pat_name"])
+```
+
+- 源码
+
+```enjoy
+#define validate_blank_param(arr)
+#for(item : arr)
+#if(param[item]==null || isBlank(param[item].toString()))
+#@throwBusi(item+"不为空")
+#end
+#end
+#end
+```
+
+
+
+### #@validate_in_param(~)
+
+函数的作用是检查param里的 `arr` 中的每个参数是否在 `in_arr` 指定的范围内,如果不在,则抛出一个业务异常
+
+```enjoy
+validate_in_param(arr,in_arr)
+```
+
+1. `arr`: 需要验证的参数名称,可以是一个字符串或者一个字符串数组。
+2. `in_arr`: 指定的合法值范围,是一个数组。
+
+
+
+- 示例
+
+```enjoy
+#@validate_in_param(["type"],["today","all"])
+### 判断param.type的值是否为 "today"或者"all"
+```
+
+
+
+# 自定义视图
+
+## 调用自定义视图
+
+- 示例
+
+```enjoy
+#sql_query_list("his")
+select * from #@his_v_mzpb()
+#end
+```
+
+
+
+## his_v_mzpb()
+
+- 示例
+
+```enjoy
+#sql_query_list("his")
+select distinct substr(his.f_pinyin(zs_mc),0,1) pym from (
+select distinct zs_id,zs_mc,ks_hz,hz_mc
+from #@his_v_mzpb()
+where
+#if(rq!="")
+to_char(checkdt,'yyyy-MM-dd')=#@para("rq") and
+#end
+(
+(
+sj_id='0'
+and
+to_char(sysdate,'hh24:mi') <= '12:00'
+)
+or
+sj_id = '1'
+or  checkdt >=trunc(sysdate+1)
+)
+and
+checkdt >= trunc(sysdate)
+and sj_id in ('0','1')
+#if(ks_id!="" && ks_id!='jzflag')
+and ks_hz = #@para("ks_id")
+#end
+and checkdt <= trunc(sysdate + #(ts))
+) order by pym
+#end
+```
+
+
+
+
+
+
+
+
+
+
+
 ## 获取时间
 
 ```enjoy
@@ -450,17 +700,66 @@ if(kp_arr.size()>9)
 
 ## dbutil
 
-### dbutil.getNowStr("yyyy-MM-dd") 获取日期
+### dbutil.getNowStr(~) 
 
-#set(dqsj=dbutil.getNowStr("yyyy-MM-dd")): 获取当前日期，并格式化为指定格式的字符串，赋值给变量 "dqsj"。
+获取日期
+
+- 示例
+
+```enjoy
+#set(dqsj=dbutil.getNowStr("yyyy-MM-dd"))   ### 获取当前日期，并格式化为指定格式的字符串，赋值给变量 "dqsj"。
+```
+
+```enjoy
+#set(dqsj=dbutil.getNowStr("HH:mm"))
+```
+
+
+
+### dbutil.toDate(~)
+
+转换为日期类型
+
+-  示例
+
+```enjoy
+#set(cs_rq=cn.hutool.core.util.IdcardUtil::getBirthByIdCard(sfz_hm)) ### 根据身份证号获取出生日期
+#set(cs_rq=dbutil.toDate(cs_rq))  ### 转换为日期类型
+```
+
+### dbutil.getNow()
+
+获取当前时间
+
+- 示例
+
+```enjoy
+#set(now=dbutil.getNow())  
+```
 
 
 
 ## kitutil
 
+### kitutil.getStr(~)
+
+```enjoy
+#set(cardInfo_sex=kitutil.getStr(param.sex))
+```
+
+
+
+
+
 ### kitutil.toJSONObject(rs)
 
-#set(json=kitil.toJSONObject(rs))
+ 
+
+- 示例
+
+```enjoy
+#set(json=kitil.toJSONObject(rs))  
+```
 
 
 
@@ -468,7 +767,7 @@ if(kp_arr.size()>9)
 
 
 
-### kitutil.getStr(~)
+### 
 
 
 
@@ -494,6 +793,28 @@ insert(Map<String, Object> jsonMap, String configName, String tableName)
 
 
 
+## IdcardUtil
+
+### isValidCard(~)
+
+验证身份证号是否合法
+
+- 示例
+
+```enjoy
+#if(cn.hutool.core.util.IdcardUtil::isValidCard(sfz_hm)) 
+```
+
+### getBirthByIdCard(~)
+
+根据身份证号获取出生日期
+
+- 示例
+
+```enjoy
+#set(cs_rq=cn.hutool.core.util.IdcardUtil::getBirthByIdCard(sfz_hm))
+```
+
 
 
 # enjoy语法
@@ -508,14 +829,22 @@ query_param:  查询参数,url的?后面的部分
 
 
 
+## Param
+
+```enjoy
+#set(param.put("PYM",pym.toUpperCase()))  ### 将参数存入param
+```
+
+
+
 # other
 
 ## 开始流程
 
 ```enjoy
-#@setCross()  //允许跨域等
+#@setCross()  ### 允许跨域等
 
-#set(method=query_param.method??"") //设置method变量
+#set(method=query_param.method??"") ### 设置method变量
 #if(method.indexOf("?")>=0)
 #@throwBusi("method is error")
 #end
@@ -533,3 +862,8 @@ delete from his.test1 where name = #@para("name") and rownum=1
 #@msg("")
 ```
 
+
+
+# temp
+
+_def   D:\work\api-view-base\jarboot\services\api-view-base\webapp\WEB-INF\common\_def.html

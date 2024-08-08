@@ -1028,13 +1028,13 @@ function rand(m: number, n: number) {
 ### 最小值 Math.min(~)
 
 ```js
-min = Math.min(min, prices[i]);
+let min = Math.min(-1, -2, -3);
 ```
 
 ### 最大值 Math.max(~)
 
 ```js
-max=Math.max(max,prices[i]);
+let max = Math.max(-1, -2, -3);
 ```
 
 ### 绝对值 Math.abs(x)

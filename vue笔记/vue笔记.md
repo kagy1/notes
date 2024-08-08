@@ -41,7 +41,7 @@ export default defineComponent({
         return () => (
             <>
                 <div>
-                    <div class={style.d1}>hello}</div>
+                    <div class={style.d1}>hello</div>
                 </div>
             </>
         )
@@ -679,6 +679,8 @@ const customVNode2 = () => (
 <DictSelect v-model={selectDict.value} ref={dictSelectRef} style={{ margin: '16px' }} dict={cw_state} clearable={true} size={"large"}></DictSelect>
 ```
 
+
+
 ## 父子传参
 
 - 函数式
@@ -1026,7 +1028,53 @@ export default defineComponent({
 
 ```
 
-   
+##  hook
+
+- 定义
+
+```ts
+import { ref } from "vue";
+
+export function useCounter(initialValue = 0) {
+    const count = ref(initialValue)
+
+    function increment() {
+        count.value++
+    }
+    
+    function decrement() {
+        count.value--
+    }
+    
+    return {
+        count,
+        increment,
+        decrement
+    }
+}
+```
+
+```tsx
+import { defineComponent } from 'vue'
+import { useCounter } from './child/index'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const counter = useCounter()
+        return () => (
+            <div>
+                <button onClick={() => counter.increment()}>Increment</button>
+                <br></br>
+                <button onClick={() => counter.decrement()}>Decrement</button>
+                <br></br>
+                <p>{counter.count.value}</p>
+            </div>
+        )
+    }
+})
+```
+
+
 
 # vite
 
@@ -1237,6 +1285,34 @@ export default defineComponent({
 });
 
 ```
+
+
+
+
+
+# 导入导出
+
+- 导入
+
+```ts
+import { ref } from "vue";
+
+export function useCounter() {
+    xxx
+}
+
+export default function() {
+    xxx
+}
+```
+
+```ts
+import useDefault, { useCounter } from './child/index'
+```
+
+
+
+
 
 
 
@@ -1769,6 +1845,8 @@ p.then((msg) => { alert(msg) }, (msg) => { alert(msg) })
 p.then((msg) => { () => { alert(msg) } })
 p.catch((msg) => { () => { alert(msg) } })
 ```
+
+
 
 ### async函数
 
