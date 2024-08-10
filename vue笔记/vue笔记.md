@@ -604,7 +604,8 @@ export default defineComponent({
 
 ## VNode
 
-- h函数
+### h函数
+
 ```tsx
 const customVNode1 = h(
     "p",
@@ -650,6 +651,14 @@ export default defineComponent({
 
 
 
+h函数接受三个参数，分别表示：
+
+1. `type`：表示要创建的虚拟节点的类型，可以是一个字符串（如 `'div'`）、一个组件对象或一个函数。这个参数指定了要渲染的组件或元素。
+2. `props`：表示要传递给虚拟节点的属性（props）对象。这个参数用于向组件传递数据和属性。
+3. `children`：表示虚拟节点的子节点，可以是一个字符串、一个数组或一个虚拟节点。这个参数可以用来传递子元素或插槽内容。
+
+
+
 - tsx
 ```tsx
 const customVNode2 = () => (
@@ -683,7 +692,97 @@ const customVNode2 = () => (
 
 ## 父子传参
 
-- 函数式
+### 子传父
+
+```tsx
+//  父
+import { defineComponent, h } from 'vue'
+import { useTest1 } from './child/index'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const test1 = useTest1()
+        return () => (
+            <div>
+                {h(test1.element)}
+            </div>
+        )
+    }
+})
+```
+
+```tsx
+// 子
+export function useTest1() {
+    const element = () => <div>hello</div>
+
+    return {
+        element
+    };
+}
+
+// 或者
+export function useTest1() {
+
+    return {
+        element: ()=><div>hello</div>
+    };
+}
+
+// 或者
+import { h } from "vue";
+
+export function useTest1() {
+
+    return {
+        element: h('div', null, "hello")
+    };
+}
+```
+
+```tsx
+
+```
+
+### 父传子
+
+- h函数传参
+
+```tsx
+// 父
+import { defineComponent, h, ref } from 'vue'
+import { useTest1 } from './child/index'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const fatherText = ref('father')
+        const test1 = useTest1()
+        return () => (
+            <div>
+                {h(test1.element, { text: fatherText.value })}
+                // 将text作为props传递给子组件
+            </div>
+        )
+    }
+})
+
+// 子
+export function useTest1() {
+    return {
+        element: (props: { text: string }) => <div>{props.text}</div>
+        // props: { text: string } 表示 props 参数是一个对象，它包含一个名为 text 的属性，并且 text 属性的类型是 string。
+        // 是 TypeScript 中的类型注解
+    };
+}
+```
+
+
+
+
+
+
+
+
 
 ```tsx
 import { ElInput } from 'element-plus'
@@ -752,6 +851,34 @@ export default defineComponent({
         )
     }
 })
+
+// 子
+import { ElInput } from "element-plus"
+import { ref, Ref } from "vue"
+
+type TCall = {
+    type: "changeData",
+    data: string
+}
+
+export default function useC2(val: string, callback: (arg: TCall) => void) {
+    const sonkey = ref(val)
+    function changeSonKey(arg: string) {
+        sonkey.value = arg
+    }
+    return {
+        element: () => <div>
+            <ElInput v-model={sonkey.value} onInput={(e) => {
+                callback({
+                    type: "changeData",
+                    data: e
+                })
+            }}> </ElInput>
+            <div>{sonkey.value}</div>
+        </div>,
+        changeSonKey
+    }
+}
 ```
 
 
@@ -1049,7 +1176,7 @@ export function useCounter(initialValue = 0) {
     return {
         count,
         increment,
-        decrement
+        decrement  // 父组件调用子组件的方法，改变子组件里变量的值
     }
 }
 ```

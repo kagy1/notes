@@ -462,9 +462,27 @@ ip`：表示配置键为 "ip"。
 
 
 
-### #@totoUrlStr(~)
+### #@toSqlStr(~)
+
+等同于org.apache.commons.lang.StringEscapeUtils::escapeSql(~)
+
+用于对 SQL 查询中的特殊字符进行转义，以防止 SQL 注入攻击
+
+- 源码
+
+```enjoy
+#define toSqlStr(str)
+	#(org.apache.commons.lang.StringEscapeUtils::escapeSql(str))
+#end
+```
+
+
+
+### #@toUrlStr(~)
 
 如果str不为空，执行java.net.URLEncoder::encode(str, "utf-8")
+
+将字符串 `str` 按照 UTF-8 字符集进行 URL 编码
 
 - 源码
 
@@ -477,18 +495,6 @@ ip`：表示配置键为 "ip"。
 ```
 
 
-
-### #@toSqlStr(~)
-
-等同于org.apache.commons.lang.StringEscapeUtils::escapeSql(~)
-
-- 源码
-
-```enjoy
-#define toSqlStr(str)
-	#(org.apache.commons.lang.StringEscapeUtils::escapeSql(str))
-#end
-```
 
 
 
