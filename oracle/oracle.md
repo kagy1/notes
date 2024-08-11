@@ -68,6 +68,29 @@ select sysdate,trunc(sysdate,'d') from dual;-- 获取当前星期的第一天(�
 
 
 
+## 连接
+
+### left join
+
+
+
+
+
+
+
+
+
+
+
+## 函数
+
+### Mod
+
+标量数值函数，返回一个数除以另一个数的模数（余数）
+
+```sql
+```
+
 
 
 

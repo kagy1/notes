@@ -94,6 +94,109 @@ app.mount('#app')
 
 
 
+# vue
+
+## 插槽
+
+### 默认插槽
+
+```vue
+// 父组件
+<template>
+	<child-component>
+    	<span>hello</span>
+	</child-component>
+</template>
+
+//子组件
+<template>
+	<div>this is child</div>
+	<slot></slot>
+</template>
+```
+
+
+
+### 具名插槽
+
+```vue
+// 父组件
+<childComponent>
+    <template #s1>
+        <div>this is s1</div>
+    </template>
+    <template #s2>
+        <div>this is s2</div>
+    </template>
+</childComponent>
+
+// 子组件
+<template>
+    <div>this is child</div>
+    <slot name="s1"></slot>
+    <slot name="s2"></slot>
+</template>
+```
+
+```vue
+<template #s1>
+    <div>this is s1</div>
+</template>
+
+// 等同于
+<template v-slot='s1'>
+    <div>this is s1</div>
+</template>
+```
+
+
+
+### 作用域插槽
+
+插槽传参
+
+```vue
+// 父组件
+<childComponent>
+    <template v-slot:s1="params">
+        <ol>
+            <li v-for="i in params.ps">
+                {{ i.name}}
+            </li>
+        </ol>
+    </template>
+</childComponent>
+
+//或者
+<template #s1="params">
+    <ol>
+        <li v-for="i in params.ps" :key="i.id">
+            {{ i.name }}
+        </li>
+    </ol>
+</template>
+
+
+// 子组件
+<template>
+    <slot name="s1" :ps="persons"></slot>
+</template>
+
+<script setup lang="ts">
+import { reactive } from 'vue';
+
+const persons =reactive([
+    {name: '张三', age: 20},
+    {name: '李四', age: 30},
+    {name:'王五', age:40}
+])
+</script>
+```
+
+
+
+
+
 # tsx
 
 ## 基础语法
@@ -554,6 +657,8 @@ app.mount('#app')
 
 ## 插槽
 
+### 具名插槽
+
 - 父组件
 
 ```tsx
@@ -599,6 +704,115 @@ export default defineComponent({
 **{slots.default?.()}**
 
 <span style="color:red">如果`slots.default`存在且不为`null`或`undefined`，则调用`slots.default`作为函数。这样做是因为插槽内容可以是一个渲染函数</span>
+
+
+
+### 作用域插槽
+
+```tsx
+// 父
+import { defineComponent } from 'vue';
+import ChildComponent from './childComponent';
+
+
+interface Item {
+    id: number;
+    name: string;
+}
+export default defineComponent({
+    setup() {
+        return () => (
+            <div>
+                <h1>slotTest1</h1>
+                <ChildComponent>
+                    {{
+                        s1: ({ ps }: { ps: Item[] }) => (
+                            <ol>
+                                {ps.map(item => (
+                                    <li key={item.id}>{item.name}</li>
+                                ))}
+                            </ol>
+                        )
+                    }}
+                </ChildComponent>
+            </div>
+        );
+    }
+});
+
+
+// 子
+import { defineComponent, h } from "vue"
+
+export default defineComponent({
+    setup(props, { slots, attrs, expose, emit }) {
+
+        return () => (
+            <div>
+                <div>this is child</div>
+                <div>
+                    {slots.s1?.({ ps: [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }] })}
+                </div>
+            </div>
+        )
+
+    }
+})
+```
+
+
+
+```tsx
+// 父
+import { defineComponent } from 'vue';
+import ChildComponent from './childComponent';
+
+interface Item {
+    name: string;
+    age: number;
+}
+export default defineComponent({
+    setup() {
+        return () => (
+            <div>
+                <h1>slotTest1</h1>
+                <ChildComponent>
+                    {{
+                        s1: ({ ps }: { ps: Item[] }) => (
+                            <ol>
+                                {ps.map(item => (
+                                    <li>{item.name}：{item.age}岁</li>
+                                ))}
+                            </ol>
+                        )
+                    }}
+                </ChildComponent>
+            </div>
+        );
+    }
+});
+
+// 子
+import { defineComponent, reactive } from "vue"
+
+export default defineComponent({
+    setup(props, { slots, attrs, expose, emit }) {
+        const persons = reactive([
+            { name: '张三', age: 20 },
+            { name: '李四', age: 30 },
+            { name: '王五', age: 40 }
+        ])
+
+        return () => (
+            <div>
+                <div>
+                    {slots.s1?.({ ps: persons })}
+                </div>
+            </div>
+        )
+    }
+})
+```
 
 
 
@@ -775,12 +989,6 @@ export function useTest1() {
     };
 }
 ```
-
-
-
-
-
-
 
 
 
@@ -1155,6 +1363,8 @@ export default defineComponent({
 
 ```
 
+
+
 ##  hook
 
 - 定义
@@ -1200,6 +1410,49 @@ export default defineComponent({
     }
 })
 ```
+
+
+
+## onClick事件
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        function alt(){
+            alert('alt')
+        }
+
+        return () => (
+            <div>
+                <ElButton onClick={alt}></ElButton>
+                <ElButton onClick={()=>alt()}></ElButton>
+            </div>
+        )
+    }
+})
+// 这两种是相同的
+```
+
+- `<ElButton onClick={alt}></ElButton>`
+
+这里的 `onClick={alt}` 实际上是在为 `ElButton` 组件的 `onClick` 事件传递一个回调函数。
+
+将 `alt` 函数作为回调函数传递给 `onClick`
+
+当 `ElButton` 内部触发 `click` 事件时，Vue 会调用传入的 `alt` 函数
+
+
+
+- `<ElButton onClick={() => alt()}></ElButton>`
+
+这里的 `onClick={() => alt()}` 是定义了一个新的匿名函数，这个函数调用了 `alt`
+
+Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭头函数
+
+
 
 
 
