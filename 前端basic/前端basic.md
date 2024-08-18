@@ -48,21 +48,150 @@
 
 
 
+
+
 # css
 
-## flex布局
+## display : table
 
-### flex:1
+```html
+<style>
+  .table {
+    display: table;
+    border: 1px solid #cccccc;
+    margin: 5px;
+  }
+
+  .row {
+    display: table-row;
+    border: 1px solid #cccccc;
+  }
+
+  .cell {
+    display: table-cell;
+    border: 1px solid #cccccc;
+    padding: 5px;
+  }
+</style>
+
+<div class="row">
+  <div class="cell">张三</div>
+  <div class="cell">李四</div>
+  <div class="cell">王五</div>
+</div>
+<div class="cell">张三</div>
+<div class="cell">李四</div>
+<div class="cell">王五</div>
+
+```
+
+
+
+
+
+
+
+
+
+
+
+## 盒模型
+
+### 盒模型宽度计算
+
+计算div1的`offsetWidth`
+
+```html
+<style>
+    #div1{
+        width: 100px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin: 10px;
+    }
+</style>
+
+<div id="div1">    
+</div>
+```
+
+offsetWidth = (width + padding + border)  = (100px + 10px *2 + 1px * 2) = 122px
+
+#### offsetWidth
+
+offsetWidth =（内容宽度+内边距+边框） 无外边距
+
+offsetWidth = (width + padding + border)  无margin
+
+
+
+### margin
+
+#### margin纵向重叠
+
+#### margin负值
+
+
+
+### box-sizing
+
+以特定的方式定义匹配某个区域的特定元素
+
+默认值: content-box
+
+#### content-box
+
+```css
+box-sizing:  content-box
+```
+
+padding和border不被包含在定义的width和height之内。对象的实际宽度等于设置的width值和border、padding之和，即 ( Element width = width + border + padding)
+
+#### border-box
+
+```css
+box-sizing:  border-box
+```
+
+padding和border被包含在定义的width和height之内。对象的实际宽度就等于设置的width值，即使定义有border和padding也不会改变对象的实际宽度，即 ( Element width = width )
+
+offsetWidth等于width
+
+#### inherit
+
+规定从父元素继承此值。继承父亲box-sizing 属性值
+
+```css
+box-sizing: inherit
+```
+
+
+
+
+
+
+
+
+
+## 布局
+
+### flex布局
+
+#### flex:1
 
 等同于: flex: 1 1 0
 
 **flex: 1** 实际上是三个属性的缩写：**flex-grow: 1; flex-shrink: 1 flex-basis: auto;**
+
+
 
 ## font
 
 ### font-weight (字体粗细设置)
 
 font-weight: normal / bold / bolder / lighter / 数字值(从100到900的整数) 
+
+
 
 # js
 

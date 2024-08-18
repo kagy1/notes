@@ -92,7 +92,9 @@ app.mount('#app')
 
 
 
-
+- index.html    入口页面
+- main.ts          入口文件
+- App.vue         根组件
 
 # vue
 
@@ -622,6 +624,8 @@ export default defineComponent({
 
 ## pinia
 
+### 搭建pinia环境
+
 第一步：`npm install pinia`
 
 第二步：操作`src/main.ts`
@@ -642,7 +646,71 @@ app.use(pinia)
 app.mount('#app')
 ```
 
-第三步:
+
+
+### 存储+读取数据
+
+`Store`是一个保存：**状态**、**业务逻辑** 的实体，每个组件都可以**读取**、**写入**它。
+
+1. Option Store
+
+它有三个概念：`state`（状态）、`getters`、`action`（动作），相当于组件中的： `data`、 `computed` 和 `methods`。
+
+具体编码：`src/store/count.ts`
+
+
+
+2. Setup Store
+
+在 Setup Store 中：
+
+- `ref()` 就是 `state` 属性
+- `computed()` 就是 `getters`
+- `function()` 就是 `actions`
+
+要让 pinia 正确识别 `state`，你**必须**在 setup store 中返回 **`state` 的所有属性**
+
+具体编码：`src/store/counter.ts`
+
+```typescript
+import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
+
+export const useCounterStore = defineStore('counter', () => {
+  const count = ref(0)
+  const doubleCount = computed(() => count.value * 2)
+  function increment() {
+    count.value++
+  }
+  function decrement() {
+    count.value--
+  }
+
+  return { count, doubleCount, increment, decrement }
+})
+```
+
+使用state:
+
+```typescript
+import { ElButton, ElInput } from 'element-plus'
+import { computed, defineComponent, ref } from 'vue'
+import { useCounterStore } from '@/stores/counter'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const counterStore = useCounterStore()
+        return () => (
+            <div>
+                <div>{counterStore.count}</div>
+                <div>{counterStore.doubleCount}</div>
+                <ElButton onClick={() => counterStore.increment()}>+</ElButton>
+                <ElButton onClick={() => counterStore.decrement()}>-</ElButton>
+            </div>
+        )
+    }
+})
+```
 
 
 
@@ -890,7 +958,7 @@ const customVNode2 = () => (
 
 ## tips
 
-- 简写
+### 简写
 
 在 JSX ,SFC中使用布尔属性时，可以直接使用属性名作为简写形式，而不需要显式地将其设置为 `true`。这是因为在 JSX,SFC 中，存在属性名本身就意味着该属性的值为 `true`。
 
@@ -901,6 +969,21 @@ const customVNode2 = () => (
 
 <DictSelect v-model={selectDict.value} ref={dictSelectRef} style={{ margin: '16px' }} dict={cw_state} clearable={true} size={"large"}></DictSelect>
 ```
+
+### reactive里的ref
+
+```vue
+let obj = reactive({
+	a:1,
+	b:2,
+	c:ref(3)
+})
+
+console.log(obj.c)  // 不用obj.c.value
+// reactive内部自动解包
+```
+
+
 
 
 
@@ -1365,9 +1448,31 @@ export default defineComponent({
 
 
 
-##  hook
+##  hooks
 
-- 定义
+### 定义
+
+一系列以 `“use”` 作为开头的方法，它们提供了让你可以完全避开 `class式写法`，在函数式组件中完成生命周期、状态管理、逻辑复用等几乎全部组件开发工作的能力。**函数式组件**
+
+### 优点
+
+1. 比mixins更好的状态逻辑复用
+
+   **Hook 的状态复用写法：**
+
+```vue
+// 单个name的写法
+const { name, setName } = useName();
+
+// 梅开二度的写法
+const { name : firstName, setName : setFirstName } = useName();
+
+const { name : secondName, setName : setSecondName } = useName();
+```
+
+2. 高度聚合，可阅读性提升
+
+### 示例
 
 ```ts
 import { ref } from "vue";
@@ -1453,6 +1558,18 @@ export default defineComponent({
 Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭头函数
 
 
+
+# API
+
+## shallowRef
+
+只处理对象最外层属性的响应式（浅响应式）
+
+`shallowRef`创建数据, 只有顶层的`value`属性具有响应性, 深层的数据不具有响应性, 会原因返回, 即`vue`不会递归的将深层数据通过`reactive`处理, 而是原样存储和暴露
+
+## shallowReactive
+
+`shallowReactive`创建响应对象没有深层级的转换：一个浅层响应式对象里只有根级别的属性是响应式的, 深层对象不会被`vue`自动包装为响应对象.
 
 
 
@@ -2380,6 +2497,58 @@ async function myFunction() {
   // 使用结果进行后续处理
 }
 ```
+
+
+
+### 回调地狱及解决
+
+顺序打印 t1,t2,t3
+
+#### 回调地狱
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        function f1() {
+            setTimeout(() => {
+                console.log('Timeout f1');
+                f2()
+            }, 1000);
+        }
+        
+        function f2() {
+            setTimeout(() => {
+                console.log('Timeout f2');
+                f3()
+            }, 500);
+        }
+        
+        function f3() {
+            setTimeout(() => {
+                console.log('Timeout f3');
+            }, 100);
+        }
+        
+        f1()
+
+        return () => (
+            <div>
+
+            </div>
+        )
+    }
+})
+```
+
+
+
+#### promise解决
+
+
 
 
 
