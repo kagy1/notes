@@ -1575,9 +1575,117 @@ Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭�
 
 # vite
 
+## 创建vue3项目
+
+```node.js
+npm create vue@latest
+
+npm init @vitejs/app  // 允许你创建各种类型的项目,不仅限于 Vue。
+```
+
+
+
+
+
 ## 环境变量
 
-###  env文件
+### import.meta.env
+
+- import.meta.env.MODE	应用运行的模式
+- import.meta.env.BASE_URL    部署应用时的基本 URL。他由`base` 配置项决定。 
+- import.meta.env.PROD    应用是否运行在生产环境。
+- import.meta.env.DEV    应用是否运行在开发环境。
+- import.meta.env.SSR    应用是否运行在 server 上。
+
+
+
+### 自定义环境变量
+
+在项目的根目录下，新建一个` .env` 文件。 加载的环境变量也会通过 import.meta.env 以字符串形式暴露给客户端源码。 为了防止意外地将一些环境变量泄漏到客户端，Vite规定：只有以 VITE_ 为前缀的变量才会暴露给经过 vite 处理的代码。
+
+- `.env`内容
+
+```
+VITE_MY_KEY= 123
+```
+
+此时，我们再打印下`import.meta.env` 对象，就会出现`VITE_MY_KEY`变量
+
+```
+BASE_URL: "/"
+DEV: true
+MODE: "development"
+PROD: false
+SSR: false
+VITE_MY_KEY: "hello world"
+```
+
+
+
+vite内置的环境变量属性是有代码智能提示补全的，如果你想要自己自定义的环境变量也有智能提示补全，你可以在 src 目录下创建一个 env.d.ts 文件，接着按下面这样增加 ImportMetaEnv 的定义：
+
+```
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_MY_KEY: string
+  // 更多环境变量...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+
+
+在真正项目的开发中，我们并不会直接去用`.env`文件，而是会新建`.env.development`文件和`.env.production`文件：
+
+- `.env.development`文件：开发环境下会读取文件里面定义的数据
+- `.env.production`文件：生产环境下会读取文件里面定义的数据
+
+```
+# .env.development
+VITE_TITLE=开发环境的标题
+# .env.production
+VITE_TITLE=生产环境的标题
+```
+
+然后我们可以使用 import.meta.env.VITE_TITLE，在不同的环境下渲染不同的值
+
+
+
+### 模式
+
+<span style="color:red">在 Vite 中，可以通过 `--mode` 参数来指定不同的运行模式</span>
+
+我们现在在项目的根目录下，新建一个` .env.test` 文件，对应test模式，内容如下
+
+```
+# .env.test
+VITE_TITLE=test
+```
+
+在` package.json`里 新增配置
+
+```
+{
+  "scripts": {
+    "dev": "vite --mode test",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build --force"
+  }
+}
+```
+
+
+
+
+
+## env文件
 
 ```
 .env                # 所有情况下都会加载
@@ -2500,11 +2608,11 @@ async function myFunction() {
 
 
 
-### 回调地狱及解决
+## 回调地狱及解决
 
 顺序打印 t1,t2,t3
 
-#### 回调地狱
+### 回调地狱
 
 ```tsx
 import { ElButton } from 'element-plus'
@@ -2546,7 +2654,7 @@ export default defineComponent({
 
 
 
-#### promise解决
+### promise解决
 
 
 
