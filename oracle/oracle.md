@@ -74,9 +74,46 @@ select sysdate,trunc(sysdate,'d') from dual;-- 获取当前星期的第一天(�
 
 
 
+### (+) 左外连接
 
+`students` 表包含以下数据：
 
+| student_id | student_name |
+| :--------- | :----------- |
+| 1          | Alice        |
+| 2          | Bob          |
+| 3          | Charlie      |
 
+`classes` 表包含以下数据：
+
+| class_id | class_name | student_id |
+| :------- | :--------- | :--------- |
+| 1        | Math       | 1          |
+| 2        | English    | 2          |
+
+现在，我们想要查询所有学生的信息以及他们所选修的课程（如果有的话）。我们可以使用左外连接来实现：
+
+```sql
+SELECT s.student_id, s.student_name, c.class_name
+FROM students s, classes c
+WHERE s.student_id = c.student_id(+);
+```
+
+等同于:
+
+```sql
+SELECT s.student_id, s.student_name, c.class_name
+FROM students s
+LEFT JOIN classes c ON s.student_id = c.student_id;
+```
+
+查询结果将是：
+
+| student_id | student_name | class_name |
+| :--------- | :----------- | :--------- |
+| 1          | Alice        | Math       |
+| 2          | Bob          | English    |
+| 3          | Charlie      | (null)     |
 
 
 
