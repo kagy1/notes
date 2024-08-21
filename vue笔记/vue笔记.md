@@ -1575,6 +1575,227 @@ Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭�
 
 # vite
 
+## webpack
+
+一般的项目使用 Webpack 之后，启动花个几分钟都是很常见的事情，热更新也经常需要等待十秒以上。这主要是因为：
+
+-   项目冷启动时必须递归打包整个项目的依赖树
+-   JavaScript 语言本身的性能限制，导致构建性能遇到瓶颈，直接影响开发效率
+
+这样一来，代码改动后不能立马看到效果，自然开发体验也越来越差。而其中，最占用时间的就是代码打包和文件编译。
+
+
+
+### 模块标准
+
+#### 无模块化标准阶段
+
+##### 1. 文件划分
+
+##### 2. 命名空间
+
+`命名空间`是模块化的另一种实现手段，它可以解决上述文件划分方式中`全局变量定义`所带来的一系列问题。下面是一个简单的例子:
+
+```ts
+// module-a.js
+window.moduleA = {
+  data: "moduleA",
+  method: function () {
+    console.log("execute A's method");
+  },
+};
+```
+
+```ts
+// module-b.js
+window.moduleB = {
+  data: "moduleB",
+  method: function () {
+    console.log("execute B's method");
+  },
+};
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="./module-a.js"></script>
+    <script src="./module-b.js"></script>
+    <script>
+      // 此时 window 上已经绑定了 moduleA 和 moduleB
+      console.log(moduleA.data);
+      moduleB.method();
+    </script>
+  </body>
+</html>
+```
+
+这样一来，每个变量都有自己专属的命名空间，我们可以清楚地知道某个变量到底属于哪个`模块`，同时也避免全局变量命名的问题。
+
+##### 3. IIFE(立即执行函数)
+
+不过，相比于`命名空间`的模块化手段，`IIFE`实现的模块化安全性要更高，对于模块作用域的区分更加彻底。你可以参考如下`IIFE 实现模块化`的例子:
+
+```ts
+// module-a.js
+(function () {
+  let data = "moduleA";
+
+  function method() {
+    console.log(data + "execute");
+  }
+
+  window.moduleA = {
+    method: method,
+  };
+})();
+```
+
+```ts
+// module-b.js
+(function () {
+  let data = "moduleB";
+
+  function method() {
+    console.log(data + "execute");
+  }
+
+  window.moduleB = {
+    method: method,
+  };
+})();
+```
+
+```html
+// index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="./module-a.js"></script>
+    <script src="./module-b.js"></script>
+    <script>
+      // 此时 window 上已经绑定了 moduleA 和 moduleB
+      console.log(moduleA.data);
+      moduleB.method();
+    </script>
+  </body>
+</html>
+```
+
+我们知道，每个`IIFE` 即`立即执行函数`都会创建一个私有的作用域，在私有作用域中的变量外界是无法访问的，只有模块内部的方法才能访问。拿上述的`module-a`来说:
+
+```ts
+// module-a.js
+(function () {
+  let data = "moduleA";
+
+  function method() {
+    console.log(data + "execute");
+  }
+
+  window.moduleA = {
+    method: method,
+  };
+})();
+```
+
+对于其中的 `data`变量，我们只能在模块内部的 `method` 函数中通过闭包访问，而在其它模块中无法直接访问。这就是模块`私有成员`功能，避免模块私有成员被其他模块非法篡改，相比于`命名空间`的实现方式更加安全。
+
+但实际上，无论是`命名空间`还是`IIFE`，都是为了解决全局变量所带来的命名冲突及作用域不明确的问题，也就是在`文件划分方式`中所总结的`问题 1` 和`问题 2`，而并没有真正解决另外一个问题——**模块加载**。如果模块间存在依赖关系，那么 script 标签的加载顺序就需要受到严格的控制，一旦顺序不对，则很有可能产生运行时 Bug。
+
+
+
+#### CommonJS 规范
+
+```ts
+// module-a.js
+var data = "hello world";
+function getData() {
+  return data;
+}
+module.exports = {
+  getData,
+};
+
+// index.js
+const { getData } = require("./module-a.js");
+console.log(getData());
+```
+
+
+
+#### AMD规范
+
+
+
+#### ES6 Module
+
+`ES6 Module` 也被称作 `ES Module`(或 `ESM`)， 是由 ECMAScript 官方提出的模块化规范
+
+在现代浏览器中，如果在 HTML 中加入含有`type="module"`属性的 script 标签，那么浏览器会按照 ES Module 规范来进行依赖加载和模块解析
+
+下面是一个使用 ES Module 的简单例子:
+
+```ts
+// main.js
+import { methodA } from "./module-a.js";
+methodA();
+
+//module-a.js
+const methodA = () => {
+  console.log("a");
+};
+
+export { methodA };
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
+```
+
+如果在 Node.js 环境中，你可以在`package.json`中声明`type: "module"`属性:
+
+```ts
+// package.json
+{
+  "type": "module"
+}
+```
+
+然后 Node.js 便会默认以 ES Module 规范去解析模块:
+
+```ts
+node main.js
+// 打印 a
+```
+
+
+
 ## 创建vue3项目
 
 ```node.js
@@ -1582,6 +1803,12 @@ npm create vue@latest
 
 npm init @vitejs/app  // 允许你创建各种类型的项目,不仅限于 Vue。
 ```
+
+
+
+## 配置文件
+
+项目中一般使用`vite.config.ts`作为配置文件
 
 
 
