@@ -183,6 +183,117 @@ box-sizing: inherit
 
 **flex: 1** 实际上是三个属性的缩写：**flex-grow: 1; flex-shrink: 1 flex-basis: auto;**
 
+#### flex-grow
+
+这个属性规定了 flex-grow 项在 flex 容器中分配剩余空间的相对比例。 主尺寸是项的宽度或高度，剩余空间是 flex 容器的大小减去所有 flex 项的大小加起来的大小。如果所有的兄弟项目都有相同的 flex-grow 系数，那么所有的项目将剩余空间按相同比例分配，否则将根据不同的 flex-grow 定义的比例进行分配。
+
+- 属性值：`负值无效，默认为 0`
+
+- 公式就是：`原始宽度 + （剩余空间 / 总共分成多少份 * 当前元素所占 分数）`
+
+
+
+#### flex-shrink
+
+flex-shrink 属性指定了 flex 元素的`收缩规则`。flex 元素仅在默认宽度之和大于容器的时候才会发生收缩，其收缩的大小是依据 flex-shrink 的值。
+
+- 属性值：`负值无效，默认值为 1`
+
+- 公式就是：
+
+  `缩小比例 = (flex item的flex-shrink值* flex item 的基准宽度)/所有 flex item 的 (flex-shrink 值 * 基准宽度)之和`
+
+```vue
+<template>
+    <div class="d1">
+        <div class="left">left</div>
+        <div class="center">center</div>
+        <div class="right">right</div>
+    </div>
+</template>
+
+<script setup lang="ts">
+
+</script>
+
+<style lang="scss" scoped>
+.d1{
+    display: flex;
+    flex-direction: row;
+    margin-top:30px;
+    width:500px;
+
+}
+.d1>div{
+    height:100px;
+    width:200px;
+}
+.left{
+    background-color: yellow;
+    flex-shrink:1;
+}
+.center{
+    background-color: darkcyan;
+    flex-shrink:1;
+}
+.right{
+    background-color: red;
+    flex-shrink:2;
+}
+</style>
+```
+
+外层div 500px,内层三个 div 每个200px。
+
+flex-shrink分别是 1、1、2
+
+计算步骤:
+
+1. 计算内层 div 的总宽度:
+   200px + 200px + 200px = 600px
+2. 计算超出的宽度:
+   600px - 500px = 100px
+3. 计算每个 div 的 (flex-shrink * 基准宽度) 值:
+   - .left: 1 * 200 = 200
+   - .center: 1 * 200 = 200
+   - .right: 2 * 200 = 400
+4. 计算 (flex-shrink * 基准宽度) 的总和:
+   200 + 200 + 400 = 800
+5. 计算每个 div 的缩小比例:
+   - .left 的缩小比例 = 200 / 800 = 0.25
+   - .center 的缩小比例 = 200 / 800 = 0.25
+   - .right 的缩小比例 = 400 / 800 = 0.5
+6. 计算每个 div 需要缩小的宽度:
+   - .left 需要缩小的宽度 = 100px * 0.25 = 25px
+   - .center 需要缩小的宽度 = 100px * 0.25 = 25px
+   - .right 需要缩小的宽度 = 100px * 0.5 = 50px
+7. 计算每个 div 的最终宽度:
+   - .left 的最终宽度 = 200px - 25px = 175px
+   - .center 的最终宽度 = 200px - 25px = 175px
+   - .right 的最终宽度 = 200px - 50px = 150px
+
+因此,在这个页面中,每个 div 的最终宽度为:
+
+- .left: 175px
+- .center: 175px
+- .right: 150px
+
+
+
+#### flex-basis
+
+CSS 属性 flex-basis 指定了 flex 元素在主轴方向上的`初始大小`。如果不使用 box-sizing 改变盒模型的话，那么这个属性就决定了 flex 元素的内容盒（content-box）的尺寸。
+
+在 flex item 上,如果同时设置了 flex-basis 和 width,flex-basis 会覆盖 width
+
+flex-basis:  0 / auto / 200px;
+
+
+
+### grid布局
+
+
+
 
 
 ## font
@@ -190,6 +301,40 @@ box-sizing: inherit
 ### font-weight (字体粗细设置)
 
 font-weight: normal / bold / bolder / lighter / 数字值(从100到900的整数) 
+
+
+
+## 选择子元素
+
+.d1 > .d2
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .d1 > .d2 {
+            color: red;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="d1">
+            <div class="d2">1111</div>
+        </div>
+    </div>
+</body>
+
+</html>
+```
 
 
 
@@ -1024,7 +1169,14 @@ arr.forEach((item, index, arr) => {
 ```js
 const arr = [1, 2, 3, 4, 5]
 const newArr = arr.map(item => item * 2)
+
+arr.map((item,index,arr)=>{
+    console.log(item,index,arr)
+})
 ```
+
+- `map()` 方法会返回一个新的数组,该数组的元素是原始数组中的每个元素调用回调函数的结果。
+- `forEach()` 方法没有返回值,它只是对数组中的每个元素执行回调函数,不会生成新的数组。
 
 ### arr.filter(~)
 
@@ -1225,16 +1377,39 @@ console.log(Math.PI); // 输出: 3.141592653589793
 
 ## Other
 
-1. var ctx = "\/jf_view\/"
+### var ctx = "\/jf_view\/"
 
 ```js
 var ctx = "\/jf_view\/"    
 //字符串中的 \/ 是一种转义序列，用于表示字符 /。在 JavaScript 中，/ 有特殊的含义，它用于表示正则表达式的开始和结束。如果要在字符串中包含 / 字符本身，需要使用 \/ 来转义它，以避免被解释为正则表达式的一部分。
 ```
 
+### 0.1+0.2
+
+在js中，0.1 + 0.2 不等于 0.3 的原因是由于浮点数的表示和计算精度问题。浮点数在计算机中的存储和运算遵IEEE 754标准，这种标准使用二进制格式来存储浮点数，包括符号位、指数和尾数三部分。由于二进制表示法对于某些十进制小数的不精确性，特别是像0.1和0.2这样的数在二进制中是无限循环小数，计算机只能存储它们的近似值。因此，当这两个近似值相加时，结果并不是精确的0.3，而是一个近似的值，如0.30000000000000004。
+
 
 
 # TypeScript
+
+
+
+## interface & type
+
+### 区别
+
+1. type 后面需要用 `=`，interface 后面不需要 `=`，直接就带上 `{`
+2. type 可以描述任何类型组合，interface 只能描述对象结构
+3. interface 可以继承自（extends）interface 或对象结构的 type。type 也可以通过 `&` 做对象结构的继承；
+4. 多次声明的同名 interface 会进行声明合并，type 则不允许多次声明；
+
+
+
+
+
+
+
+
 
 ## declare type
 

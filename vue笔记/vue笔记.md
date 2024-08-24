@@ -23,7 +23,9 @@ style={{ paddingRight: tableShowType.value === "left-right" ? "10px" : "0px" }}
 
 
 
-## 模块化
+## css Modules 模块化
+
+CSS Modules的工作原理是将每个类名转换为一个唯一的哈希值，以确保在不同的模块或组件之间不会发生样式冲突。这种方式可以有效地避免全局样式污染的问题。
 
 - 创建 xxxx.module.scss
 ```scss
@@ -48,6 +50,8 @@ export default defineComponent({
     }
 })
 ```
+
+
 
 # main.ts
 
@@ -1586,13 +1590,13 @@ Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭�
 
 
 
-### 模块标准
+## 模块标准
 
-#### 无模块化标准阶段
+### 无模块化标准阶段
 
-##### 1. 文件划分
+#### 1. 文件划分
 
-##### 2. 命名空间
+#### 2. 命名空间
 
 `命名空间`是模块化的另一种实现手段，它可以解决上述文件划分方式中`全局变量定义`所带来的一系列问题。下面是一个简单的例子:
 
@@ -1639,7 +1643,7 @@ window.moduleB = {
 
 这样一来，每个变量都有自己专属的命名空间，我们可以清楚地知道某个变量到底属于哪个`模块`，同时也避免全局变量命名的问题。
 
-##### 3. IIFE(立即执行函数)
+#### 3. IIFE(立即执行函数)
 
 不过，相比于`命名空间`的模块化手段，`IIFE`实现的模块化安全性要更高，对于模块作用域的区分更加彻底。你可以参考如下`IIFE 实现模块化`的例子:
 
@@ -1796,6 +1800,26 @@ node main.js
 
 
 
+
+
+## 样式方案
+
+1. `CSS 预处理器`：主流的包括`Sass/Scss`、`Less`和`Stylus`。这些方案各自定义了一套语法，让 CSS 也能使用嵌套规则，甚至能像编程语言一样定义变量、写条件判断和循环语句，大大增强了样式语言的灵活性，解决原生 CSS 的**开发体验问题**。
+2. `CSS Modules`：能将 CSS 类名处理成哈希值，这样就可以避免同名的情况下**样式污染**的问题。
+3. CSS 后处理器`PostCSS`，用来解析和处理 CSS 代码，可以实现的功能非常丰富，比如将 `px` 转换为 `rem`、根据目标浏览器情况自动加上类似于`--moz--`、`-o-`的属性前缀等等。
+4. `CSS in JS` 方案，主流的包括`emotion`、`styled-components`等等，顾名思义，这类方案可以实现直接在 JS 中写样式代码，基本包含`CSS 预处理器`和 `CSS Modules` 的各项优点，非常灵活，解决了开发体验和全局样式污染的问题。
+5. CSS 原子化框架，如`Tailwind CSS`、`Windi CSS`，通过类名来指定样式，大大简化了样式写法，提高了样式开发的效率，主要解决了原生 CSS **开发体验**的问题。
+
+### CSS 预处理器
+
+Vite 本身对 CSS 各种预处理器语言(`Sass/Scss`、`Less`和`Stylus`)做了内置支持。也就是说，即使你不经过任何的配置也可以直接使用各种 CSS 预处理器。
+
+### CSS Modules
+
+CSS Modules 在 Vite 也是一个开箱即用的能力，Vite 会对后缀带有`.module`的样式文件自动应用 CSS Modules。
+
+
+
 ## 创建vue3项目
 
 ```node.js
@@ -1806,9 +1830,85 @@ npm init @vitejs/app  // 允许你创建各种类型的项目,不仅限于 Vue�
 
 
 
+## 处理静态资源
+
+### 图片加载
+
+#### 使用场景
+
+1. 在 HTML 或者 JSX 中，通过 img 标签来加载图片，如:
+
+```html
+<img src="../../assets/a.png"></img>
+```
+
+2. 在 CSS 中通过 background 属性加载图片，如:
+
+```css
+background: url('../../assets/b.png') norepeat;
+```
+
+3. 在 JavaScript 中，通过脚本的方式动态指定图片的`src`属性，如:
+
+```ts
+document.getElementById('hero-img').src = '../../assets/c.png'
+```
+
+
+
+#### 在 Vite 中使用
+
+##### 配置别名
+
+```ts
+// vite.config.ts
+import path from 'path';
+
+{
+  resolve: {
+    // 别名配置
+    alias: {
+      '@assets': path.join(__dirname, 'src/assets')
+    }
+  }
+}
+```
+
+
+
+
+
+## Rollup
+
+Rollup 是一款基于 ES Module 模块规范实现的 JavaScript 打包工具
+
+
+
+
+
+
+
 ## 配置文件
 
 项目中一般使用`vite.config.ts`作为配置文件
+
+### 别名配置
+
+```ts
+// vite.config.ts
+import path from 'path';
+
+{
+  resolve: {
+    // 别名配置
+    alias: {
+      '@assets': path.join(__dirname, 'src/assets'),
+      '~': resolve(process.cwd()),
+      '@/': `${resolve(__dirname, 'src')}/`
+    }
+  }
+}
+```
 
 
 
@@ -2614,8 +2714,11 @@ export default defineComponent({
     setup(props, { slots, expose, emit, attrs }) {
 
         setTimeout(() => {
-            alert('timeout')
+            alert('timeout1')
         }, 0);
+        
+       
+        
         onMounted(() => {
             alert('mounted')
         })
@@ -2632,6 +2735,12 @@ export default defineComponent({
 
 
 
+微任务在dom渲染前
+
+`onMounted` 钩子函数实际上会在微任务之后执行，因为它是在 DOM 挂载后触发的。
+
+
+
 # 异步
 
 ## promise
@@ -2640,6 +2749,66 @@ promise是js中进行异步编程的新解决方案：旧方案是单纯使用�
 
 1. 从语法上说：promise是一个构造函数
 2. 从功能上说：promise对象用来封装一个异步操作并可获取其成功/失败的值
+
+
+
+### resolve
+
+`resolve` 函数的作用是将 Promise 的状态从"待定"变为"已完成"，并将异步操作的结果作为参数传递出去。这个结果可以是任何 JavaScript 的值，比如数字、字符串、对象等。
+
+举个例子：
+
+```js
+new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve('Hello, World!');
+  }, 1000);
+});
+```
+
+在这个例子中，我们创建了一个 Promise，它的异步操作是在 1 秒钟后完成的。当异步操作完成后，我们调用 `resolve` 函数，并将字符串 'Hello, World!' 作为参数传递出去。
+
+那么，这个传递出去的值有什么用呢？它可以被 `.then()` 方法接收到。
+
+```js
+new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve('Hello, World!');
+  }, 1000);
+}).then(value => {
+  console.log(value);  // 输出 'Hello, World!'
+});
+```
+
+### reject
+
+```js
+new Promise((resolve, reject) => {
+  setTimeout(() => {
+    reject(new Error('Something went wrong!'));
+  }, 1000);
+});
+```
+
+在这个例子中，我们在异步操作中模拟了一个错误。当异步操作"完成"（实际上是失败了）后，我们调用 `reject` 函数，并将一个 Error 对象作为参数传递出去。
+
+那么，这个传递出去的错误信息有什么用呢？它可以被 `.catch()` 方法接收到。
+
+```js
+new Promise((resolve, reject) => {
+  setTimeout(() => {
+    reject(new Error('Something went wrong!'));
+  }, 1000);
+}).catch(error => {
+  console.log(error.message);  // 输出 'Something went wrong!'
+});
+```
+
+
+
+
+
+
 
 <span style="color:red;font-weight:bold">promise支持链式调用，可以解决回调地狱</span>
 
@@ -2694,6 +2863,12 @@ Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`
    - 返回值为一个非promise类型的数据：成功
    - 返回值是一个promise对象
    - 抛出异常：失败
+
+`async` 用于声明一个异步函数。异步函数是一种特殊的函数，它总是返回一个 Promise。
+
+`await` 只能在异步函数内部使用。它会暂停函数的执行，直到后面的 Promise 完成（resolved 或 rejected）。
+
+`await` 会自动解包后面的 Promise 的值。如果 Promise 被 resolve，`await` 会返回 resolve 的值；如果 Promise 被 reject，`await` 会抛出 reject 的错误。
 
 <span style="color:red">当异步函数被调用时，会立即返回一个Promise对象，然后继续执行后面的代码，而不会等待异步函数内部的代码执行完毕</span>
 
@@ -2835,6 +3010,35 @@ async function myFunction() {
 
 
 
+
+
+### 顺序
+
+```ts
+async function myFunction() {
+  console.log('Before await');
+  let result = await 42;
+  console.log('After await');
+}
+
+console.log('Before call');
+myFunction();
+console.log('After call');
+```
+
+输出顺序为
+
+Before call
+Before await
+After call
+After await
+
+
+
+在 `async` 函数中，`await` 之前的代码都是同步执行的。只有当 `await` 被encountered时，函数的执行才会被暂停。
+
+
+
 ## 回调地狱及解决
 
 顺序打印 t1,t2,t3
@@ -2842,46 +3046,89 @@ async function myFunction() {
 ### 回调地狱
 
 ```tsx
-import { ElButton } from 'element-plus'
-import { defineComponent } from 'vue'
+<template>
+</template>
 
-export default defineComponent({
-    setup(props, { slots, expose, emit, attrs }) {
+<script setup lang="ts">
+function t1() {
+    setTimeout(() => {
+        console.log('t1');
+        setTimeout(() => {
+            console.log('t2');
+            setTimeout(() => {
+                console.log('t3');
+            }, 1000)
+        }, 2000);
+    }, 1000);
+}
 
-        function f1() {
-            setTimeout(() => {
-                console.log('Timeout f1');
-                f2()
-            }, 1000);
-        }
-        
-        function f2() {
-            setTimeout(() => {
-                console.log('Timeout f2');
-                f3()
-            }, 500);
-        }
-        
-        function f3() {
-            setTimeout(() => {
-                console.log('Timeout f3');
-            }, 100);
-        }
-        
-        f1()
+t1()
+</script>
 
-        return () => (
-            <div>
-
-            </div>
-        )
-    }
-})
+<style lang="scss" scoped></style>
 ```
 
 
 
 ### promise解决
+
+```vue
+<template>
+</template>
+
+<script setup lang="ts">
+function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function t1() {
+    delay(3000)
+        .then(() => {
+            console.log('t1');
+            return delay(2000);
+        })
+        .then(() => {
+            console.log('t2');
+            return delay(1000);
+        })
+        .then(() => {
+            console.log('t3');
+        });
+}
+
+t1();
+
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+
+
+### async,await解决
+
+```vue
+<template></template>
+
+<script setup lang="ts">
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function t1() {
+  await delay(1000);
+  console.log("t1");
+  await delay(2000);
+  console.log("t2");
+  await delay(1000);
+  console.log("t3");
+}
+
+t1();
+</script>
+
+<style lang="scss" scoped></style>
+```
 
 
 
@@ -2984,6 +3231,8 @@ console.log("9")
   - 都是DOM重新渲染的机会，DOM结构如有改变则重新渲染
   - 然后再去触发下一次Event Loop
 
+宏任务在dom渲染后触发，微任务在dom渲染前触发
+
 
 
 - 宏任务
@@ -3005,6 +3254,14 @@ Web APIs 是 W3C 组织的标准，是 JS 所独有的部分
 微任务是es6语法规定的
 
 宏任务是由浏览器规定的
+
+
+
+像process.nextTick和[Promise](https://so.csdn.net/so/search?q=Promise&spm=1001.2101.3001.7020)这种微任务，都添加的**当前循环的微任务队列**之中。所以会比当前循环中的所有宏任务要后执行，会比下个循环中的宏任务要先执行。
+
+先执行同步任务，异步任务放任务队列；执行同步任务，再先去为任务队列看有没有微任务，有就执行；直到微任务队列中暂时为空时，再去执行宏任务；每次执行一个宏任务前，都必须看微任务队列中又没有没执行的微任务，微任务都执行完了才执行宏任务
+
+
 
 
 
