@@ -667,10 +667,39 @@ export default defineComponent({
 // 渲染表格 <Model model={table}></Model>
 ```
 
-#### 再封装一层
+#### 渲染表格
 
 ```tsx
+// 1. 直接用model渲染
+<Model model={table}></Model>
+
+// 2. 封装为函数式组件时，先用element return出去，再用h函数渲染
+return {
+        element: () => {
+            return <Model model={table}></Model>
+        }
+    }
+
+const table1 = useTable1();
+
+{h(table1.element)}
 ```
+
+
+
+#### 表尾添加数据
+
+写在model内
+
+```tsx
+<Model model={table}>
+	<span>hello</span>
+</Model>
+```
+
+
+
+
 
 ### useLdVxeTableAsync
 
@@ -764,11 +793,45 @@ export default defineComponent({
 
 ```
 
+#### 刷新数据
+
+```tsx
+table.getControl().getAjaxListData();
+```
+
+#### 回调
+
+```typescript
+type: "selectChange" | "dbClick" | "selectClick" | "RightMenu" | "dataMounted" | "enter" | "cellSelected" | "TreeExpandChange" | "checkBoxChange" | "filterChange" | "pageChange"
+```
+
+
+
 
 
 ## ~/src/core/components
 
 ### 组件
+
+#### ButtonSelect 按钮选择
+
+<img src=".\img\13.jpg" align="left" />
+
+```tsx
+<ButtonSelect v-model={form.showflag} onChange={() => {
+    configStore.resetTableHeight()
+    updataForm()
+}}>
+    <ButtonSelectItem label={'入库'} value={'rk'}></ButtonSelectItem>
+    <ButtonSelectItem label={'出库'} value={'ck'}></ButtonSelectItem>
+    <ButtonSelectItem label={'入出库汇总'} value={'rckhz'}></ButtonSelectItem>
+</ButtonSelect>
+```
+
+
+
+
+
 #### DictSelect 下拉框
 
 <img src=".\img\7.jpg" align="left" />
@@ -1580,9 +1643,61 @@ export default defineComponent({
 
 
 
+#### Title标题
+
+
+
 
 
 ### 布局
+
+#### LdBox
+
+##### 参数
+
+```tsx
+props: {
+        /** 上下左右类型 */
+        type: {
+            type: String as PropType<"top-bottom" | "left-right">,
+            required: false,
+            default: "top-bottom"
+        },
+        showSplit:{  // 显示表尾
+          type: Boolean as PropType<boolean>,
+          required: false,
+          default: true
+        }
+},
+```
+
+
+
+#### LdBoxItem
+
+参数
+
+```typescript
+props: {
+    /** 大小 - 百分比 */
+    size: {
+      type: Number as PropType<number | string>,
+      required: true
+    },
+    minSize: {
+      type: Number as PropType<number | string>,
+      required: false
+    },
+    maxSize: {
+      type: Number as PropType<number | string>,
+      required: false
+    }
+},
+```
+
+
+
+
 
 
 

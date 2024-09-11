@@ -100,7 +100,238 @@ app.mount('#app')
 - main.ts          入口文件
 - App.vue         根组件
 
+
+
 # vue
+
+## 与tsx的区别
+
+### props，emits，expose
+
+在组合式 API 的 `<script setup>` 语法中:
+
+- 使用 `defineProps` 函数来定义组件的 props。
+- 使用 `defineEmits` 函数来定义组件的自定义事件。
+- 使用 `defineExpose` 函数来定义组件要暴露给父组件的属性和方法。
+
+
+
+在 TSX 语法中:
+
+- 使用 `props` 选项来定义组件的 props。
+- 使用 `emits` 选项来定义组件的自定义事件。
+- 在 `setup` 函数中使用 `expose` 函数来暴露组件的属性和方法。
+
+
+
+### 事件
+
+- 在Vue的模板中,我们可以直接写方法调用,如@click="handleClick('hello world')"。
+- 在TSX中,我们需要写一个函数作为onClick的值,如onClick={() => handleClick('hello world')}
+
+- vue
+
+```vue
+<template>
+    <ElButton @click="handleClick('hello world')">打印</ElButton>
+</template>
+
+<script setup lang="ts">
+import { ElButton } from 'element-plus';
+const handleClick = (data: string) => {
+    console.log(data);
+}
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+- tsx
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const handleClick = (data: string) => {
+            console.log(data);
+        }
+
+        return () => (
+            <div>
+                <ElButton onClick={() => handleClick('hello world')}>打印</ElButton>
+            </div>
+        )
+    }
+})
+```
+
+
+
+## defineProps
+
+``` vue
+// 父
+
+<template>
+    <Child :num="num"></Child>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import Child from './child.vue'
+
+const num = ref(110);
+</script>
+
+<style lang="scss" scoped></style>
+
+// 子
+
+<template>
+    <div>
+        {{ props.num }}
+    </div>
+
+</template>
+
+<script setup lang="ts">
+const props = defineProps(['num'])
+
+</script>
+
+<style lang="scss" scoped></style>
+
+ // 或者
+<template>
+    <div>
+        {{ props.num }}
+    </div>
+
+</template>
+
+<script setup lang="ts">
+const props = defineProps({
+    num: {
+        type: Number,
+        default: 0,
+        requierd: false
+    }
+})
+
+</script>
+
+<style lang="scss" scoped></style>
+
+```
+
+
+
+## defineExpose
+
+必须配合在父组件设置 ref 来使用
+
+```vue
+// 父
+<template>
+    <div>
+        <Child ref="childRef" />
+        <ElButton @click="handleClick">add</ElButton>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import Child from './child.vue'
+import { ElButton } from 'element-plus'
+
+const childRef = ref<any>(null)
+
+const handleClick = () => {
+    if (childRef.value) {
+        childRef.value.add()
+    }
+}
+
+</script>
+<style lang="scss" scoped></style>
+
+
+// 子
+<template>
+    <div>
+        {{num}}
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const num = ref(0)
+const add = () => {
+    num.value++
+}
+
+defineExpose({
+    add
+})
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+
+
+## defineEmits
+
+```vue
+// 父
+<template>
+    <div>
+        <Child @transDataV="handelAlt"></Child>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ElButton } from 'element-plus';
+import Child from './child.vue';
+
+const handelAlt = (data: string) => {
+    alert(data)
+}
+</script>
+
+<style lang="scss" scoped></style>
+
+// 子
+<template>
+    <div>
+        <ElInput v-model="data"></ElInput>
+        <ElButton @click="emit('transDataV',data)"> 打印</ElButton>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ElButton, ElInput } from 'element-plus';
+import { ref } from 'vue';
+
+const data = ref('')
+
+const emit = defineEmits(['transDataV'])
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+```vue
+<ElButton @click="emit('transDataV',data)"> 打印</ElButton>
+// 这里tsx形式
+// <ElButton onClick={()=>emit('transDataV',data)}> 打印</ElButton>
+```
+
+
 
 ## 插槽
 
@@ -234,6 +465,19 @@ export default defineComponent({
                     </div>
             )
         }
+    }
+})
+```
+
+```typescript
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        return () => [
+            <div>hello1</div>,
+            <div>hello2</div>
+        ]
     }
 })
 ```
@@ -549,6 +793,71 @@ export default defineComponent({
     }
 })
 ```
+
+
+
+## expose
+
+```tsx
+// 父
+import { defineComponent, ref } from 'vue'
+import Child from './child'
+import { ElButton } from 'element-plus'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const childRef = ref<any>(null)
+
+        const handleClick = () => {
+            if (childRef.value) {
+                childRef.value.add()
+            }
+        }
+
+        return () => (
+            <div>
+                <Child ref={childRef} />
+                <ElButton onClick={handleClick}>add</ElButton>
+            </div>
+        )
+    }
+})
+
+// 子
+import { defineComponent, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const num = ref(0)
+        const add=()=>{
+            num.value++
+        }
+
+        expose({
+            add
+        })
+        
+        return () => (
+            <div>
+                {num.value}
+            </div>
+        )
+    }
+})
+
+```
+
+
+
+## defineExpose
+
+`expose` 函数需要在 `setup` 函数的内部调用，而 `defineExpose` 则是在 `setup` 函数的返回值中使用。
+
+```tsx
+
+```
+
+
 
 
 
@@ -1041,9 +1350,7 @@ export function useTest1() {
 }
 ```
 
-```tsx
 
-```
 
 ### 父传子
 
@@ -1267,151 +1574,6 @@ export default defineComponent({
 
 
 
-## 路由
-
-- useRoute
-
-```tsx
-const route = useRoute();
-
-route.path：当前路由的路径部分，不包括查询参数和哈希值。
-示例：如果当前路由是/user/123?name=John#info，则route.path的值为/user/123。
-route.fullPath：当前路由的完整路径，包括查询参数和哈希值。
-示例：如果当前路由是/user/123?name=John#info，则route.fullPath的值为/user/123?name=John#info。
-route.query：一个对象，包含当前路由的查询参数。
-示例：如果当前路由是/user/123?name=John&age=25，则route.query的值为{ name: 'John', age: '25' }。
-route.hash：当前路由的哈希值（包括#符号）。
-示例：如果当前路由是/user/123#info，则route.hash的值为#info。
-route.params：一个对象，包含当前路由的动态参数。
-示例：如果当前路由是/user/:id，而实际访问的路由是/user/123，则route.params的值为{ id: '123' }。
-route.name：当前路由的名称（如果有定义）。
-示例：如果在路由配置中为某个路由指定了name属性，如{ path: '/user/:id', name: 'user' }，则当访问该路由时，route.name的值为'user'。
-route.meta：一个对象，包含当前路由的元信息（如果有定义）。
-示例：如果在路由配置中为某个路由指定了meta属性，如{ path: '/user/:id', meta: { requiresAuth: true } }，则当访问该路由时，route.meta的值为{ requiresAuth: true }。
-route.redirectedFrom：如果当前路由是通过重定向访问的，该属性表示重定向来源的路由的名称。
-示例：如果在路由配置中定义了重定向，如{ path: '/home', redirect: '/' }，则当访问/home时，会重定向到/，此时route.redirectedFrom的值为'/home'。
-route.matched：一个数组，包含当前路由匹配到的所有路由记录。
-示例：如果当前路由是/user/123，并且在路由配置中定义了嵌套路由，如{ path: '/user/:id', component: User, children: [{ path: 'profile', component: UserProfile }] }，则route.matched的值为[{ path: '/user/:id', ... }, { path: 'profile', ... }]。
-
-```
-
-
-
-- useRouter
-
-```tsx
-const router = useRouter()
-```
-
-1. `router.push(location)`：导航到指定的路由。 location可以是一个字符串或对象
-
-```tsx
-router.push('/user/123');
-router.push({ path: '/user/123' });
-router.push({ name: 'user', params: { id: '123' } });
-router.push({ path: '/user/123', query: { name: 'John' } });
-```
-
-2. `router.replace(location)`：替换当前路由，导航到指定的路由。 
-
-  与router.push()类似，但是使用replace不会向历史记录添加新记录，而是替换当前记录。
-
-```tsx
-router.replace('/user/123');
-router.replace({ path: '/user/123' });
-```
-
-3. `router.go(n)`：在历史记录中前进或后退指定的步数。
-
-```tsx
-router.go(1); // 前进一步
-router.go(-2); // 后退两步
-```
-
-​	4.`router.back()`：导航回上一个历史记录。  相当于调用`router.go(-1)`。
-
-```tsx
-router.back();
-```
-
-5. `router.forward()`：导航到下一个历史记录。 相当于调用`router.go(1)`。
-
-```tsx
-router.forward();
-```
-
-6. `router.resolve(location)`：解析给定的路由地址，返回解析后的路由地址信息。
-
-   `location`可以是一个字符串或对象，表示要解析的路由地址。
-
-   返回的对象包含以下属性：
-
-   - `href`：解析后的完整路由地址。
-   - `route`：解析后的路由对象。
-   - `normalizedTo`：规范化后的目标路由地址对象。
-   - `resolved`：解析后的路由记录对象。
-     示例：
-
-```tsx
-const resolvedRoute = router.resolve('/user/123');
-console.log(resolvedRoute.href); // 输出解析后的完整路由地址
-```
-
-7. `router.addRoute(route)`：动态添加一个新的路由记录。
-
-```tsx
-router.addRoute({ path: '/new-route', component: NewComponent });
-```
-
-8. `router.getRoutes()`：获取所有的路由记录数组。
-
-```tsx\
-const routes = router.getRoutes();
-```
-
-
-
-- 路由自动显示
-
-```tsx
-import { ElIcon, ElMenu, ElSubMenu, ElMenuItemGroup, ElMenuItem } from "element-plus"
-import { title } from "process"
-import { defineComponent } from "vue"
-import { Location } from "@element-plus/icons-vue";
-import style from "./styel.module.scss"
-import { useRoute, useRouter } from "vue-router";
-
-
-export default defineComponent({
-
-    setup(props, { emit, expose, slots }) {
-        const router = useRouter();
-        function toPage(route: any) {
-            router.push({
-                name: route.name
-            })
-        }
-        return () => (
-            <ElMenu active-text-color="#ffd04b" background-color="silver" text-color="navy" router >
-                {router.options.routes.map((route, index) => {
-                    //通过在 .map() 的回调函数中使用 return 语句，你可以将每个 route 对象转换为对应的 JSX 元素
-                    //并将转换后的元素作为新数组的元素返回。这样，.map() 方法最终会返回一个由 JSX 元素组成的数组。
-                    return (
-                        <ElSubMenu index={'' + index} v-slots={{ title: () => (<span>{route.meta?.title as string}</span>) }}>
-                            {route.children?.map(routeChild => (
-                                <ElMenuItem index={routeChild.name as string} onClick={() => toPage(routeChild)}>
-                                    <span>{routeChild.meta?.title ?? 'title未定义'}</span>
-                                </ElMenuItem>
-                            ))}
-                        </ElSubMenu>
-                    );
-                })}
-            </ElMenu>
-        )
-    }
-})
-```
-
 
 
 ## 动态组件
@@ -1560,6 +1722,204 @@ export default defineComponent({
 这里的 `onClick={() => alt()}` 是定义了一个新的匿名函数，这个函数调用了 `alt`
 
 Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭头函数
+
+# 路由
+
+- useRoute
+
+```tsx
+const route = useRoute();
+
+route.path：当前路由的路径部分，不包括查询参数和哈希值。
+示例：如果当前路由是/user/123?name=John#info，则route.path的值为/user/123。
+route.fullPath：当前路由的完整路径，包括查询参数和哈希值。
+示例：如果当前路由是/user/123?name=John#info，则route.fullPath的值为/user/123?name=John#info。
+route.query：一个对象，包含当前路由的查询参数。
+示例：如果当前路由是/user/123?name=John&age=25，则route.query的值为{ name: 'John', age: '25' }。
+route.hash：当前路由的哈希值（包括#符号）。
+示例：如果当前路由是/user/123#info，则route.hash的值为#info。
+route.params：一个对象，包含当前路由的动态参数。
+示例：如果当前路由是/user/:id，而实际访问的路由是/user/123，则route.params的值为{ id: '123' }。
+route.name：当前路由的名称（如果有定义）。
+示例：如果在路由配置中为某个路由指定了name属性，如{ path: '/user/:id', name: 'user' }，则当访问该路由时，route.name的值为'user'。
+route.meta：一个对象，包含当前路由的元信息（如果有定义）。
+示例：如果在路由配置中为某个路由指定了meta属性，如{ path: '/user/:id', meta: { requiresAuth: true } }，则当访问该路由时，route.meta的值为{ requiresAuth: true }。
+route.redirectedFrom：如果当前路由是通过重定向访问的，该属性表示重定向来源的路由的名称。
+示例：如果在路由配置中定义了重定向，如{ path: '/home', redirect: '/' }，则当访问/home时，会重定向到/，此时route.redirectedFrom的值为'/home'。
+route.matched：一个数组，包含当前路由匹配到的所有路由记录。
+示例：如果当前路由是/user/123，并且在路由配置中定义了嵌套路由，如{ path: '/user/:id', component: User, children: [{ path: 'profile', component: UserProfile }] }，则route.matched的值为[{ path: '/user/:id', ... }, { path: 'profile', ... }]。
+
+```
+
+
+
+- useRouter
+
+```tsx
+const router = useRouter()
+```
+
+1. `router.push(location)`：导航到指定的路由。 location可以是一个字符串或对象
+
+```tsx
+router.push('/user/123');
+router.push({ path: '/user/123' });
+router.push({ name: 'user', params: { id: '123' } });
+router.push({ path: '/user/123', query: { name: 'John' } });
+```
+
+2. `router.replace(location)`：替换当前路由，导航到指定的路由。 
+
+  与router.push()类似，但是使用replace不会向历史记录添加新记录，而是替换当前记录。
+
+```tsx
+router.replace('/user/123');
+router.replace({ path: '/user/123' });
+```
+
+3. `router.go(n)`：在历史记录中前进或后退指定的步数。
+
+```tsx
+router.go(1); // 前进一步
+router.go(-2); // 后退两步
+```
+
+​	4.`router.back()`：导航回上一个历史记录。  相当于调用`router.go(-1)`。
+
+```tsx
+router.back();
+```
+
+5. `router.forward()`：导航到下一个历史记录。 相当于调用`router.go(1)`。
+
+```tsx
+router.forward();
+```
+
+6. `router.resolve(location)`：解析给定的路由地址，返回解析后的路由地址信息。
+
+   `location`可以是一个字符串或对象，表示要解析的路由地址。
+
+   返回的对象包含以下属性：
+
+   - `href`：解析后的完整路由地址。
+   - `route`：解析后的路由对象。
+   - `normalizedTo`：规范化后的目标路由地址对象。
+   - `resolved`：解析后的路由记录对象。
+     示例：
+
+```tsx
+const resolvedRoute = router.resolve('/user/123');
+console.log(resolvedRoute.href); // 输出解析后的完整路由地址
+```
+
+7. `router.addRoute(route)`：动态添加一个新的路由记录。
+
+```tsx
+router.addRoute({ path: '/new-route', component: NewComponent });
+```
+
+8. `router.getRoutes()`：获取所有的路由记录数组。
+
+```tsx\
+const routes = router.getRoutes();
+```
+
+
+
+- 路由自动显示
+
+```tsx
+import { ElIcon, ElMenu, ElSubMenu, ElMenuItemGroup, ElMenuItem } from "element-plus"
+import { title } from "process"
+import { defineComponent } from "vue"
+import { Location } from "@element-plus/icons-vue";
+import style from "./styel.module.scss"
+import { useRoute, useRouter } from "vue-router";
+
+
+export default defineComponent({
+
+    setup(props, { emit, expose, slots }) {
+        const router = useRouter();
+        function toPage(route: any) {
+            router.push({
+                name: route.name
+            })
+        }
+        return () => (
+            <ElMenu active-text-color="#ffd04b" background-color="silver" text-color="navy" router >
+                {router.options.routes.map((route, index) => {
+                    //通过在 .map() 的回调函数中使用 return 语句，你可以将每个 route 对象转换为对应的 JSX 元素
+                    //并将转换后的元素作为新数组的元素返回。这样，.map() 方法最终会返回一个由 JSX 元素组成的数组。
+                    return (
+                        <ElSubMenu index={'' + index} v-slots={{ title: () => (<span>{route.meta?.title as string}</span>) }}>
+                            {route.children?.map(routeChild => (
+                                <ElMenuItem index={routeChild.name as string} onClick={() => toPage(routeChild)}>
+                                    <span>{routeChild.meta?.title ?? 'title未定义'}</span>
+                                </ElMenuItem>
+                            ))}
+                        </ElSubMenu>
+                    );
+                })}
+            </ElMenu>
+        )
+    }
+})
+```
+
+
+
+# 其他
+
+## 对象属性扩展
+
+- vue
+
+```vue
+<template>
+  <input v-bind="obj" type="text"></input>
+</template>
+
+<script setup lang="ts">
+const obj = {
+  id: "input-id",
+  class: "input-class",
+  value: "Hello, World!",
+  style: { color: "red" }
+};
+</script>
+
+<style lang="scss" scoped>
+.input-class {
+  color: red;
+}
+</style>
+```
+
+
+
+- tsx
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const obj = {
+            id: "input-id",
+            class: "input-class",
+            value: "Hello, World!",
+            style: "color: red;"
+            // 或者  style: { color: 'red' }
+          };
+        return () => (
+            <input {...obj} />
+        )
+    }
+})
+```
 
 
 
@@ -3412,6 +3772,38 @@ export default {
 </script>
 ```
 
+```tsx
+import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const mouseX = ref(0);
+        const mouseY = ref(0);
+
+        const updateMousePosition = (event: any) => {
+            mouseX.value = event.clientX;
+            mouseY.value = event.clientY;
+            console.log(`Current mouse position: (${mouseX.value}, ${mouseY.value})`);
+        };
+
+        onMounted(() => {
+            window.addEventListener('mousemove', updateMousePosition);
+        });
+
+        onUnmounted(() => {
+            window.removeEventListener('mousemove', updateMousePosition);
+        });
+        return () => (
+            <div>
+                <div>Mouse Position: ({mouseX.value}, {mouseY.value})</div>
+            </div>
+        )
+    }
+})
+```
+
+
+
 ### 属性
 
 clientX：当鼠标事件发生时（不管是onclick，还是omousemove，onmouseover等），鼠标相对于浏览器（这里说的是浏览器的有效区域）x轴的位置；
@@ -3498,4 +3890,8 @@ pageX：参照点是页面本身的body原点，而不是浏览器内容区域�
   }
 </style>
 ```
+
+
+
+
 
