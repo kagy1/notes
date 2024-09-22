@@ -849,18 +849,6 @@ export default defineComponent({
 
 
 
-## defineExpose
-
-`expose` 函数需要在 `setup` 函数的内部调用，而 `defineExpose` 则是在 `setup` 函数的返回值中使用。
-
-```tsx
-
-```
-
-
-
-
-
 ## mitt
 
 - 引入
@@ -3112,6 +3100,93 @@ promise是js中进行异步编程的新解决方案：旧方案是单纯使用�
 
 
 
+Promise是一个类，可以翻译为承诺，期约
+
+当需要时给予调用者一个承诺，待会给你回调函数时可以创建一个Promise对象，回调函数被立即执行
+
+reject()时调用.then内的回调函数
+resolve()时调用.catch内的回调函数
+
+
+
+### es6之前 异步
+
+通过传成功和失败的两个回调函数，在成功和失败时调用
+
+```typescript
+function execCode(counter: number, successCallback: any, errorCallback: any) {
+    setTimeout(() => {
+        if (counter > 0) {
+            let total = 0;
+            for (let i = 0; i < 1000; i++) {
+                total += i;
+            }
+            successCallback(total);
+        } else {
+            errorCallback(`${counter} is less than 0`);
+        }
+    }, 1000);
+}
+
+execCode(100, (value: number) => {
+    console.log("success", value);
+}, (err: string) => {
+    console.log("error", err);
+});
+```
+
+
+
+### promise解决
+
+```typescript
+function execCode(counter: number) {
+     return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (counter > 0) {
+                let total = 0;
+                for (let i = 0; i < 1000; i++) {
+                    total += i;
+                }
+                resolve(total);
+            } else {
+                reject('counter is less than 0');
+            }
+        }, 1000);
+    })
+}
+
+execCode(100).then((result) => {
+    console.log(result);
+}).catch((error) => {
+    console.log(error);
+});
+```
+
+
+
+### 状态
+
+- pending（待定）状态：初始状态
+- fulfilled / resolved（已完成）状态
+- rejected（已拒绝）状态
+
+Promise状态一旦被确定下来就不会更改
+
+
+
+### Executor
+
+Executor是在创建Promise时需要传入的一个回调函数，这个回调函数会被立即执行，并且传入两个参数
+
+在调用resolve时，如果resolve传入的值本身不是一个Promise，那么会将该Promise的状态变成 fulfilled
+
+
+
+
+
+
+
 ### resolve
 
 `resolve` 函数的作用是将 Promise 的状态从"待定"变为"已完成"，并将异步操作的结果作为参数传递出去。这个结果可以是任何 JavaScript 的值，比如数字、字符串、对象等。
@@ -3140,7 +3215,43 @@ new Promise((resolve, reject) => {
 });
 ```
 
-### reject
+
+
+#### 在resolve内传入promise对象
+
+当前的promise状态由传入的promise决定
+
+```typescript
+const p = new Promise((resolve, reject) => {
+    reject('error')
+})
+
+const promise = new Promise((resolve, reject) => {
+    resolve(p)
+})
+
+promise.then(res => console.log(res))
+promise.catch(err => console.log(err))
+```
+
+
+
+#### 在resolve内传入thenable对象(了解)
+
+```typescript
+resolve({
+    name:"li",
+    then: function(resolve){
+        resolve(1111)
+    }
+})
+```
+
+
+
+
+
+###  reject
 
 ```js
 new Promise((resolve, reject) => {
@@ -3166,9 +3277,332 @@ new Promise((resolve, reject) => {
 
 
 
+### then
+
+#### 参数
+
+promise.then(onFulfilled, onRejected)
+
+```typescript
+promise.then(res => console.log(res)).catch(err => console.log(err))
+
+// 或者
+
+promise.then(res => console.log(res),err => console.log(err))
+```
 
 
 
+可以写多个promise.then / catch 监听
+
+```typescript
+const promise = new Promise((resolve, reject) => {
+    resolve("success")
+})
+
+promise.then(res => console.log(res))
+promise.then(res => console.log(res))
+promise.then(res => console.log(res))  // 打印三次
+```
+
+
+
+#### 返回值
+
+then方法返回Promise
+
+这个promise的决议是等到then方法传入的回调函数有返回值时进行决议
+
+```typescript
+promise.then(res => {  // then方法返回一个新Promise
+    console.log("1")
+    return "bbbb"	   // 相当于
+}).then(res => {	   // then等待新的Promise有决议后执行
+    console.log("2")   // 把第一个then方法的返回值
+})
+```
+
+
+
+### catch
+
+#### 返回值
+
+catch也会返回一个Promise对象
+
+
+
+#### 报错
+
+如果Promise抛出错误，then中没有处理就会报错
+
+```typescript
+// 这样会报错，因为没有处理promise的拒绝
+const promise = new Promise((resolve, reject) => {
+  reject("111111")
+})
+promise.then(res => {        //这里没有处理promise错误reject("111111")，会报错
+                    
+})
+promise.catch((err)=>{       
+  console.log(err);
+})
+```
+
+
+
+#### 错误传递
+
+Promise的状态一旦变为rejected，就会立即跳转到链式调用中的catch方法。这是因为Promise的错误传递机制。
+
+当一个Promise被rejected时，控制权会被传递到链式调用中最近的catch方法。这意味着错误会被一直向下传递，直到被捕获为止。如果没有catch方法，错误就会被抛出，导致错误未被处理。
+
+```typescript
+const promise = new Promise((resolve, reject) => {
+    reject("111111")
+})
+promise.then(res => {       
+    console.log(res);
+}).then(res => {
+    console.log(res);
+}).catch(err => {
+    console.log(err);   // 111111
+})
+```
+
+
+
+
+
+#### 中断函数执行
+
+方式一：return
+
+方式二：throw new Error()
+
+方式三：yield 暂停
+
+
+
+### finally
+
+在ES9的时候新增的一个特性
+
+无论Promise对象变为fulfilled还是rejected状态，最终都会执行
+
+
+
+**以前的做法**
+
+封装一个函数，在then和catch里分别调用
+
+
+
+```typescript
+promise.then(res => {
+	console.log(res)
+}).catch(err => {
+    console.log(err)
+}).finally(() => {
+    console.log("final")
+})
+```
+
+
+
+### Promise类方法
+
+如果已经有一个现成的内容了，希望将其转为Promise使用，可以使用Promise.resolve来完成
+
+```typescript
+Promise.resolve("hello")
+// 相当于
+new Promise((resolve) => {
+    resolve("hello")
+})
+
+Promise.resolve("hello").then(res => {
+    console.log(res)
+})
+```
+
+
+
+```typescript
+function getUserData(userId) {
+    if (typeof userId === 'number') {
+        return Promise.resolve(userId);
+    } else {
+        return Promise.reject('Invalid user ID');
+    }
+}
+
+getUserData(123)
+    .then(userId => {
+        console.log('User ID:', userId);
+        // 在这里可以继续进行其他异步操作，如从数据库获取用户数据
+    }).catch(error => {
+        console.error('Error:', error);
+    });
+```
+
+
+
+#### all方法
+
+将多个Promise包裹在一起形成一个新的Promise
+
+新的Promise状态由包裹的所有Promise状态决定
+
+- 当所有Promise状态变为fulfilled时，新的Promise状态为fulfilled，并且将所有Promise的返回值组成一个数组
+- 当有一个Promise状态为rejected，新的Promise状态为rejected，并且将第一个reject的返回值作为参数
+
+
+
+```typescript
+const p1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p1 resolved')
+    }, 3000)
+})
+const p2 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p2 resolved')
+    }, 2000)
+})
+
+const p3 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p3 resolved')
+    }, 1000)
+})
+
+
+Promise.all([p1, p2, p3]).then(values => {
+    console.log(values)   //  ['p1 resolved', 'p2 resolved', 'p3 resolved']
+})
+```
+
+
+
+```typescript
+const p1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p1 resolved')
+    }, 3000)
+})
+const p2 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p2 resolved')
+    }, 2000)
+})
+
+const p3 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        reject('p3 rejected')
+    }, 1000)
+})
+
+
+Promise.all([p1, p2, p3]).then(values => {
+    console.log(values)
+}).catch(error => {
+    console.log(error)  // p3 rejected
+})
+```
+
+
+
+#### allSettled
+
+all方法当其中一个Promise变为rejected状态，新Promise立刻变为对应的reject状态
+
+对于resolved以及仍处于pending状态的promise无法获取结果
+
+**ES11（ES2020）中，加入Promise.allSettled**
+
+- 该方法会在所有Promise中都有结果（settled）
+- 这个Promise结果一定是fulfilled
+
+```typescript
+const p1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p1 resolved')
+    }, 3000)
+})
+const p2 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p2 resolved')
+    }, 2000)
+})
+
+const p3 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        reject('p3 rejected')
+    }, 1000)
+})
+
+
+Promise.allSettled([p1, p2, p3]).then(values => {
+    console.log(values)  // 打印
+}).catch(error => {
+    console.log(error)
+})
+
+/*
+[
+    { status: 'fulfilled', value: 'p1 resolved' },
+    { status: 'fulfilled', value: 'p2 resolved' },
+    { status: 'rejected', reason: 'p3 rejected' }
+]
+*/
+```
+
+
+
+#### race方法
+
+如果一个Promise有了结果，我们就希望决定最终新Promise状态
+
+谁先有结果，就使用谁的结果
+
+```typescript
+const p1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p1 resolved')
+    }, 3000)
+})
+const p2 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('p2 resolved')
+    }, 2000)
+})
+
+
+Promise.race([p1, p2]).then(values => {
+    console.log(values)  // p2 resolved
+}).catch(error => {
+    console.log(error)
+})
+```
+
+
+
+#### any方法
+
+Promise的any方法，只要参数中有一个Promise实例化对象的状态为fulfilled，则整体结果就是fulfilled，只有当所有Promise实例对象都是rejected，结果才是rejected
+
+
+
+#### 迭代器 iterator
+
+
+
+
+
+
+
+ 
 
 <span style="color:red;font-weight:bold">promise支持链式调用，可以解决回调地狱</span>
 
@@ -3209,9 +3643,9 @@ p.catch((msg) => { () => { alert(msg) } })
 
 
 
-### async函数
+## async / await
 
-**async/await 出现的原因：**
+### 出现的原因
 
 Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`回调地狱`的问题，但是在语义方面依然存在缺陷，代码中充斥着大量的 `then` 函数，这就是 async/await 出现的原因。async/await 让代码更少，更简洁。
 
@@ -3275,6 +3709,7 @@ p1.then((msg) => {
 - 如果await的promise失败了，就会抛出异常，需要try...catch捕获
 - async 返回的是一个Promise对象，await就是等待这个promise的返回结果后，再继续执行
 - await 等待的是一个Promise对象，后面必须跟一个Promise对象，但是不必写then()，直接就可以得到返回值
+- `await` 关键字用于等待一个 Promise 对象的解析。如果 `await` 右侧是一个普通值或同步函数的返回值，那 `await` 不会有实际效果，因为它会立即返回该值
 
 
 

@@ -4,7 +4,15 @@
 
 ### 行内元素
 
-行内元素在同一行中排列。
+#### **特点**
+
+行内元素也称内联元素，其特点是不会占据一行，也不强迫其他标签在新的一行显示，一般<span style="color:red">不可以设置宽度、高度、对齐等属性</span>，靠文本内容大小和图像尺寸填充，常用于控制页面中文本的样式。
+
+- 相邻行内元素在一行，一行可以显示多个。
+- 高度、宽度的设置无效，只会被文字撑开。
+- 默认宽度就是文本撑开的长度
+
+#### 元素
 
 - `<a>` - 超链接
 - `<b>`, `<strong>` - 加粗文本
@@ -22,12 +30,22 @@
 
 ### 块元素
 
-在页面上独占一行，并且可以包含其他块元素或行内元素。
+#### 特点
+
+在页面中以区域块的形式出现，其特点是每个块元素通常都会独占一行或多行，可以对其设置宽度、高度、对齐等属性，常用于网页布局和网页结构的搭建。
+
+- 自身独占一行
+- 高度、宽度、内外边距都可以自定义
+- 宽度默认是父元素的100%
+
+#### 元素
 
 - `<div>` - 通用块级容器
 - `<p>` - 段落
 - `<h1>` ~ `<h6>` - 标题
-- `<ul>`, `<ol>`, `<li>` - 列表
+- `<ol>` - html有序列表
+- `<ul>` - 无序列表
+- `<li>` - 列表项，放在`<ol>`或者`<ul>`中
 - `<table>` - 表格
 - `<form>` - 表单
 - `<hr>` - 水平分割线
@@ -36,9 +54,20 @@
 - `<address>` - 联系方式信息
 - `<article>`, `<section>`, `<nav>`, `<aside>`, `<header>`, `<footer>` - HTML5 语义化元素
 
+
+
 ### 行内块元素
 
+#### 特点
+
 既可以像块元素那样设置宽高，又可以像行内元素那样不独占一行。
+
+- 和相邻的行内元素（包含行内块）在一行上，它们直接会有空白缝隙
+- 一行可以显示多个（行内元素特点）
+- 默认宽度就是内容的宽度（行内元素特点）
+- 高度、宽度、内外边距都可以自定义（块元素特点）
+
+#### 元素
 
 - `<img>` - 图片
 - `<input>` - 输入框
@@ -142,7 +171,29 @@ font-weight: normal / bold / bolder / lighter / 数字值(从100到900的整数)
 
 
 
+## border
 
+```css
+border: 1px solid black;
+```
+
+这三项顺序可随意更改
+
+分别代表 `border-width`、`border-style`、`border-color`
+
+### border-style
+
+- `solid`：实线
+
+- `dotted`：点状边框
+- `dashed`：虚线边框
+- `double`：双实线边框
+- `groove`：凹槽边框
+- `ridge`：脊状边框
+- `inset`：内嵌边框
+- `outset`：外嵌边框
+- `none`：无边框
+- `hidden`：隐藏边框
 
 
 
@@ -185,9 +236,42 @@ font-weight: normal / bold / bolder / lighter / 数字值(从100到900的整数)
 
 
 
+## BFC
 
+**Block format context ，块级格式上下文**
 
+一块独立渲染区域，触发bfc的元素会形成一个独立的渲染区域，这个区域里面的元素（包括他自己）不会影响外部元素的渲染，
 
+什么情况下，会形成bfc区域呢？
+
+1. 当添加了float属性，且float不为none时
+
+2. 块元素添加overflow属性，且属性不能为visible（hidden、auto、scroll）
+
+3. 类型强制转换：display：inline-block、、table-cell、table-caption；
+
+4. 添加定位，positio值为absolute或fixed
+
+5. 有根元素、父元素或其他包含元素
+   
+
+### 作用
+
+1. 避免外边距重叠
+2. 容纳浮动元素
+
+```html
+<div style="border: 2px solid red;overflow: hidden;">
+    <div style="width: 100px;height: 100px;float: left;">
+    </div>
+</div>
+```
+
+3. 阻止文字环绕
+
+4. 自适应两栏布局
+
+ 
 
 
 
@@ -225,9 +309,39 @@ offsetWidth = (width + padding + border)  无margin
 
 #### margin纵向重叠
 
+求AAA和BBB之间的距离
+
+```html
+<style>
+    p {
+        font-size: 16px;
+        line-height: 1;
+        margin-top: 10px;
+        margin-bottom: 15px;
+    }
+</style>
+
+<p>AAA</p>
+<p></p>
+<p></p>
+<p></p>
+<p>BBB</p>
+
+// 答案15px
+```
+
+相邻元素的`margin-top`和`margin-bottom`会发生重叠
+
+空白的`<p>`也会重叠
+
 
 
 #### margin负值
+
+- `margin-top`,`margin-left`设置负值，元素向上、向左移动
+
+- `margin-bottom `负值，下方元素上移，自身不受影响
+- `maring-right`负值，右方元素左移，自身不受影响
 
 
 
@@ -241,7 +355,7 @@ offsetWidth = (width + padding + border)  无margin
 
 默认值: content-box
 
-#### content-box
+#### content-box（默认）
 
 ```css
 box-sizing:  content-box
@@ -818,6 +932,72 @@ top: 50%, left: 50%
 
 
 
+### 两边固定，中间自适应
+
+#### float实现
+
+```html
+<!DOCTYPE html>
+<html lang="en" style="height: 100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .left,
+        .right {
+            height: 400px;
+            background-color: hotpink;
+        }
+
+        .left {
+            float: left;
+            width: 200px;
+
+        }
+
+        .right {
+            float: right;
+            width: 100px;
+        }
+
+        .center {
+            height: 400px;
+            background-color: skyblue;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="left"></div>
+    <div class="right"></div>
+    <div class="center"></div>
+</body>
+
+</html>
+```
+
+1. `.left` 元素首先被声明，并设置为左浮动（`float: left`）。它脱离了文档流，其他元素将环绕在它的右侧。
+2. `.right` 元素接下来被声明，并设置为右浮动（`float: right`）。它也脱离了文档流，其他元素将环绕在它的左侧。
+3. `.center` 元素最后被声明，没有设置浮动。由于前面的两个元素已经脱离了文档流，`.center` 元素会自动填充剩余的空间，位于两个浮动元素之间。
+
+
+
+### 双飞翼布局
+
+1. 两侧内容宽度固定，中间内容宽度自适应
+2. 三栏布局，中间一栏最先加载、渲染出来
+
+
+
+
+
 
 
 ## 选择子元素
@@ -855,6 +1035,1117 @@ top: 50%, left: 50%
 
 
 # js
+
+## 数据类型
+
+### Number
+
+#### 特殊数值
+
+Infinity：无穷大
+
+```javascript
+var a = 1 / 0;  // Infinity
+```
+
+NaN： not a number
+
+```javascript
+var b = 1 * 'a';  // NaN
+```
+
+
+
+### 进制
+
+```javascript
+var num = 0x100;  // 十六进制
+var num2 = 0o100;  // 八进制
+var num5 = 0b100;  // 二进制
+console.log(num, num2, num5)  // 256 64 4
+```
+
+
+
+### 数字范围
+
+ 最小正数值：Number.MIN_VALUE
+
+ 最大正数值：Number.MAX_VALUE    
+
+ 最大整数： Number.MAX_SAFE_INTEGER
+
+
+
+## String
+
+转义字符：
+
+`\'`：单引号
+
+`\"`：双引号
+
+`\\`：反斜杠
+
+`\n`：换行符
+
+`\r`：回车符
+
+`\t`：制表符
+
+`\b`：退格符
+
+
+
+## undefined
+
+声明一个变量，没有对其初始化，它默认就是undefined
+
+
+
+## Object
+
+```typescript
+var c1 = null;
+console.log(typeof c1);  // object
+// 这是 JavaScript 语言的一个历史遗留问题
+```
+
+
+
+## 类型转换
+
+Number类型显式转换：Number(~)
+
+Number()、Boolean()、String()
+
+```javascript
+Number(undefined) // NaN
+Number(true)  // 1
+Number(false) // 0
+Number(NaN) // NaN
+Number("aa") // NaN
+```
+
+
+
+parseInt()：
+
+- 解析字符串并返回指定基数的整数
+
+```javascript
+parseInt("100", 2)  // 4
+```
+
+- 字符串"100"表示一个二进制数。
+- 基数为2,表示将字符串解析为二进制数
+
+
+
+parseFloat()：解析字符串并返回浮点数
+
+- 解析字符串并返回指定基数的整数
+- 如果遇到第一个非数字字符(除了小数点),解析停止,返回已解析的数字部分
+
+```javascript
+parseFloat("3.14abc");   // 返回 3.14
+```
+
+
+
+toString()：将值转换为字符串类型
+
+```javascript
+(42).toString()
+```
+
+toFixed()：将数字转换为指定小数位数的字符串
+
+```javascript
+(3.14159).toFixed(2)  // 3.14
+```
+
+valueOf()：返回对象的原始值。对于许多内置对象,valueOf()方法返回对象的基本类型值
+
+```javascript
+const num = new Number(42);
+console.log(num.valueOf());  // 输出 42
+
+const str = new String("hello");
+console.log(str.valueOf());  // 输出 "hello"
+
+const bool = new Boolean(true);
+console.log(bool.valueOf()); // 输出 true
+```
+
+Array.from()：将类数组对象或可迭代对象转换为数组
+
+```javascript
+const str = "hello";
+const arr1 = Array.from(str);
+console.log(arr1);  // 输出 ["h", "e", "l", "l", "o"]
+
+const obj = { length: 3, 0: "a", 1: "b", 2: "c" };
+const arr2 = Array.from(obj);
+console.log(arr2);  // 输出 ["a", "b", "c"]
+```
+
+JSON.stringify()：将JavaScript对象转换为JSON字符串
+
+```javascript
+const obj = { name: "John", age: 30, city: "New York" };
+const jsonStr = JSON.stringify(obj);
+console.log(jsonStr);  // 输出 '{"name":"John","age":30,"city":"New York"}'
+```
+
+JSON.parse()：将JSON字符串转换为JavaScript对象
+
+```javascript
+const jsonStr = '{"name":"John","age":30,"city":"New York"}';
+const obj = JSON.parse(jsonStr);
+console.log(obj);  // 输出 { name: "John", age: 30, city: "New York" }
+```
+
+
+
+## 运算符
+
+`**` 幂（ES7）
+
+### 赋值运算符
+
+```javascript
+var num1 = num2 = num3  // 链式赋值，从右到左进行计算
+```
+
+### 自增&自减
+
+```javascript
+var cur = 100
+var cur1 = 100
+var res = cur++  // 100
+var res1 = ++ cur1  // 101 
+```
+
+
+
+## foo、bar、baz
+
+伪变量
+
+通常作为函数、变量、文件的名词，本身没有特别的用途和意义
+
+
+
+## 函数
+
+### arguments
+
+在函数里都存在一个变量叫arguments，还有this
+
+arguments是一个对象，对象内部包含了所有传入的参数
+
+<span style="color:red">只有普通函数有，箭头函数没有</span>
+
+```javascript
+function print(name, age) {
+    console.log(arguments);
+    console.log(arguments[0])
+}
+
+print("li", 14)
+```
+
+
+
+### 函数表达式
+
+函数表达式是在代码执行到达时被创建，仅从那一刻起可用
+
+```javascript
+var bar = function() {
+    console.log("hello");
+};
+```
+
+
+
+### 高阶函数
+
+满足一下条件之一：
+
+- 接受一个或多个函数输入
+- 输出一个函数
+
+
+
+### IIFE
+
+**Immediately Invoked Function Expression"（立即执行函数表达式）**
+
+```javascript
+(function(){
+    console.log("hello")
+})()
+
+(function(name) {
+    console.log(name)  // li
+})("li")
+
+var res = (function(name) {
+    return name
+})("li")
+```
+
+
+
+**会创建一个独立的执行上下文环境，可以避免外界访问或修改内部的变量，也避免的对内部变量的修改**
+
+```javascript
+var res = (function() {
+    var xmMoudle = {}
+    var message = "hello XM"
+    xmModule.message = message
+    return xmMoudle  // 把需要的return出去
+})()
+```
+
+点击打印
+
+```javascript
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+</head>
+
+<body>
+    <button class="btn">1</button>
+    <button class="btn">2</button>
+    <button class="btn">3</button>
+    <button class="btn">4</button>
+</body>
+<script>
+    var btns = document.querySelectorAll('.btn');
+    for (var i = 0; i < btns.length; i++) {
+        var btn = btns[i];
+        (function (m) {
+            btn.onclick = function () {
+                console.log(m + 1);
+            }
+        })(i)
+    }
+</script>
+
+</html>
+```
+
+
+
+
+
+
+
+## 作用域
+
+### 函数作用域
+
+在es5以前，没有块级作用域的概念，但是函数可以定义自己的作用域
+
+函数作用域表示在函数内部定义的变量，只有在函数内部可以被访问到
+
+**全局变量**：全局作用域
+
+```javascript
+var name = 'li'
+```
+
+var 定义的变量没有块级作用域
+
+```javascript
+{
+    var count = 100
+}
+console.log(count) // 100
+```
+
+for循环也没有自己的作用域
+
+
+
+**ES5之前函数代码块会形成自己的作用域**
+
+函数内部定义的变量只有在函数内部能访问到
+
+```javascript
+function test() {
+    var bar = "bar"
+}
+test()
+console.log(bar);  // 报错
+```
+
+<span style="color:red">通过var声明的变量会在window对象上添加一个属性</span>
+
+
+
+## 对象
+
+```javascript
+var Person = {
+    name: "li",
+    age: 18
+}
+
+console.log(Person["name"]) // li
+console.log(Person.name) // li
+```
+
+对象不是可迭代对象，无法使用for of遍历
+
+### 删除属性
+
+delete
+
+```javascript
+var Person = {
+    name: "li",
+    age: 18
+}
+delete Person.age
+```
+
+
+
+### 创建对象
+
+#### 工厂函数
+
+```javascript
+function createStudent (name, age, height) {
+    var stu = {}
+    stu.name = name
+    stu.age = age
+    stu.height = height
+    stu.running = function() {
+        console.log("is running")
+    }
+    return stu
+}
+
+var stu1 = createStudent("why", 18, 1.88) // 创建对象
+```
+
+
+
+#### 构造函数
+
+在ES5之前都是通过`function`来声明一个构造函数（类），之后通过new关键字对其调用
+
+ES6之后，JavaScript可以通过class声明类
+
+*构造函数使用大驼峰，普通函数使用小驼峰*
+
+```javascript
+function CreateStudent (name, age, height) {
+    this.name = name
+    this.age = age
+    this.height = height
+    this.running = function() {
+        console.log("is running")
+    }
+}
+
+var stu1 = new CreateStudent("why", 18, 1.88)
+```
+
+
+
+#### new操作符调用
+
+如果一个函数被new操作符调用了，那么它会执行如下操作：
+
+1. 在内存里创建一个新的对象（空对象）
+2. 这个对象内部的 [[prototype]] 属性会被赋值为该构造函数的`prototype`属性
+3. 构造函数内部的this，会指向创建出来的新对象
+4. 执行函数的内部代码（函数体代码）
+5. 如果构造函数没有返回空对象，则返回创建出来的新对象
+
+
+
+## 全局对象window
+
+查找变量时，最终会查找到window上
+
+使用var定义的变量会被默认添加到window上面
+
+alert()方法就是window提供的
+
+1. alert()：显示一个警告框，带有一条指定的消息和一个确认按钮。
+
+2. confirm()：显示一个对话框，带有一条指定的消息和确认、取消按钮。用户可以选择确认或取消。
+
+   confirm()方法会返回一个布尔值：如果用户点击确认，返回true；如果用户点击取消，返回false。
+
+3. prompt()：显示一个对话框，提示用户输入一些文本。它返回用户输入的文本。
+
+4. open()：打开一个新的浏览器窗口或标签页。
+
+5. close()：关闭当前窗口。
+
+6. setTimeout()：在指定的毫秒数后调用一个函数或执行一段代码。
+
+7. setInterval()：每隔指定的毫秒数重复调用一个函数或执行一段代码。
+
+8. clearTimeout()：取消setTimeout()设置的定时器。
+
+9. clearInterval()：取消setInterval()设置的定时器。
+
+10. window.innerWidth和window.innerHeight：获取窗口的内部宽度和高度（包括滚动条）。
+
+11. window.outerWidth和window.outerHeight：获取窗口的外部宽度和高度（包括工具栏/滚动条）。
+
+12. window.scrollX和window.scrollY：获取窗口的水平和垂直滚动位置。
+
+13. window.localStorage：提供一种机制，可以让网页存储键值对到本地。
+
+14. window.sessionStorage：提供一种机制，可以让网页存储会话期间的键值对。
+
+
+
+
+
+
+
+## 栈内存和堆内存
+
+栈内存 stack
+
+堆内存 heap
+
+- `原始类型`占据的空间在`栈内存`中分配  
+- `对象类型`占据的空间在`堆内存`中分配
+
+```javascript
+var info = {
+    name: "li",
+    friend: {
+        name: "wang"
+    }
+}
+
+var friend = info.friend
+friend.name = "jack"
+console.log(info.friend.name) // jack
+```
+
+函数也保存在堆内存中
+
+## this
+
+函数中有一个this变量，this变量在大多数情况下指向一个变量
+
+箭头函数没有this
+
+### this指向
+
+1. 如果普通的函数被默认调用，那么this指向的就是window
+
+```javascript
+function foo(){
+    console.log(this)
+}
+foo() // window
+```
+
+2. 对象调用，this指向调用的对象
+
+```javascript
+function foo() {
+    console.log(this)
+}
+
+var obj = {
+    foo
+}
+
+obj.foo()  // 打印obj对象 { foo: [Function: foo] }
+```
+
+
+
+## 原始类型
+
+### 原始类型包装类
+
+JavaScript的原始类型并非对象类型，从理论上来说它们没有办法获取属性或者调用方法
+
+```javascript
+var message = "hello world"
+var words = message.split(" ")
+var length = message.length
+```
+
+ 原始类型是<span style="color:red">简单的值</span>,默认不能调用属性和方法
+
+JavaScript为了<span style="color:red">使其可以获取属性和调用方法，对其封装了对应的包装类型</span>
+
+
+
+```javascript
+var name = "li"
+// 当调用 name.length 时
+// 会生成一个对象
+name = new String(name)
+
+// 手动创建对象
+var name = new String("li")
+```
+
+
+
+常见的包装类型有：String、Number、Boolean、Symbol、BigInt类型
+
+## 包装类型
+
+### 数字方法&属性
+
+#### num.toString()
+
+```javascript
+var num = 1000
+var str = num.toString()
+var str1 = num.toString(2) // 转为2进制
+```
+
+#### num.toFixed(~)
+
+将数字转换为指定小数位数的字符串表示
+
+```javascript
+let num = 3.14159;
+console.log(num.toFixed(2));   // "3.14"
+console.log(num.toFixed(4));   // "3.1416"
+```
+
+#### num.valueOf()
+
+返回数字的原始值
+
+```javascript
+let num = 42;
+console.log(num.valueOf());   // 42
+```
+
+
+
+### Number静态方法
+
+#### Number.isInteger(value)
+
+判断一个值是否为整数
+
+```javascript
+console.log(Number.isInteger(42));    // true
+console.log(Number.isInteger(3.14));  // false
+console.log(Number.isInteger("1"));  // false
+```
+
+#### Number.parseInt(string)
+
+解析一个字符串并返回整数
+
+```javascript
+console.log(Number.parseInt('1.14g'))  // 1
+console.log(parseInt('1.14g')) // 全局方法
+```
+
+#### Number.parseFloat(string)
+
+解析一个字符串并返回浮点数
+
+```javascript
+console.log(Number.parseFloat('3.14'));    // 3.14
+console.log(Number.parseFloat('314e-2'));  // 3.14
+console.log(Number.parseFloat('3.14g'))    // 3.14
+console.log(parseFloat('3.14g'))    // 全局方法
+```
+
+#### Number.isNaN(value)
+
+判断一个值是否为NaN
+
+```javascript
+console.log(Number.isNaN(NaN));    // true
+console.log(Number.isNaN(42));     // false
+```
+
+
+
+### 字符串方法&属性
+
+####  str.length
+
+获取长度
+
+```js
+const str = "hello",
+str.length
+```
+
+####   str.charAt(~)  str.charAtCode(~)  
+
+获取字符串指定位置的值 
+
+charCodeAt()：该方法会返回指定索引位置字符的 Unicode 值，返回值是 0 - 65535 之间的整数
+
+```js
+const str = 'hello';
+str.charAt(1)  // 输出结果：e 
+
+let str = "abcdefg";
+console.log(str.charCodeAt(1)); // "b" --> 98
+```
+
+#### str.split(~)
+
+分割字符串
+
+```js
+let str = "Hello";
+let s = str.split("e");
+console.log(str); //Hello
+console.log(s); //[ 'H', 'llo' ]
+```
+
+#### str.trim()
+
+删除首尾空格
+
+#### 获取子字符串
+
+##### str.slice(~)
+
+提取字符串某个部分，从start到end，不含end
+
+```js
+let str = "Hello";
+let s = str.slice(1, 2);
+console.log(s); //e
+```
+
+```tsx
+const str = "hello"
+let s = str.slice(2);
+console.log(s); //llo
+```
+
+拷贝数组
+
+```js
+const str = "hello"
+let s = str.slice();
+console.log(s); // hello
+```
+
+##### str.subString(start, end)
+
+不支持负值
+
+##### str.substr(start, length)
+
+从start开始获取长为length的字符串，允许start为负数
+
+#### 字符串的拼接
+
+一般使用 + 加号
+
+##### str.concat(~)
+
+```javascript
+let str1 = "Hello, ";
+let str2 = "world!";
+let result = str1.concat(str2);
+console.log(result); // 输出: "Hello, world!"
+
+let str1 = "I ";
+let str2 = "love ";
+let str3 = "coding.";
+let result = str1.concat(str2, str3);
+// let result = str1.concat(str2).concat(str3);
+console.log(result); // 输出: "I love coding."
+```
+
+#### str.padStart(~)
+
+在字符串的开头填充另一个字符串,直到结果字符串达到给定的长度
+
+```javascript
+'abc'.padStart(5, 'x');  // 'xxabc'
+'abc'.padStart(5, '0');  // '00abc'
+
+// date.getMonth() 返回一个表示月份的数字,范围从0到11
+String(date.getMonth() + 1).padStart(2, '0') // 如果月份为1，会变成01
+```
+
+#### a.localeCompare(b) 
+
+比较字符串字母顺序
+
+```js
+let res = titleA.localeCompare(titleB);
+```
+
+- 如果 `titleA` 在字母顺序上小于 `titleB`，则返回负数。
+- 如果 `titleA` 在字母顺序上大于 `titleB`，则返回正数。
+- 如果 `titleA` 和 `titleB` 在字母顺序上相等，则返回零。
+
+#### str.toLowerCase()
+
+转小写
+
+#### str.toUpperCase()
+
+转大写
+
+#### str1.indexof(str2)
+
+判断一个字符串里是否含有另外一个字符串
+
+搜索到，返回索引位置。
+
+没搜索到返回 -1
+
+```javascript
+var message = "my name is li"
+var name = "li"
+console.log(message.indexOf(name)) // 11
+console.log(message.indexOf("wang")) // -1
+```
+
+#### str.includes(searchString[ , position])
+
+从位置 position 开始查找
+
+- `searchString` 是必需的参数，表示要在字符串中搜索的子字符串。
+- `[ , position]` 中的逗号和方括号表示 `position` 是一个可选的参数。
+
+```javascript
+let message = "Hello, world!";
+
+console.log(message.includes("Hello")); // 输出: true
+console.log(message.includes("hello")); // 输出: false
+console.log(message.includes("world")); // 输出: true
+console.log(message.includes("world", 8)); // 输出: false
+```
+
+#### str.startsWith(searchString[ , position])
+
+从postiton开始，判断字符串是否以searchString开头
+
+#### str.replace(regexp | substr, newSubStr | function)
+
+查找到对应的字符串，并且使用新的字符串替代
+
+也可以传入正则来查找，也可以传入一个函数来替换
+
+```javascript
+let text = "Hello, world!";
+let newText = text.replace("world", "there");
+console.log(newText); // 输出: "Hello, there!"
+
+let text = "Apples and bananas";
+let newText = text.replace(/a/g, "o");
+console.log(newText); // 输出: "Apples ond bononos"
+
+let text = "I have 2 cats and 3 dogs.";
+let newText = text.replace(/\d+/g, (match) => parseInt(match) * 2);
+console.log(newText); // 输出: "I have 4 cats and 6 dogs."
+```
+
+
+
+
+
+### 数组（Array）方法&属性
+
+#### arr.at(i)
+
+如果i >=0 arr[i]完全相同
+
+如果i为负数，它从数组的尾部向前数
+
+#### delete arr[i]（了解）
+
+删除元素，该位置变为undefined
+
+#### arr.push(~)   
+
+向数组末尾添加
+
+```js
+const arr = [];
+arr.push(3);
+arr.push(2);
+arr.push(1);
+// [3, 2, 1]
+```
+
+#### arr.pop(~)
+
+`arr.pop()` 方法用于移除数组的最后一个元素，并返回该元素
+
+如果数组为空，`pop()` 返回 `undefined`
+
+```javascript
+let fruits = ["apple", "banana", "cherry"];
+let lastFruit = fruits.pop();
+console.log(lastFruit); // 输出: "cherry"
+console.log(fruits);    // 输出: ["apple", "banana"]
+```
+
+#### arr.unshift(~)  
+
+将元素插入到数组的起始位置，并将其他元素向后移动
+
+```js
+const arr = [];
+arr.unshift(3);
+arr.unshift(2);
+arr.unshift(1);
+// [1,2,3]
+```
+
+#### arr.shift(~)
+
+shift去除队列首端的一个元素，整个数组向前移动
+
+```javascript
+var names = ["John", "Mary", "Bob", "Tom"];
+names.shift();
+console.log(names); // [ 'Mary', 'Bob', 'Tom' ]
+```
+
+#### arr.splice(~)
+
+在任意位置添加/删除/替换元素
+
+##### 移除元素
+
+```javascript
+let fruits = ["apple", "banana", "cherry", "date"];
+let removed = fruits.splice(1, 2);
+console.log(removed); // 输出: ["banana", "cherry"]
+console.log(fruits);  // 输出: ["apple", "date"]
+```
+
+
+
+
+
+#### arr.include(~) 
+
+判断是否有某个元素
+
+```js
+const num1: number[] = [1, 2, 3, 4, 5];
+console.log(num1.includes(1)); // 输出: true
+console.log(num1.includes(6)); // 输出: false
+```
+
+#### arr.sort(~)
+
+数组排序
+
+在 `sort()` 方法中，比较函数的返回值决定了元素的排序顺序：
+
+- 如果比较函数返回一个负数，则表示第一个元素应该排在第二个元素之前。
+- 如果比较函数返回一个正数，则表示第一个元素应该排在第二个元素之后。
+- 如果比较函数返回零，则表示两个元素的顺序相等，不需要交换它们的位置。
+
+```ts
+// 1.对数字数组进行升序排序:
+const numbers: number[] = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+numbers.sort((a, b) => a - b);
+console.log(numbers); // 输出: [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9]
+
+// 2.对数字数组进行降序排序:
+const numbers: number[] = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+numbers.sort((a, b) => b - a);
+console.log(numbers); // 输出: [9, 6, 5, 5, 5, 4, 3, 3, 2, 1, 1]
+
+// 3.对字符串数组进行字母顺序排序:
+const fruits: string[] = ['banana', 'apple', 'orange', 'grape'];
+fruits.sort();
+console.log(fruits); // 输出: ['apple', 'banana', 'grape', 'orange']
+```
+
+#### arr.forEach(~)
+
+```js
+const arr = ['a', 'b', 'c', 'd', 'e']
+
+arr.forEach((item, index, arr) => {
+    console.log(item, index, arr) // 元素，索引，数组本身
+})
+// a 0 [ 'a', 'b', 'c', 'd', 'e' ]
+// b 1 [ 'a', 'b', 'c', 'd', 'e' ]
+// c 2 [ 'a', 'b', 'c', 'd', 'e' ]
+// d 3 [ 'a', 'b', 'c', 'd', 'e' ]
+// e 4 [ 'a', 'b', 'c', 'd', 'e' ]
+```
+
+#### arr.map(~)
+
+```js
+const arr = [1, 2, 3, 4, 5]
+const newArr = arr.map(item => item * 2)
+
+arr.map((item,index,arr)=>{
+    console.log(item,index,arr)
+})
+```
+
+- `map()` 方法会返回一个新的数组,该数组的元素是原始数组中的每个元素调用回调函数的结果。
+- `forEach()` 方法没有返回值,它只是对数组中的每个元素执行回调函数,不会生成新的数组。
+
+#### arr.filter(~)
+
+```js
+const arr = [1, 2, 3, 4, 5]
+const newArr = arr.filter(item => item % 2 === 0)  // [2,4]
+```
+
+在 `filter` 方法的回调函数中返回 `true` 或 `false` 是用于决定当前元素是否应该被保留在结果数组中
+
+```typescript
+const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+const newArr = arr.filter(num => {
+    console.log(num);
+    return num < 5;
+});
+
+console.log(newArr);  // [1,2,3,4]
+```
+
+
+
+#### arr.some(~)/arr.every(~)
+
+```js
+const arr = [1, 2, 3, 4, 5]
+
+const flag = arr.some(item => item > 3)    // true
+const flag1 = arr.every(item => item > 3)  //false
+```
+
+#### arr.reduce(~)
+
+pre: 上一次调用的返回值
+
+next: 数组中当前被处理的元素
+
+```js
+const arr = [1, 2, 3, 4, 5];
+const sum = arr.reduce((pre, next) => {
+    return pre + next;  // 累加
+}) // 15
+```
+
+```js
+const arr1 = [1, 1, 2, 3, 4, 5, 5]
+const res = []
+arr1.reduce((pre, next) => {
+    if (!pre.get(next)) {
+        pre.set(next, 1)
+        res.push(next)
+    }
+    return pre
+}, new Map())
+
+// pre第一次调用时为初始值 new Map()
+
+```
+
+
+
+
+
+### Object方法&属性
+
+#### Object.keys()
+
+- old
+
+```js
+const obj = { name: 'zhangsan', age: 20 };
+const keys = Object.getOwnPropertyNames(obj);  // [ 'name', 'age' ]
+
+for (let key of keys) {
+    console.log(obj[key]);
+} 
+// zhangsan 
+// 20
+
+
+const obj = { name: 'zhangsan', age: 20 };
+
+for (let key in obj) {
+    console.log(obj[key]);
+}
+```
+
+- new
+
+```js
+const obj = { name: 'zhangsan', age: 20 };
+
+
+const keys = Object.keys(obj);  // [ 'name', 'age' ]
+
+for (let key of keys) {
+    console.log(obj[key]);
+}
+// 与Object.getOwnPropertyNames相同
+// zhangsan 
+// 20
+```
+
+#### Object.values(~)
+
+把对象的所有属性值写成一个数组
+
+```js
+const obj = {
+    name: 'li',
+    age: 20,
+    gender: 'male'
+}
+
+const values = Object.values(obj);  // [ 'li', 20, 'male' ]
+```
+
+#### trailing comma
+
+在 JavaScript 中，在数组或对象的最后一项后面添加一个逗号（trailing comma）是被允许的，并且不会导致语法错误。这种语法被称为 "trailing comma" 或 "final comma"
+
+```javascript
+const arr = [{
+    width: 120,
+    dataKey: "STATUS_MC",
+    title: "状态",
+    filter: true,
+},]
+```
+
+
+
+
 
 ## dom
 
@@ -1051,6 +2342,10 @@ const currentTime = ref(new Date());
 
 全等运算符(===)不会进行类型的转换
 
+`undefined` 只与 `null` 和它自身相等
+
+`false` 在与其他类型比较时，会先将其他类型转换为布尔值，然后进行比较
+
 ```js
 6 == "6" // true  自动类型转换
 6 === "6" // false
@@ -1063,6 +2358,7 @@ false === 0; // false
 '' == 0 // true
 ' ' == 0 // true
 null == undefined // true
+undefined == false // false
 null == 0 // false
 undefined == '' //false 
 
@@ -1072,6 +2368,23 @@ NaN == NaN // false
 NaN == false // false
 NaN === false // false
 ```
+
+
+
+```javascript
+var info = {
+    name: "li",
+    age: 18,
+    [Symbol.toPrimitive](){
+        return 123
+    }
+}
+
+console.log(123 == info)  // true
+
+```
+
+
 
 - NaN
 
@@ -1118,6 +2431,47 @@ NaN === NaN;  // false
 isNaN(NaN);  // true
 isNaN("abc");  // true
 isNaN(123);  // false
+```
+
+
+
+## 防抖
+
+`防抖策略`是当事件被触发后，`延迟n秒`再`执行回调`，如果在这n秒内时间被触发重新计时
+
+### 应用场景
+
+1. 用户在输入框中连续输入一串字符时，可以通过防抖策略，只有输入完后，才执行查询的请求。
+
+
+
+### 实现
+
+通过timer清空
+
+```javascript
+import { ElButton, ElInput } from 'element-plus';
+import { defineComponent, nextTick, onMounted, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        let timer: NodeJS.Timeout | null = null;
+        const print = () => {
+            clearTimeout(timer!);
+            timer = setTimeout(() => {
+                console.log('print');
+            }, 3000);
+        }
+
+
+        return () => (
+            <div>
+                <ElButton onClick={print}></ElButton>
+            </div>
+        );
+    }
+});
 ```
 
 
@@ -1269,6 +2623,15 @@ function share(query: ICurrentFromQuery): object {
 />
 ```
 
+### 数字位数语法糖
+
+```javascript
+if(count >10_0000_0000){}
+// 和1000000000没有区别，便于阅读
+```
+
+
+
 
 
 ### 箭头函数
@@ -1385,12 +2748,7 @@ const b = '' ?? 'X' // ''
 const c = false ?? 'X' // false
 const d = undefined ?? 'X' // X
 const e = null ?? 'X' // X
-
 ```
-
-
-
-
 
 
 
@@ -1419,6 +2777,22 @@ let b = 2;
 [a, b] = [b, a]
 // 不添加新的变量的情况下交换a，b
 ```
+
+ 忽略某些值
+
+```javascript
+const [c,, d] = [3, 4, 5];，这里 c 的值为 3，d 的值为 5。
+```
+
+默认值
+
+可以为变量设置默认值，以防对应位置的数组元素不存在或为 undefined
+
+```javascript
+const [e = 10, f = 20] = [6];，这里 e 的值为 6，f 的值为 20。
+```
+
+
 
 
 
@@ -1505,6 +2879,8 @@ const { 1: a, 2: b, 0: c } = arr
 console.log(a, b, c)
 // 2 3 1
 ```
+
+
 
 #### 使用案例
 
@@ -1621,6 +2997,10 @@ const fish = {
   }
 };
 ```
+
+
+
+### 
 
 
 
@@ -1832,303 +3212,6 @@ const bol1 = arr.indexOf(6);  // -1
 ```
 
 
-
-## 字符串方法
-
-###  str.length
-
-获取长度
-
-```js
-const str = "hello",
-str.length
-```
-
-###   str.charAt(~)  str.charAtCode(~)  
-
-获取字符串指定位置的值 
-
-charCodeAt()：该方法会返回指定索引位置字符的 Unicode 值，返回值是 0 - 65535 之间的整数
-
-```js
-const str = 'hello';
-str.charAt(1)  // 输出结果：e 
-
-let str = "abcdefg";
-console.log(str.charCodeAt(1)); // "b" --> 98
-```
-
-### str.split(~)
-
-分割字符串
-
-```js
-let str = "Hello";
-let s = str.split("e");
-console.log(str); //Hello
-console.log(s); //[ 'H', 'llo' ]
-```
-
-### slice(start, end)
-
-提取字符串某个部分
-
-```js
-let str = "Hello";
-let s = str.slice(1, 2);
-console.log(s); //e
-```
-
-```tsx
-const str = "hello"
-let s = str.slice(2);
-console.log(s); //llo
-```
-
-拷贝数组
-
-```js
-const str = "hello"
-let s = str.slice();
-console.log(s); // hello
-```
-
-
-
-### str.padStart(~)
-
-在字符串的开头填充另一个字符串,直到结果字符串达到给定的长度
-
-```javascript
-'abc'.padStart(5, 'x');  // 'xxabc'
-'abc'.padStart(5, '0');  // '00abc'
-
-// date.getMonth() 返回一个表示月份的数字,范围从0到11
-String(date.getMonth() + 1).padStart(2, '0') // 如果月份为1，会变成01
-```
-
-
-
-### a.localeCompare(b) 
-
-比较字符串字母顺序
-
-```js
-let res = titleA.localeCompare(titleB);
-```
-
-- 如果 `titleA` 在字母顺序上小于 `titleB`，则返回负数。
-- 如果 `titleA` 在字母顺序上大于 `titleB`，则返回正数。
-- 如果 `titleA` 和 `titleB` 在字母顺序上相等，则返回零。
-
-
-
-## 数组方法
-
-### arr.push(~)   
-
-向数组末尾添加
-
-```js
-const arr = [];
-arr.push(3);
-arr.push(2);
-arr.push(1);
-// [3, 2, 1]
-```
-
-### arr.unshift(~)  
-
-将元素插入到数组的起始位置，并将其他元素向后移动
-
-```js
-const arr = [];
-arr.unshift(3);
-arr.unshift(2);
-arr.unshift(1);
-// [1,2,3]
-```
-
-### arr.include(~) 
-
-判断是否有某个元素
-
-```js
-const num1: number[] = [1, 2, 3, 4, 5];
-console.log(num1.includes(1)); // 输出: true
-console.log(num1.includes(6)); // 输出: false
-```
-
-### arr.sort(~)
-
-数组排序
-
-在 `sort()` 方法中，比较函数的返回值决定了元素的排序顺序：
-
-- 如果比较函数返回一个负数，则表示第一个元素应该排在第二个元素之前。
-- 如果比较函数返回一个正数，则表示第一个元素应该排在第二个元素之后。
-- 如果比较函数返回零，则表示两个元素的顺序相等，不需要交换它们的位置。
-
-```ts
-// 1.对数字数组进行升序排序:
-const numbers: number[] = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-numbers.sort((a, b) => a - b);
-console.log(numbers); // 输出: [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9]
-
-// 2.对数字数组进行降序排序:
-const numbers: number[] = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-numbers.sort((a, b) => b - a);
-console.log(numbers); // 输出: [9, 6, 5, 5, 5, 4, 3, 3, 2, 1, 1]
-
-// 3.对字符串数组进行字母顺序排序:
-const fruits: string[] = ['banana', 'apple', 'orange', 'grape'];
-fruits.sort();
-console.log(fruits); // 输出: ['apple', 'banana', 'grape', 'orange']
-```
-
-### arr.forEach(~)
-
-```js
-const arr = ['a', 'b', 'c', 'd', 'e']
-
-arr.forEach((item, index, arr) => {
-    console.log(item, index, arr) // 元素，索引，数组本身
-})
-// a 0 [ 'a', 'b', 'c', 'd', 'e' ]
-// b 1 [ 'a', 'b', 'c', 'd', 'e' ]
-// c 2 [ 'a', 'b', 'c', 'd', 'e' ]
-// d 3 [ 'a', 'b', 'c', 'd', 'e' ]
-// e 4 [ 'a', 'b', 'c', 'd', 'e' ]
-```
-
-### arr.map(~)
-
-```js
-const arr = [1, 2, 3, 4, 5]
-const newArr = arr.map(item => item * 2)
-
-arr.map((item,index,arr)=>{
-    console.log(item,index,arr)
-})
-```
-
-- `map()` 方法会返回一个新的数组,该数组的元素是原始数组中的每个元素调用回调函数的结果。
-- `forEach()` 方法没有返回值,它只是对数组中的每个元素执行回调函数,不会生成新的数组。
-
-### arr.filter(~)
-
-```js
-const arr = [1, 2, 3, 4, 5]
-const newArr = arr.filter(item => item % 2 === 0)  // [2,4]
-```
-
-### arr.some(~)/arr.every(~)
-
-```js
-const arr = [1, 2, 3, 4, 5]
-
-const flag = arr.some(item => item > 3)    // true
-const flag1 = arr.every(item => item > 3)  //false
-```
-
-### arr.reduce(~)
-
-pre: 上一次调用的返回值
-
-next: 数组中当前被处理的元素
-
-```js
-const arr = [1, 2, 3, 4, 5];
-const sum = arr.reduce((pre, next) => {
-    return pre + next;  // 累加
-}) // 15
-```
-
-```js
-const arr1 = [1, 1, 2, 3, 4, 5, 5]
-const res = []
-arr1.reduce((pre, next) => {
-    if (!pre.get(next)) {
-        pre.set(next, 1)
-        res.push(next)
-    }
-    return pre
-}, new Map())
-
-// pre第一次调用时为初始值 new Map()
-
-```
-
-
-
-
-
-## Object方法
-
-### Object.keys()
-
-- old
-
-```js
-const obj = { name: 'zhangsan', age: 20 };
-const keys = Object.getOwnPropertyNames(obj);  // [ 'name', 'age' ]
-
-for (let key of keys) {
-    console.log(obj[key]);
-} 
-// zhangsan 
-// 20
-
-
-const obj = { name: 'zhangsan', age: 20 };
-
-for (let key in obj) {
-    console.log(obj[key]);
-}
-```
-
-- new
-
-```js
-const obj = { name: 'zhangsan', age: 20 };
-
-
-const keys = Object.keys(obj);  // [ 'name', 'age' ]
-
-for (let key of keys) {
-    console.log(obj[key]);
-}
-// 与Object.getOwnPropertyNames相同
-// zhangsan 
-// 20
-```
-
-### Object.values(~)
-
-把对象的所有属性值写成一个数组
-
-```js
-const obj = {
-    name: 'li',
-    age: 20,
-    gender: 'male'
-}
-
-const values = Object.values(obj);  // [ 'li', 20, 'male' ]
-```
-
-## trailing comma
-
-在 JavaScript 中，在数组或对象的最后一项后面添加一个逗号（trailing comma）是被允许的，并且不会导致语法错误。这种语法被称为 "trailing comma" 或 "final comma"
-
-```javascript
-const arr = [{
-    width: 120,
-    dataKey: "STATUS_MC",
-    title: "状态",
-    filter: true,
-},]
-```
 
 
 
@@ -2425,14 +3508,6 @@ bar(); // obj对象
 
 
 
-
-
-
-
-
-
-
-
 ## 默认参数
 
 ```js
@@ -2440,8 +3515,6 @@ function show(name = "li", age = 18) {
     console.log(name, age);
 }
 ```
-
-
 
 
 
@@ -3300,6 +4373,15 @@ keyof 是 TypeScript 中的一个关键字，用于获取某个类型的所有�
 
 
 
+```typescript
+interface IKun {
+    name: string,
+    age: number
+}
+
+type IKunKeys = keyof IKun // "name" | "age"
+```
+
 
 
 
@@ -3597,7 +4679,6 @@ interface User{
     readonly id: number,
     name:string
 }
-
 ```
 
 
@@ -3718,6 +4799,8 @@ printPerson({ name1: "zhang", age: 18 })  // 报错
 
 ## 索引签名
 
+索引签名必须是string或者number，不能是联合类型
+
 ```typescript
 interface Iconllection{
     [index: number]: string  // 索引签名
@@ -3746,7 +4829,82 @@ interface Iconllection {
 
 
 
-## 接口继承
+## 接口继承 extends
+
+```typescript
+interface IPerson{
+    name: string,
+    age: numebr,
+}
+
+interface IKun extends IPerson{
+    slogan: string
+    playBasketball: () => void
+}
+
+// 类实现接口，必须实现所有属性
+class Person implements IKun{
+    name: string,
+    age: number,
+    slogan: string,
+    playBasketball(){
+        
+    }
+}
+```
+
+
+
+## ts严格字面量赋值检测
+
+在第一次创建对象字面量，称之为fresh（新鲜的）
+
+对于新鲜的字面量，会进行严格的类型检测，必须完全满足类型要求，不能有多余的属性。
+
+
+
+现象1
+
+```typescript
+interface IPerson {
+    name: string,
+    age:number
+}
+
+const obj = {
+	name: "why",
+    age: 18,
+    height: 1.88
+}
+
+const info: IPerson = obj  // 不报错
+
+const obj = {
+	name: "why",
+}
+
+const info: IPerson = obj // 报错，缺少age
+```
+
+现象2
+
+```typescript
+interface IPerson {
+    name: string,
+    age:number
+}
+
+function printPerson(person: IPerson){}
+
+printPerson({name: "li", age: 18, height: 1.88}) // 报错，“height”不在类型“IPerson”中
+
+const obj = {name: "li", age: 18, height: 1.88}
+printPerson(obj)  // 不报错
+```
+
+
+
+
 
 
 
@@ -3878,6 +5036,360 @@ function getValue(value?: string) {
   console.log(value!.length); // 正确：使用非空断言操作符
 }
 ```
+
+
+
+## 泛型
+
+### 类型的参数化
+
+```typescript
+function bar<T>(arg: T){
+    return arg
+}
+```
+
+```typescript
+function foo<T,E>(a1: T, a2: E){}
+```
+
+T：Type的缩写, 类型
+
+K、V：key和value的缩写，键值对
+
+E：Element的缩写，元素
+
+O：Object的缩写，对象
+
+
+
+### 泛型的接口使用
+
+```typescript
+interface IKun<T>{
+    name: T,
+    age: number,
+    slogan: T
+}
+
+const kun: IKun<string> = {
+    name: "li",
+    age: 18,
+    slogan: "haha"
+}
+```
+
+可以给默认值
+
+```typescript
+interface IKun<T = string>{
+    name: T,
+    age: number,
+    slogan: T
+}
+
+const kun: IKun = {
+    name: "li",
+    age: 18,
+    slogan: "haha"
+}
+```
+
+
+
+### 泛型类的使用
+
+```typescript
+class Point<T = number> {
+    x: T
+    y: T
+    constructor(x: T, y: T){
+        this.x = x
+        this.y = y
+    }
+}
+
+const p1 = new Point(10,20)
+const p1 = new Point<string>("10","20")
+```
+
+
+
+### 泛型约束
+
+使用extends
+
+```typescript
+// 获取传入的内容，必须有length属性
+// T相当于是一个变量，用于记录本次调用的类型 
+interface ILength {
+    length: number
+}
+
+
+function getInfo<T extends ILength>(args: T): T {
+     return args
+}
+
+const info1 = getInfo("aaaa")  // const info1: "aaaa"
+```
+
+
+
+传入的key类型，obj当中key的其中之一
+
+keyof
+
+```typescript
+function getObj<O, K extends keyof O> (obj: O, key: K) { // k必须是O对象的联合类型中的一个
+    return obj[key]
+}
+
+const info = {
+    name:"li",
+    age: 18,
+    height: 1.88
+}
+
+const name = getObj(info,"name")
+```
+
+
+
+### 映射类型
+
+映射类型不能使用interface，只能使用type
+
+- 有的时候，一个类型需要基于另外一个类型，但是你又不想拷贝一份，这个时候可以考虑使用映射类型
+
+- 映射类型建立在索引签名的语法上： 
+  - 映射类型，就是使用了PropertyKeys 联合类型的泛型；
+  - 其中PropertyKeys 多是通过 keyof 创建，然后循环遍历键名创建一个类型；
+
+拷贝一份IPerson
+
+```typescript
+interface IPerson {
+	name: string,
+    age: number
+}
+
+type MapPerson<T> = {
+    [Property in keyof T]: T[Property]
+}
+
+type NewPerson = MapPerson<IPerson>
+```
+
+  
+
+#### 映射修饰符
+
+在使用映射类型时，有两个额外的修饰符可能会用到
+
+- 一个是readonly，用于设置属性只读； 
+- 一个是? ，用于设置属性可选；
+
+你可以通过前缀-或者+ 删除或者添加这些修饰符，如果没有写前缀，相当于使用了+ 前缀
+
+
+
+#### 可选类型转换
+
+```typescript
+type User = {
+  name: string;
+  age?: number;
+  email: string;
+};
+
+type MapUser<T> = {
+    [Property in keyof T]?: T[Property]  // 全部可选
+}
+
+type MapUser1<T> = {
+    [Property in keyof T]-?: T[Property]  // 全部必选
+}
+```
+
+
+
+
+
+#### 对象属性的只读转换
+
+```typescript
+type User = {
+  name: string;
+  age: number;
+  email: string;
+};
+
+type ReadonlyUser = {
+  readonly [P in keyof User]: User[P];
+};
+```
+
+
+
+#### 部分属性的选择
+
+```typescript
+type Product = {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+};
+
+type ProductSummary = {
+  [P in 'id' | 'name']: Product[P];
+};
+```
+
+在上面的例子中，`ProductSummary` 类型使用映射类型语法 `[P in 'id' | 'name']` 从 `Product` 类型中选择 `id` 和 `name` 属性。`Product[P]` 用于获取选择的属性的类型。
+
+
+
+## ts模块化
+
+### 非模块（Non-modules）
+
+- JavaScript 规范声明任何没有 export 的 JavaScript 文件都应该被认为是一个脚本，而非一个模块
+
+- 在一个脚本文件中，变量和类型会被声明在共享的全局作用域，将多个输入文件合并成一个输出文件，或者在HTML使用多个<script> 标签加载这些文件
+
+- 如果你有一个文件，现在没有任何import 或者export，但是你希望它被作为模块处理，添加 
+
+  ```typescript
+  export {}
+  ```
+
+- 这会把文件改成一个没有导出任何内容的模块，这个语法可以生效，无论你的模块目标是什么
+
+
+
+### 类型导入
+
+导入的是类型的话，推荐加上type关键字
+
+```typescript
+import { type IFoo, type IDType } from './foo'
+```
+
+可以让一个非TypeScript 编译器比如Babel、swc或者esbuild知道什么样的导入可以被安全移除
+
+
+
+Babel：es6以上转es5，ts转js
+
+
+
+
+
+
+
+### 命名空间namespace（了解）
+
+在ts早期时成为内部模块，将一个模块内部进行作用域划分，防止命名冲突
+
+```typescript
+export namespace Time {
+    export function format(time: string){
+        return "2022-10-01"
+    }
+    export const name = "time"
+}
+```
+
+
+
+### 类型的查找
+
+**.d.ts文件**
+
+.d.ts 文件是 TypeScript 的类型声明文件，它们的主要作用是为 JavaScript 库提供类型支持，使我们能够在 TypeScript 中使用这些库时获得类型检查和智能提示。.d.ts 文件描述了库或模块的结构、函数、类、接口以及其他类型信息，让 TypeScript 编译器了解这些库的类型约束。
+
+
+
+### declare
+
+declare 关键字用于告诉 TypeScript 编译器：“某个变量、类型、模块等已经存在了”，即使它可能在当前文件中没有定义。这通常用于描述 JavaScript 库的类型信息，或者是在 TypeScript 中引用已经存在的全局变量而不实际导入它们。
+
+1. 声明变量
+
+如果你在 TypeScript 文件中使用了在其他地方定义的全局变量，你可以使用 `declare` 关键字来声明这个变量的类型。
+
+```typescript
+declare var myGlobalVar: string;
+```
+
+2. 声明类型
+
+`declare` 也可以用来声明全局的类型，这通常在 `.d.ts` 文件中进行，这些文件用于定义和存储类型信息。
+
+```typescript
+// 在 .d.ts 文件中
+declare type MyGlobalType = {
+  name: string;
+  age: number;
+};
+```
+
+3. 声明模块
+
+当使用非 TypeScript 编写的模块时，你可以使用 declare module 告诉 TypeScript 这个模块的存在，并描述它的类型。
+
+```typescript
+declare module 'some-external-module' {
+  export function doSomething(): void;
+}
+```
+
+4. 声明类和接口
+
+`declare` 也可以用来声明类和接口，这在描述已有的 JavaScript 类型时非常有用。
+
+```typescript
+declare class MyClass {
+  myMethod(arg: string): number;
+}
+
+declare interface MyInterface {
+  myProperty: string;
+}
+```
+
+5. 声明命名空间
+
+你可以使用 `declare namespace` 来声明全局的命名空间，它可以包含类型、接口等。
+
+```typescript
+declare namespace MyNamespace {
+  export interface SomeInterface {
+    doSomething(): void;
+  }
+}
+```
+
+6. 声明文件
+
+当你创建 `.d.ts` 文件时，你会使用 `declare` 关键字来告诉 TypeScript 这个文件只包含类型声明而不包含具体的实现。
+
+```typescript
+// some-declarations.d.ts
+declare module 'another-module' {
+  export function anotherFunction(): void;
+}
+
+declare module "*.png"
+declare module "*.jpg"
+declare module "*.svg"
+```
+
+
+
+
 
 
 
