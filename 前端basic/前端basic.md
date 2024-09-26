@@ -169,6 +169,15 @@ font-weight: normal / bold / bolder / lighter / 数字值(从100到900的整数)
 }
 ```
 
+#### transform-origin
+
+设置变换中心
+
+```css
+transform-origin: center;
+transform-origin: left top; /* 设置原点为元素的左上角 */
+```
+
 
 
 ## border
@@ -926,6 +935,64 @@ top: 50%, left: 50%
     <div class="d1">
     </div>
 </body>
+
+</html>
+```
+
+###  旋转正方形
+
+```html
+<!DOCTYPE html>
+<html lang="en" height="100%">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旋转正方形</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .square {
+            position: absolute;
+            height: 200px;
+            width: 200px;
+            background-color: yellow;
+            opacity: 0.7;
+            transform-origin: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+    </div>
+</body>
+<script>
+    const squares = document.querySelectorAll('.square');
+    const totalSquares = squares.length;
+    const rotationAngle = 360 / totalSquares;
+
+    squares.forEach((square, index) => {
+        square.style.transform = `rotate(${index * rotationAngle}deg)`;
+    });
+</script>
 
 </html>
 ```
@@ -1932,7 +1999,15 @@ console.log(names); // [ 'Mary', 'Bob', 'Tom' ]
 
 #### arr.splice(~)
 
-在任意位置添加/删除/替换元素
+在任意位置添加/删除/替换元素,原数组会被修改
+
+```javascript
+array.splice(start[ , deleteCount[, item1[ , item2[, ...]]]])
+```
+
+- **start**: 指定修改开始的索引。
+- **deleteCount**: 要移除的元素数量。
+- **items**: 要添加的新元素。
 
 ##### 移除元素
 
@@ -1943,19 +2018,117 @@ console.log(removed); // 输出: ["banana", "cherry"]
 console.log(fruits);  // 输出: ["apple", "date"]
 ```
 
+##### 添加元素
+
+```javascript
+let fruits = ["apple", "date"];
+fruits.splice(1, 0, "banana", "cherry");
+console.log(fruits); // 输出: ["apple", "banana", "cherry", "date"]
+```
+
+##### 替换元素
+
+```javascript
+let fruits = ["apple", "banana", "cherry"];
+fruits.splice(1, 1, "orange");
+console.log(fruits); // 输出: ["apple", "orange", "cherry"]
+```
+
+#### arr.slice(~)
+
+<span style="color:red">提取数组的一部分,并返回一个新数组,不会修改原数组</span>
+
+```javascript
+const fruits = ['apple', 'banana', 'orange', 'mango'];
+const slicedFruits = fruits.slice(1, 3);
+console.log(slicedFruits); // 输出: ['banana', 'orange']
+console.log(fruits); // 输出: ['apple', 'banana', 'orange', 'mango'] (原始数组未被修改)
+```
+
+#### arr.concat(~)
+
+<span style="color:red">合并两个或多个数组,并返回一个新数组,不会修改原数组</span>
+
+```javascript
+const arr1 = [1, 2, 3];
+const arr2 = [4, 5, 6];
+const concatenatedArr = arr1.concat(arr2);
+console.log(concatenatedArr); // 输出: [1, 2, 3, 4, 5, 6]
+console.log(arr1); // 输出: [1, 2, 3] (原始数组未被修改)
+console.log(arr2); // 输出: [4, 5, 6] (原始数组未被修改)
+```
+
+#### arr.join(~)
+
+<span style="color:red">将数组的所有元素连接成一个字符串</span>
+
+```javascript
+const animals = ['cat', 'dog', 'rabbit'];
+const joinedString = animals.join('-');
+console.log(joinedString); // 输出: 'cat-dog-rabbit'
+console.log(animals); // 输出: ['cat', 'dog', 'rabbit'] (原始数组未被修改)
+```
+
+#### arr.find(~)
+
+<span style="color:red">find()方法用于查找数组中满足提供的测试函数的第一个元素的值</span>
+
+如果找到了满足条件的元素,find()方法会立即返回该元素的值。如果没有找到满足条件的元素,则返回undefined
+
+```javascript
+const numbers = [5, 12, 8, 130, 44];
+
+// 查找第一个大于10的元素
+const found = numbers.find(element => element > 10);
+console.log(found); // 输出: 12
+```
+
+#### arr.findIndex(~)
+
+与`find()`方法类似,区别是`find()`方法返回的是元素值,而`findIndex()`返回的是索引
+
+```javascript
+const numbers = [5, 12, 8, 130, 44];
+
+const isLargeNumber = (element) => element > 13;
+
+console.log(numbers.findIndex(isLargeNumber));
+// 输出: 3
+// 因为元素 130 满足条件,它的索引是 3
+```
 
 
 
+#### arr.indexof(~)
 
-#### arr.include(~) 
+array.indexOf(searchElement[, fromIndex])
 
-判断是否有某个元素
+- `searchElement`:要查找的元素。
+- `fromIndex`(可选):开始查找的索引位置,默认为0。如果为负数,则从数组末尾开始查找。
+
+```javascript
+const fruits = ['apple', 'banana', 'orange', 'banana'];
+
+console.log(fruits.indexOf('banana')); // 输出: 1
+console.log(fruits.indexOf('banana', 2)); // 输出: 3
+console.log(fruits.indexOf('grape')); // 输出: -1
+```
+
+`indexOf()`方法使用严格相等(`===`)进行比较。它会区分数字和字符串,以及对象的引用。
+
+
+
+#### arr.includes(~) 
+
+<span style="color:red">判断是否有某个元素</span>
 
 ```js
 const num1: number[] = [1, 2, 3, 4, 5];
 console.log(num1.includes(1)); // 输出: true
 console.log(num1.includes(6)); // 输出: false
 ```
+
+
 
 #### arr.sort(~)
 
@@ -1984,7 +2157,33 @@ fruits.sort();
 console.log(fruits); // 输出: ['apple', 'banana', 'grape', 'orange']
 ```
 
+#### arr.reverse(~)
+
+原地反转数组的元素顺序,并返回该数组的引用
+
+```javascript
+const arr = [1, 2, 3, 4, 5];
+console.log(arr); 
+// 输出: [1, 2, 3, 4, 5]
+
+const reversedArr = arr.reverse();
+console.log(reversedArr); 
+// 输出: [5, 4, 3, 2, 1]
+
+console.log(arr); 
+// 输出: [5, 4, 3, 2, 1]
+// 注意,原数组 arr 也被修改了
+```
+
+
+
+
+
 #### arr.forEach(~)
+
+<span style="color:red">forEach方法用于遍历数组中的每个元素，并执行指定的操作</span>
+
+forEach方法不会返回任何值，它只是用于执行某些操作
 
 ```js
 const arr = ['a', 'b', 'c', 'd', 'e']
@@ -1997,7 +2196,58 @@ arr.forEach((item, index, arr) => {
 // c 2 [ 'a', 'b', 'c', 'd', 'e' ]
 // d 3 [ 'a', 'b', 'c', 'd', 'e' ]
 // e 4 [ 'a', 'b', 'c', 'd', 'e' ]
+
+arr.forEach(function (item, index, arr) {
+    console.log(item, index, arr)
+})
 ```
+
+#### 手写forEach
+
+版本一
+
+```javascript
+const arr = [1, 2, 3, 4, 5]
+
+function hyForEach(fn, array){
+    for(let i=0; i<array.length; i++){
+        fn(arr[i], i, array)
+    }
+}
+
+
+hyForEach((item,index,arr) => {
+    console.log(item, index, arr);
+}, arr)
+```
+
+版本二
+
+```javascript
+const arr = [1, 2, 3, 4, 5]
+
+arr.hyForEach = function (fn) {
+    for (let i = 0; i < this.length; i++) {
+        fn(this[i], i, this)
+    }
+}
+
+arr.hyForEach((item, index, arr) => {
+    console.log(item, index, arr)
+})
+```
+
+版本三
+
+```javascript
+Array.prototype.hyForEach = function(fn) {
+    for(var i = 0; i < this; i++){
+        fn(this[i], i, this)
+    }
+}
+```
+
+
 
 #### arr.map(~)
 
@@ -2008,6 +2258,12 @@ const newArr = arr.map(item => item * 2)
 arr.map((item,index,arr)=>{
     console.log(item,index,arr)
 })
+
+
+var n = arr.map(item => {
+    item = item * 2
+    console.log(item)
+}).length  // 链式调用
 ```
 
 - `map()` 方法会返回一个新的数组,该数组的元素是原始数组中的每个元素调用回调函数的结果。
@@ -2145,9 +2401,179 @@ const arr = [{
 
 
 
+## Math类型
+
+### 方法
+
+1. `Math.abs(x)`：返回一个数的绝对值。
+2. `Math.ceil(x)`：向上取整，返回大于或等于一个数的最小整数。
+3. `Math.floor(x)`：向下取整，返回小于或等于一个数的最大整数。
+4. `Math.round(x)`：四舍五入取整，返回一个数字四舍五入后的整数。
+5. `Math.max(x, y, z, ..., n)`：返回一组数中的最大值。
+6. `Math.min(x, y, z, ..., n)`：返回一组数中的最小值。
+7. `Math.pow(x, y)`：返回一个数的y次幂。
+8. `Math.sqrt(x)`：返回一个数的平方根。
+9. `Math.random()`：返回一个0到1之间的随机数（包括0但不包括1）。
+10. `Math.sin(x)`：返回一个数的正弦值。
+11. `Math.cos(x)`：返回一个数的余弦值。
+12. `Math.tan(x)`：返回一个数的正切值。
+
+### 属性
+
+1. `Math.PI`：圆周率，约等于3.14159。
+2. `Math.E`：自然对数的底数，约等于2.71828。
+
+## 时间的表示方式
+
+往东的时区（GMT+hh:mm）   往西的时区（GMT-hh:mm）
+
+UTC（原子钟计算的标准时间）
+
+### Date
+
+```javascript
+var date1 = new Date()
+var date2 = new Date("2022-08-08") // 时间字符串
+var date3 = new Date(2023, 10, 10, 09, 08, 07, 333) // 传入年月日时分秒毫秒
+```
+
+### Date获取unix时间戳
+
+unix时间戳：是一个整数，是自1970年1月1日 
+
+```javascript
+const date = new Date(0)
+console.log(date); // Thu Jan 01 1970 08:00:00 GMT+0800 (中国标准时间)
+```
+
+### dataString时间的表示方式
+
+RFC 2822标准、ISO 8601 标准
+
+- 默认打印时间格式是RFC 2822标准
+
+```javascript
+const date = new Date(0)
+console.log(date); // Thu Jan 01 1970 08:00:00 GMT+0800 (中国标准时间)
+```
+
+- 可以转为 ISO 8601标准
+  - YYYY：年份，0000 ~ 9999
+  - MM：月份，01 ~12
+  - DD：日，01 ~ 31
+  - T：分隔日期和时间，没有特殊含义，可省略
+  - HH：小时，00 ~24
+  - mm：分钟，00 ~ 59
+  - ss：秒，00~59
+  - .sss：毫秒
+  - Z：时区
+
+```javascript
+var date = new Date()
+console.log(new Date())  // Wed Sep 25 2024 21:20:54 GMT+0800 (中国标准时间)
+console.log(date.toDateString());  // Wed Sep 25 2024
+console.log(date.toISOString());  // 2024-09-25T13:20:54.462Z
+```
+
+### Date获取信息
+
+1. `getFullYear()`: 根据本地时间返回指定日期的年份(四位数年份)。
+2. `getMonth()`: 根据本地时间返回指定日期的月份(0-11,0代表一月)。
+3. `getDate()`: 根据本地时间返回指定日期一个月中的第几天(1-31)。
+4. `getDay()`: 根据本地时间返回指定日期的星期几(0-6,0代表星期日)。
+5. `getHours()`: 根据本地时间返回指定日期的小时(0-23)。
+6. `getMinutes()`: 根据本地时间返回指定日期的分钟(0-59)。
+7. `getSeconds()`: 根据本地时间返回指定日期的秒数(0-59)。
+8. `getMilliseconds()`: 根据本地时间返回指定日期的毫秒(0-999)。
+9. `getTime()`: 返回从1970年1月1日 00:00:00 UTC到指定日期的毫秒数。
+10. `setMonth()`: 根据本地时间为指定日期设置月份(0-11)。
+11. `setDate()`: 根据本地时间为指定日期设置月份中的第几天(1-31)。
+12. `setHours()`: 根据本地时间为指定日期设置小时(0-23)。
+13. `setMinutes()`: 根据本地时间为指定日期设置分钟(0-59)。
+14. `setSeconds()`: 根据本地时间为指定日期设置秒(0-59)。
+15. `setMilliseconds()`: 根据本地时间为指定日期设置毫秒(0-999)。
+16. `setTime()`: 以毫秒数设置 Date 对象。
+
+```javascript
+let date = new Date("2014-01-08 14:05:06");
+console.log("新创建的Date对象：", date);
+ 
+// 1、把 Date 对象转换为字符串；
+console.log("toString()方法，转换为字符串：", date.toString());
+ 
+// 2、把 Date 对象的日期部分转换为字符串；
+console.log("toDateString()方法，日期部分转换为字符串：", date.toDateString());
+ 
+// 3、把 Date 对象的时间部分转换为字符串；
+console.log("toTimeString()方法，时间部分转换为字符串：", date.toTimeString());
+ 
+// 4、把 Date 对象，转换为本地时间格式的字符串；
+console.log("toLocaleString()方法，转换为本地时间格式的字符串：", date.toLocaleString());
+ 
+// 5、把 Date 对象的日期部分，转换为本地时间格式的字符串；
+console.log("toLocaleDateString()方法，日期部分转换为本地时间格式的字符串：", date.toLocaleDateString());
+ 
+// 6、把 Date 对象的时间部分，转换为本地时间格式的字符串；
+console.log("toLocaleTimeString()方法，时间部分，转换为本地时间格式的字符串：", date.toLocaleTimeString());
+ 
+// 7、把 Date 对象转换为JSON 数据格式字符串；
+console.log("toJSON()方法，转换为JSON 数据格式字符串：", date.toJSON());
+ 
+// 8、把 Date 对象转换为 ISO 标准的日期格式；
+console.log("toISOString()方法，转换为 ISO 标准的日期格式：", date.toISOString());
+```
 
 
-## dom
+
+### Date获取时间戳
+
+```javascript
+var date = new Date()
+var timestamp = Date.now()
+var timestamp1 = date.getTime()
+var timestamp2 = date.valueOf()
+```
+
+
+
+```javascript
+var timeString = "2023-06-01"
+
+var date = new Date(timeString)
+var timeStamp = date.getTime()
+
+var timeStamp1 = Date.parse(timeString)
+```
+
+
+
+## Dom
+
+- 例子
+
+ ```javascript
+ var box1 = document.body.children[0]
+ box1.style.color = "red"
+ box1.children[0].style.fontSize = "100px"
+ box1.children[0].nextElementSibling.style.color = "orange"
+ ```
+
+
+
+### document对象
+
+对DOM的所有操作都是从document对象开始的
+
+可以通过 window.document 或直接使用 document 来访问 document 对象
+
+它是DOM的入口点，可以从document开始访问任何节点元素
+
+- html元素：document.documentElement
+- body元素：document.body
+- head元素：document.head
+- 文档声明：document.doctype
+
+
 
 ### 事件
 
@@ -2155,6 +2581,8 @@ const arr = [{
 
 - `input`事件在每次值发生变化时都会立即触发，因此它提供了实时的反馈。当你需要实时响应用户的输入并执行相应的操作时，可以使用 `input` 事件。
 - `change` 事件只在值发生变化并失去焦点后触发，因此它提供了延迟的反馈。当你需要在用户完成输入后再执行相应的操作时，可以使用 `change` 事件。
+
+
 
 
 
@@ -2407,7 +2835,7 @@ a === c; //true
 
 
 
-#### NaN
+### NaN
 
 NaN 是 JavaScript 中的一个特殊值，表示 "Not-a-Number"（非数值）。当你尝试对非数值类型的值进行数学运算时，或者当计算结果无法表示为数值时，就会出现 NaN。
 
@@ -3524,17 +3952,6 @@ function show(name = "li", age = 18) {
 function rand(m: number, n: number) {
     return Math.ceil(Math.random() * (n - m + 1)) + m - 1;
 }
-```
-
-## 数值
-
-### parseFloat(~)
-
-当你使用 `parseFloat()` 函数解析字符串时，它会尝试将字符串转换为浮点数。函数会从字符串的开头开始解析，直到遇到第一个无法转换为数字的字符为止。
-
-```javascript
-parseFloat("10g")  // 10
-Number("10g")   // NaN
 ```
 
 
