@@ -4241,13 +4241,13 @@ export default defineComponent({
 
 ### 属性
 
-clientX：当鼠标事件发生时（不管是onclick，还是omousemove，onmouseover等），鼠标相对于浏览器（这里说的是浏览器的有效区域）x轴的位置；
-clientY：当鼠标事件发生时，鼠标相对于浏览器（这里说的是浏览器的有效区域）y轴的位置；
-screenX：当鼠标事件发生时，鼠标相对于显示器屏幕x轴的位置；
-screenY：当鼠标事件发生时，鼠标相对于显示器屏幕y轴的位置；
-offsetX：当鼠标事件发生时，鼠标相对于事件源x轴的位置
-offsetY：当鼠标事件发生时，鼠标相对于事件源y轴的位置
-pageX：参照点是页面本身的body原点，而不是浏览器内容区域左上角，它计算的值不会随着滚动条而变动，它在计算时其实是以body左上角原点（即页面本身的左上角，而不是浏览器可见区域的左上角）为参考点计算的，这个相当于已经把滚动条滚过的高或宽计算在内了，所以无论滚动条是否滚动，他都是一样的距离值。
+`clientX`：当鼠标事件发生时（不管是onclick，还是omousemove，onmouseover等），鼠标相对于浏览器（这里说的是浏览器的有效区域）x轴的位置；
+`clientY`：当鼠标事件发生时，鼠标相对于浏览器（这里说的是浏览器的有效区域）y轴的位置；
+`screenX`：当鼠标事件发生时，鼠标相对于显示器屏幕x轴的位置；
+`screenY`：当鼠标事件发生时，鼠标相对于显示器屏幕y轴的位置；
+`offsetX`：当鼠标事件发生时，鼠标相对于事件源x轴的位置
+`offsetY`：当鼠标事件发生时，鼠标相对于事件源y轴的位置
+`pageX`：参照点是页面本身的body原点，而不是浏览器内容区域左上角，它计算的值不会随着滚动条而变动，它在计算时其实是以body左上角原点（即页面本身的左上角，而不是浏览器可见区域的左上角）为参考点计算的，这个相当于已经把滚动条滚过的高或宽计算在内了，所以无论滚动条是否滚动，他都是一样的距离值。
 
 ### 效果实现
 
@@ -4329,4 +4329,96 @@ pageX：参照点是页面本身的body原点，而不是浏览器内容区域�
 
 
 
+
+# 实际案例
+
+## 本地视频播放，调整速率
+
+```tsx
+import { ElButton } from 'element-plus';
+import { defineComponent, ref } from 'vue';
+import video from './lgcr.mp4'
+
+export default defineComponent({
+    setup() {
+        const rate = ref(1);
+        const videoRef = ref<HTMLVideoElement | null>(null);
+
+        const increaseRate = () => {
+            rate.value += 0.5;
+            if (videoRef.value) videoRef.value.playbackRate = rate.value;
+        };
+
+        const decreaseRate = () => {
+            rate.value = Math.max(0.5, rate.value - 0.5); // 设置最小速率为0.5
+            if (videoRef.value) videoRef.value.playbackRate = rate.value;
+        };
+
+        return () => (
+            <div>
+                <video ref={videoRef} src={video} controls style={{ width: '300px', height: '170px' }}></video>
+                <br></br>
+                <div style={{ display: 'flex', width: '150px' }}>
+                    <ElButton onClick={decreaseRate}>-</ElButton>
+                    <div style={{ width: '50px', textAlign: 'center' }}>{rate.value}</div>
+                    <ElButton onClick={increaseRate}>+</ElButton>
+                </div>
+
+            </div >
+        );
+    }
+});
+
+```
+
+
+
+## 下划线动态
+
+通过background，no-repeat bottom left。和background-size实现
+
+```html
+<!DOCTYPE html>
+<html lang="en" style="height: 3000px;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .d1 {
+            width: 200px;
+        }
+        .p1 {
+            background: linear-gradient(to right, rgb(255, 0, 195), rgb(0, 255, 255), rgb(0, 26, 255)) no-repeat bottom left;
+            background-size: 0 2px;
+            transition: background-size 1300ms;
+        }
+
+        .p1:hover {
+            background-size: 100% 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d1">
+        <span class="p1">
+            内心满是憔悴 眼神游动不止
+            我在这世界孤身一人
+            这不断凋零的春季中
+            每年都只感受到冰冷
+            在一片黑暗中 单向往前走着
+            我只能不断胡乱写着
+            明知期待也是一场空
+            却依然不断寻求救赎
+        </span>
+    </div>
+</body>
+<script>
+
+</script>
+
+</html>
+```
 
