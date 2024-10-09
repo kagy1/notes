@@ -4,19 +4,23 @@
 
 行内样式有两种
 
-```vue
+### tsx
+
+```tsx
 <label style={{ fontSize: '30px', color: 'blue' }}>hello</label> //tsx
-<div style={{ width: '100px', background: 'yellow' }}>1</div >  //动态
-<div style="width:100px;background:yellow">1</div>				//静态
+<div style={{ width: '100px', background: 'yellow' }}>1</div >   //动态
+<label style={{ paddingRight: tableShowType.value === "left-right" ? "10px" : "0px" }}>hello</label>
+<div style="width:100px;background:yellow">1</div>				 //静态
+```
 
+### sfc
 
+```vue
 <label :style="{ fontSize: '30px', color: 'blue'}">hello</label>  //vue
 //JavaScript 对象的语法来定义样式。属性名使用驼峰式命名，属性值使用字符串或数字。多个属性用逗号隔开
 
-style={{ paddingRight: tableShowType.value === "left-right" ? "10px" : "0px" }}
 
-
-</div> <button onClick={add} style="width:100px">+</button>
+</div> <button onClick={add} style="width:100px;height:100px">+</button>
 //这种方式使用了字符串来定义样式，类似于 HTML 中的 style 属性。属性名和属性值之间使用冒号 : 分隔，不同的属性使用分号 ; 分隔
 
 ```
@@ -49,6 +53,52 @@ export default defineComponent({
         )
     }
 })
+```
+
+
+
+# class
+
+## sfc
+
+- 静态class
+
+```vue
+<div class="d1 d2"}>内容</div>
+```
+
+- 动态class
+
+```vue
+<template>
+  <div :class="{ d1: condition1, d2: condition2 }">
+    <!-- 内容 -->
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const condition1 = ref(true);
+const condition2 = ref(false);
+</script>
+```
+
+
+
+```vue
+<template>
+  <div :class="[condition1 ? 'd1' : '', condition2 ? 'd2' : '']">
+    <!-- 内容 -->
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const condition1 = ref(true);
+const condition2 = ref(false);
+</script>
 ```
 
 
@@ -102,7 +152,81 @@ app.mount('#app')
 
 
 
-# vue
+# vue3
+
+## 渲染函数
+
+### h函数
+
+VNode和VDOM
+
+- vue在生成真实的DOM之前，会将我们的节点转换成VNode，而VNode组合在一起形成一颗树结构，就是`虚拟DOM`（VDOM）
+- template中的HTML最终也是使用`渲染函数`生成对应的`VNode`
+
+h函数是一个用于创建VNode的函数
+
+更准确的命名是createVNode()函数，简化为h()函数
+
+- 语法：h(type, ?props, ?children)
+
+  `type`：表示要创建的节点类型，可以是一个字符串（表示 HTML 标签）或一个 Vue 组件对象。
+
+  `props`：表示节点的属性，是一个对象，包含了节点的属性、事件监听器等。
+
+  `children`：表示节点的子节点，可以是一个字符串、数组或者 `null`。
+
+```vue
+<template>
+<vnode></vnode>
+</template>
+
+<script setup lang="ts">
+import { h } from 'vue'
+
+const vnode = h(
+    'div',
+    {
+        class: 'example',
+        onClick: () => {
+            console.log('Clicked!')
+        }
+    },
+    [
+        h('p', 'Hello'),
+        h('p', 'World')
+    ]
+)
+</script>
+
+<style lang="scss" scoped>
+</style>
+```
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent, ref, h } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const count = ref(0)
+
+        return () => h(
+            'div',
+            null,
+            [
+                h('div', null, count.value),
+                h(ElButton, { onClick: () => count.value++, class: 'b1' }, '+')
+            ]
+        )
+    }
+})
+```
+
+
+
+
+
+# sfc
 
 ## 与tsx的区别
 
@@ -482,6 +606,21 @@ export default defineComponent({
 })
 ```
 
+```tsx
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, ctx) {
+        const render = () => {
+            return (
+                <div>111</div>
+            )
+        }
+        return render
+    }
+})
+```
+
 
 
 在 JSX 中，当返回的是单个元素时，可以省略括号。
@@ -850,6 +989,8 @@ export default defineComponent({
 
 
 ## mitt
+
+事件总线
 
 - 引入
 
@@ -3594,10 +3735,6 @@ Promise的any方法，只要参数中有一个Promise实例化对象的状态为
 
 
 
-#### 迭代器 iterator
-
-
-
 
 
 
@@ -3643,6 +3780,125 @@ p.catch((msg) => { () => { alert(msg) } })
 
 
 
+
+
+## 模拟请求
+
+需求：发送三次请求
+
+### 回调地狱
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 2000);
+    })
+}
+
+function handleData() {
+    requestData("data").then(res1 => {
+        console.log(res1)
+        requestData(res1).then(res2 => {
+            console.log(res2)
+            requestData(res2).then(res3 => {
+                console.log(res3)
+            })
+        })
+    })
+}
+
+handleData()
+```
+
+
+
+### promise
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 2000);
+    })
+}
+
+function handleData() {
+    requestData("data").then(res1 => {
+        console.log(res1)
+        return requestData(res1)
+    }).then(res2 => {
+        console.log(res2);
+        return requestData(res2)
+    })
+}
+
+handleData()
+```
+
+
+
+### 生成器
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 1);
+    })
+}
+
+function* handleData() {
+    const res1 = yield requestData("data")
+    console.log(res1)
+    const res2 = yield requestData(res1)
+    console.log(res2)
+    const res3 = yield requestData(res2)
+    console.log(res3)
+}
+
+const generator = handleData()
+generator.next().value.then(res1 => {
+    generator.next(res1).value.then(res2 => {
+        generator.next(res2).value.then(res3 => {
+            generator.next(res3)
+        })
+    })
+})
+```
+
+
+
+### async实现
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 2000);
+    })
+}
+
+async function handleData() {
+    const res1 = await requestData("data")
+    console.log(res1)
+    const res2 = await requestData(res1)
+    console.log(res2)
+    const res3 = requestData(res2)
+    console.log(res3)
+}
+
+handleData()
+```
+
+
+
+
+
 ## async / await
 
 ### 出现的原因
@@ -3656,6 +3912,7 @@ Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`
 2. promise对象的结果由async函数执行的返回值决定
    - 返回值为一个非promise类型的数据：成功
    - 返回值是一个promise对象
+   - <span style="color:red">返回值是一个对象实现了thenable，由对象的then方法决定 </span>
    - 抛出异常：失败
 
 `async` 用于声明一个异步函数。异步函数是一种特殊的函数，它总是返回一个 Promise。
@@ -3688,7 +3945,7 @@ async function f() {return 'TEST';}
 
 ```js
 const f1 = async () => {
-    return "hello world"
+    return "hello world" // 相当于返回Promise.resolve("hello world")
 }
 const p1 = f1()
 p1.then((msg) => {
@@ -3759,6 +4016,48 @@ m()
 console.log(2);
 // 输出 0,2,1,3
 ```
+
+
+
+- await 右侧为rejected Promise
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(url)
+        }, 2000);
+    })
+}
+
+// 1.函数内try catch 捕获
+async function getData() {
+    try{
+        const res1 = await requestData("data")
+        console.log(res1)
+        const res2 = await requestData(res1)
+        console.log(res2)
+    } catch (error) {
+        console.log("error")
+    }
+}
+
+// 2.外面捕获
+async function getData() {
+    const res1 = await requestData("data")
+    console.log(res1)
+    const res2 = await requestData(res1)
+    console.log(res2)
+}
+
+getData().catch(err => {
+    console.log("error", err)
+})
+```
+
+
+
+
 
 
 
@@ -3903,8 +4202,6 @@ t1();
 ### async,await解决
 
 ```vue
-<template></template>
-
 <script setup lang="ts">
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -3943,7 +4240,7 @@ JS执行的任务分为`同步任务`和`异步任务`
 
 <span style="color:red;">异步任务</span>分为<span style="color:red;">微任务</span>（micro task）和<span style="color:red;">宏任务</span>（macro task）。
 
-- 微任务主要有：Promise.then，，Promise.catch，Promise.finally，process.nextTick等
+- 微任务主要有：Promise.then，Promise.catch，Promise.finally，process.nextTick等
 - 宏任务主要有：异步Ajax请求，setInterval，setTimeout，文件操作，事件等
 
 

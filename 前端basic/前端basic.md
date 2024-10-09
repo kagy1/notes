@@ -1,5 +1,7 @@
 # html
 
+超文本标记语言（Hyper Text Markup Language）
+
 ## 元素分类
 
 ### 行内元素
@@ -83,6 +85,58 @@
 
 
 
+## 标签
+
+### `<a>`
+
+#### target属性
+
+可以使用 `<a>` 标签的 `target` 属性来设置链接在当前页面还是别的页面打开。`target` 属性指定在何处打开链接文档。以下是几个常用的值：
+
+1. `_self`: 在同一个页面中打开链接（默认值）。
+   
+   ```html
+   <a href="https://www.example.com" target="_self">Link</a>
+   ```
+   
+2. `_blank`: 在新的未命名的浏览器窗口或标签页中打开链接。
+   
+   ```html
+   <a href="https://www.example.com" target="_blank">Link</a>
+   ```
+   
+3. `_parent`: 在父框架集中打开链接。如果没有父框架集，此选项的行为方式与 `_self` 相同。
+   
+   ```html
+   <a href="https://www.example.com" target="_parent">Link</a>
+   ```
+   
+4. `_top`: 在整个浏览器窗口中打开链接。如果没有父框架集，此选项的行为方式与 `_self` 相同。
+   
+   ```html
+   <a href="https://www.example.com" target="_top">Link</a>
+   ```
+   
+5. `framename`: 在指定的命名的 iframe 中打开链接。
+   ```html
+   <iframe name="myframe"></iframe>
+   <a href="https://www.example.com" target="myframe">Link</a>
+   ```
+
+
+
+## HTML5
+
+### 新特性和改进
+
+- 语义化标签:如`<header>`,`<nav>`,`<article>`,`<section>`,`<aside>`,`<footer>`等,使文档结构更清晰。
+- 多媒体支持:如`<video>`和`<audio>`标签,无需插件即可播放音视频。
+- 图形支持:如`<canvas>`和`<svg>`标签,可以绘制2D和3D图形。
+- 离线存储:如localStorage和sessionStorage,可以在客户端存储数据。
+- 网络支持:如WebSocket,可以实现全双工通信。
+- 表单增强:如新的input类型(date、time、email等),表单验证等。
+- 其他:如Geolocation、Web Worker、History API等。
+
 
 
 # css
@@ -136,6 +190,72 @@
 
  height: 100vh; /* 设置容器高度为视口高度 */
 
+### content
+
+在 CSS 中，`content` 属性只能用于伪元素（如 `::before` 和 `::after`），而不能直接用于普通元素
+
+它可以插入文本或其他内容到元素中。
+
+#### 用法
+
+- **文本插入**: 在伪元素中插入字符串。
+  
+  ```css
+  .example::before {
+      content: "Hello";
+  }
+  ```
+  
+- **图片插入**: 可以通过 URL 插入图像。
+  
+  ```css
+  .example::after {
+      content: url('image.png');
+  }
+  ```
+  
+- **计数器**: 与 CSS 计数器结合使用。
+  
+  ```css
+  .example::before {
+      content: counter(my-counter);
+  }
+  ```
+
+#### 特点
+
+- **只能用于伪元素**: `content` 属性对普通元素无效。
+- **与 `display` 搭配**: 通常与 `display: block` 或 `inline-block` 等结合使用，使伪元素可见。
+- **支持动态内容**: 可以通过 `attr()` 函数使用 HTML 属性值。
+  ```css
+  .example::before {
+      content: attr(data-info);
+  }
+  ```
+
+#### 例子
+
+```html
+<div class="example" data-info="Dynamic Content">Original Content</div>
+```
+
+```css
+.example::before {
+    content: "Prepended ";
+}
+
+.example::after {
+    content: attr(data-info);
+}
+```
+
+#### 注意事项
+
+- **不会影响文档流**: 伪元素的内容不影响文档结构。
+- **兼容性**: 大多数现代浏览器都支持 `content` 属性。
+
+
+
 
 
 ### position
@@ -163,6 +283,27 @@
    - 常用于创建粘性头部或侧边栏，当页面滚动到一定位置时，元素会固定在屏幕上
 
 
+
+### background
+
+`background` 是一个复合属性，它可以包含多个背景相关的属性
+
+1. `background-color`：设置背景颜色。
+2. `background-image`：设置背景图像。
+3. `background-repeat`：设置背景图像的重复方式。
+4. `background-position`：设置背景图像的位置。
+5. `background-size`：设置背景图像的大小。
+6. `background-attachment`：设置背景图像是否随页面滚动。
+7. `background-origin`：设置背景图像的定位区域。
+8. `background-clip`：设置背景的绘制区域。
+
+这些属性可以按照任意顺序组合在 `background` 属性中，用空格分隔
+
+```css
+.example {
+  background: #ff0000 url("image.jpg") no-repeat center/cover fixed;
+}
+```
 
 
 
@@ -298,6 +439,8 @@ transform-origin: left top; /* 设置原点为元素的左上角 */
 ## 颜色渐变
 
 1. 线性渐变 linear-gradient
+
+使用 `background` 或 `background-image` 属性来设置
 
 ```css
 .linear-gradient {
@@ -1031,6 +1174,14 @@ justify-content: center | start | end | flex-start | flex-end | left | right | b
 
 
 
+## 伪元素
+
+**定义：**伪元素用于创建一些不在文档(DOM)树中的元素，并为其添加样式。比如说，我们可以通过:before来在一个元素前增加一些文本，并为这些文本添加样式。虽然用户可以看到这些文本，但是这些文本实际上不在文档树中。
+
+伪元素使用2个冒号，常见的有：`::before`，`::after`，`::first-line`，`::first-letter`，`::selection`、`::placeholder`等；
+
+
+
 
 
 
@@ -1667,6 +1818,32 @@ delete Person.age
 
 
 
+### 计算属性名
+
+它允许你使用表达式作为属性名，表达式的结果将作为实际的属性名
+
+```javascript
+const key = 'name';
+const obj = {
+  [key]: 'John',
+  ['age']: 30,
+  [1 + 2]: 'three'
+};
+console.log(obj); // { name: 'John', age: 30, '3': 'three' }
+```
+
+```javascript
+const obj = {
+    name: 'li'
+}
+let n1 = 'name'
+console.log(obj[n1]) // li
+```
+
+
+
+
+
 ### 创建对象
 
 #### 工厂函数
@@ -1797,6 +1974,8 @@ console.log(info.friend.name) // jack
 
 箭头函数没有this
 
+this是在运行时被绑定的
+
 ### this指向
 
 1. 如果普通的函数被默认调用，那么this指向的就是window
@@ -1820,6 +1999,175 @@ var obj = {
 }
 
 obj.foo()  // 打印obj对象 { foo: [Function: foo] }
+```
+
+3. 通过call/apply调用
+
+```javascript
+function foo() {
+    console.log(this)
+}
+
+foo.call("abc")  // String{"abc"}对象
+```
+
+
+
+```java
+var obj = {
+    bar: function() {
+        console.log(this)
+    }
+}
+
+var baz = obj.bar()
+baz()  // window
+```
+
+4. 高阶函数
+
+```javascript
+function test1(){
+    console.log(this);
+}
+
+function test2(fn){
+    fn()
+}
+
+test2(test1)  // window
+```
+
+
+
+
+
+
+
+#### 严格模式
+
+严格模式下，独立函数中的this指向的是undefined
+
+```javascript
+"use strict"
+function foo() {
+    console.log(this);
+}
+foo()  // undefined
+```
+
+#### 案例
+
+```javascript
+function test1(){
+    console.log(this);
+    test2()
+}
+
+function test2(){
+    console.log(this);
+}
+
+test1() // window  window
+```
+
+### 显式绑定 call / apply / bind
+
+执行函数，并且强制this就是obj对象
+
+可以使用**call**，**apply**方法
+
+隐式绑定必须在调用的对象内部有一个对函数的引用（比如一个属性）
+
+```javascript
+var obj = {
+	name: "li"
+}
+
+function foo() {
+    console.log(this)
+}
+
+foo.call(obj)
+foo.apply(obj)
+```
+
+#### apply
+
+func.apply(thisArg, [argsArray])
+
+作用：apply方法会立即调用函数，并将this指向thisArg对象。同时，将argsArray中的元素作为函数的参数传入。
+
+- thisArg：函数内部this要指向的对象。
+- argsArray：一个数组或类数组对象，其中的元素将作为函数的参数传入。
+
+```javascript
+function foo(name, age, height) {
+    console.log(this)
+}
+
+foo.apply("apply",["li", 18, 1.70])
+```
+
+
+
+#### call
+
+语法：func.call(thisArg, arg1, arg2, ...)
+
+作用：call方法会立即调用函数，并将this指向thisArg对象。同时，将arg1, arg2等参数依次传入函数。
+
+- thisArg：函数内部this要指向的对象。
+- arg1, arg2, ...：函数的参数，依次传入。
+
+```javascript
+function foo(name, age, height) {
+    console.log(this)
+}
+
+foo.call("call", "li", 18, 1.70)
+```
+
+
+
+#### bind
+
+创建一个新的函数，并将函数内部的this绑定到指定的对象上，但不会立即调用该函数。这样可以在需要的时候再调用新的函数。
+
+语法：func.bind(thisArg, arg1, arg2, ...)
+
+- thisArg：函数内部this要指向的对象。
+- arg1, arg2, ...：预设的参数，调用新函数时这些参数会被传入。
+
+
+
+```javascript
+function foo(name, age, height) {
+    console.log(this)
+    console.log(name, age, height)
+}
+
+const obj = { name: "obj" }
+const newFoo = foo.bind(obj, "li", 18)
+
+newFoo(1.70) // 调用新函数，传入剩余的参数
+```
+
+
+
+### new绑定
+
+1. 创建一个新对象
+2. 新对象执行prototype连接
+3. 新对象绑定到函数调用的this上
+4. 函数没有返回其他对象，表达式返回这个新对象
+
+```java
+function foo() {
+    console.log(this)
+    this.name = "li"
+}
+new foo()  // {"name": "li"}
 ```
 
 
@@ -1860,7 +2208,7 @@ var name = new String("li")
 
 ### 数字方法&属性
 
-#### num.toString()
+1. num.toString()
 
 ```javascript
 var num = 1000
@@ -1868,7 +2216,7 @@ var str = num.toString()
 var str1 = num.toString(2) // 转为2进制
 ```
 
-#### num.toFixed(~)
+2. num.toFixed(~)
 
 将数字转换为指定小数位数的字符串表示
 
@@ -1878,7 +2226,7 @@ console.log(num.toFixed(2));   // "3.14"
 console.log(num.toFixed(4));   // "3.1416"
 ```
 
-#### num.valueOf()
+3. num.valueOf()
 
 返回数字的原始值
 
@@ -1891,7 +2239,7 @@ console.log(num.valueOf());   // 42
 
 ### Number静态方法
 
-#### Number.isInteger(value)
+1. Number.isInteger(value)
 
 判断一个值是否为整数
 
@@ -1901,7 +2249,7 @@ console.log(Number.isInteger(3.14));  // false
 console.log(Number.isInteger("1"));  // false
 ```
 
-#### Number.parseInt(string)
+2. Number.parseInt(string)
 
 解析一个字符串并返回整数
 
@@ -1910,7 +2258,7 @@ console.log(Number.parseInt('1.14g'))  // 1
 console.log(parseInt('1.14g')) // 全局方法
 ```
 
-#### Number.parseFloat(string)
+3. Number.parseFloat(string)
 
 解析一个字符串并返回浮点数
 
@@ -1921,7 +2269,7 @@ console.log(Number.parseFloat('3.14g'))    // 3.14
 console.log(parseFloat('3.14g'))    // 全局方法
 ```
 
-#### Number.isNaN(value)
+4. Number.isNaN(value)
 
 判断一个值是否为NaN
 
@@ -2714,7 +3062,7 @@ var timeStamp = date.getTime()
 var timeStamp1 = Date.parse(timeString)
 ```
 
-
+## 
 
 ## Dom
 
@@ -3557,8 +3905,6 @@ console.log(params.toString()); // "key1=value1&key2=value2&key3=value3"
 2. history.state: 返回一个表示历史堆栈顶部的状态的值。这是一种可以不必等待 popstate 事件而查看状态的方式。
 3. history.scrollRestoration: 允许 web 应用程序在历史导航上显式地设置默认滚动恢复行为。此属性可以是自动的 ( auto ) 或者手动的 ( manual )。
 
-
-
 #### 常见的方法
 
 1. back(): 加载 history 列表中的前一个 URL。作用和浏览器回退按钮一样。语法:
@@ -3611,6 +3957,12 @@ console.log(params.toString()); // "key1=value1&key2=value2&key3=value3"
 
 
 
+## 
+
+
+
+
+
 ## 窗口大小
 
 BOM（浏览器对象模型）：
@@ -3651,139 +4003,128 @@ DOM（文档对象模型）：
 
 
 
+## 浏览器JS原理
+
+### 浏览器内核
+
+排版引擎也称浏览器引擎、页面渲染引擎
+
+- 常见的浏览器内核
+
+  1. Blink内核
+
+     - 由Google开发,基于WebKit内核
+
+     - 应用于Google Chrome、新版Microsoft Edge、Opera等浏览器
+
+     - 占据当前浏览器市场份额最大,约70%左右
+
+  2. WebKit内核
+
+     - 应用于Safari、iOS内置浏览器、360极速浏览器、搜狗高速浏览器、移动端浏览器（Android、iOS）等
+
+     - 曾经也被Chrome等浏览器使用,后来Chrome改用Blink
+
+  3. Gecko内核
+
+     - 应用于Firefox浏览器
+
+     - 完全开源,支持W3C标准
+
+  
+
+  <img src="./img/llq.png" align="left"/>
+
+  
+
+- link元素不会阻塞DOM Tree构建过程，但是会阻塞Render Tree构建过程
 
 
 
+### 回流和重绘
+
+#### 回流reflow
+
+- 第一次确定节点大小和位置称之为布局（layout）
+- 之后对节点大小、位置修改重新计算称为回流
+  - DOM结构发生改变（添加、移除节点）
+  - 改变了布局
+  - 窗口resize
+  - 调用getComputedStyle方法获取尺寸、位置信息
 
 
 
-## Object.prototype.toString.call(~)
+#### 重绘repaint
 
-`Object.prototype` 是一个对象,它包含了所有 JavaScript 对象共享的属性和方法。
-
-`Object.prototype.toString.call(undefined)`：
-
-- `call` 不是 string 类型的方法，而是 `Function.prototype` 上的方法。所有函数都可以访问 `call` 方法。
-- `Object.prototype.toString` 是一个函数，所以它可以使用 `call` 方法。
-- `call` 方法允许你为函数指定 `this` 值。在这个例子中，`undefined` 被传递给 `call`，所以 `toString` 方法内部的 `this` 值将是 `undefined`。
-- `Object.prototype.toString.call(undefined)` 将返回字符串 `"[object Undefined]"`。
+- 第一次渲染内容称之为绘制
+- 之后重新渲染称之为重绘
+- 修改背景色、文字颜色、边框颜色、样式等
+- 回流一定会引起重绘，要经量避免回流
 
 
 
+### composite合成
 
 
-## prototype 属性
 
-每个函数创建的时候都会**自动创建一个prototype属性**，**prototype属性是函数独有的**。prototype的含义是函数的`原型对象`，也就是这个函数（其实所有函数都可以作为构造函数）所创建的实例的原型对象
+### script元素的处理
 
-Object.prototype 属性表示 Object 的原型对象。
+- 在浏览器解析HTML过程中，遇到了script元素不能继续构建DOM树
+- 它会停止构建，首先下载JavaScript代码，并且执行JavaScript脚本
+- 等到JavaScript脚本执行结束，才会继续解析HTML，构建DOM树
+- 等到DOM树构建完成并渲染再执行JavaScript会造成严重的回流和重绘
+
+为了解决这个问题，script元素给我们提供了两个属性：`defer`和`async`
+
+
+
+#### defer属性
+
+`async`属性允许脚本异步下载和执行,不会阻塞DOM树的构建和页面渲染。`defer`属性也允许脚本异步下载,但要等到DOM树构建完成后才执行。
+
+```html
+<script src="./js/test.js" defer></script>
+```
+
+告诉浏览器不要等待脚本下载，继续解析HTML，构建DOM Tree
+
+
+
+#### async属性
+
+- async脚本不能保证顺序，它是独立下载，独立运行，不会等待其他脚本
+- async不会能保证在DOMContentLoaded之前或之后执行
+
+
+
+### JavaScript运行原理
+
+#### JavaScript代码执行
+
+- 浏览器内核由两部分组成，例如webkit
+  - WebCore：负责HTML解析、布局、渲染等工作
+  - JavaScriptCore：解析、执行JavaScript代码。
+
+##### V8引擎
+
+用于Chrome，Node.js等
+
+可以独立运行，也可以嵌入任何C++应用程序
+
+
+
+## 原型
+
+### 获取原型
 
 ```javascript
-function Person(){} 
-let person1 = new Person()
-由此可知
-person1.__proto__ === Person.prototype  // true 它们两个指向完全一样
+console.log(obj._proto_)  
+console.lof(obj.getPrototypeOf(obj))  
 ```
 
 
 
-以下是一些常见的内置对象的 `prototype`:
 
-1. `Function.prototype`: 所有函数的原型对象,提供了如 `apply()`, `call()`, `bind()` 等方法。
-2. `Array.prototype`: 所有数组的原型对象,提供了如 `push()`, `pop()`, `slice()`, `map()` 等方法。
-3. `String.prototype`: 所有字符串的原型对象,提供了如 `charAt()`, `slice()`, `toLowerCase()`, `trim()` 等方法。
-4. `Number.prototype`: 所有数字的原型对象,提供了如 `toFixed()`, `toPrecision()`, `toString()` 等方法。
-5. `Boolean.prototype`: 所有布尔值的原型对象,提供了如 `toString()`, `valueOf()` 等方法。
-6. `Date.prototype`: 所有日期对象的原型对象,提供了如 `getFullYear()`, `setMonth()`, `toLocaleString()` 等方法。
-7. `RegExp.prototype`: 所有正则表达式对象的原型对象,提供了如 `test()`, `exec()` 等方法。
-
-
-
-
-
-
-
-### Object.prototype
-
-**属性**
-
-Object.prototype.constructor
-特定的函数，用于创建一个对象的原型。
-
-Object.prototype.proto
-指向当对象被实例化的时候，用作原型的对象。
-
-Object.prototype.noSuchMethod
-当未定义的对象成员被调用作方法的时候，允许定义并执行的函数。
-
-Object.prototype.count
-用于直接返回用户定义的对象中可数的属性的数量。已被废除。
-
-Object.prototype.parent
-用于指向对象的内容。已被废除。
-
-**方法**
-Object.prototype.defineGetter()
-关联一个函数到一个属性。访问该函数时，执行该函数并返回其返回值。
-
-Object.prototype.defineSetter()
-关联一个函数到一个属性。设置该函数时，执行该修改属性的函数。
-
-Object.prototype.lookupGetter()
-返回使用 defineGetter 定义的方法函数 。
-
-Object.prototype.lookupSetter()
-返回使用 defineSetter 定义的方法函数。
-
-Object.prototype.hasOwnProperty()
-返回一个布尔值 ，表示某个对象是否含有指定的属性，而且此属性非原型链继承的。
-
-Object.prototype.isPrototypeOf()
-返回一个布尔值，表示指定的对象是否在本对象的原型链中。
-
-Object.prototype.propertyIsEnumerable()
-判断指定属性是否可枚举，内部属性设置参见 ECMAScript [[Enumerable]] attribute 。
-
-Object.prototype.toSource()
-返回字符串表示此对象的源代码形式，可以使用此字符串生成一个新的相同的对象。
-
-Object.prototype.toLocaleString()
-直接调用 toString()方法。
-
-Object.prototype.toString()
-返回对象的字符串表示。
-
-Object.prototype.unwatch()
-移除对象某个属性的监听。
-
-Object.prototype.valueOf()
-返回指定对象的原始值。
-
-Object.prototype.watch()
-给对象的某个属性增加监听。
-
-## `__proto__`
-
-
-
-## constructor
-
-
-
-### 区别
-
-1. 判断的类型范围不同:
-   - `typeof` 可以判断出 `"undefined"`, `"boolean"`, `"number"`, `"string"`, `"symbol"`, `"function"` 和 `"object"` 这7种类型。
-   - `Object.prototype.toString.call()` 可以判断出更多的类型,包括 `"[object Undefined]"`, `"[object Null]"`, `"[object Boolean]"`, `"[object Number]"`, `"[object String]"`, `"[object Symbol]"`, `"[object Function]"`, `"[object Array]"`, `"[object Date]"`, `"[object RegExp]"`, `"[object Object]"` 等。
-2. 对 `null` 的判断不同:
-   - `typeof null` 返回 `"object"`,这是 JavaScript 的一个历史遗留 bug。
-   - `Object.prototype.toString.call(null)` 返回 `"[object Null]"`,可以正确判断 `null`。
-3. 对对象的判断不同:
-   - `typeof` 对所有的对象类型(包括数组,日期等)都返回 `"object"`,无法区分它们。
-   - `Object.prototype.toString.call()` 可以区分不同的对象类型,如 `"[object Array]"`, `"[object Date]"` 等。
-4. 调用方式不同:
-   - `typeof` 是一个操作符,后面直接跟要判断类型的值,如 `typeof 123`, `typeof "abc"` 等。
-   - `Object.prototype.toString.call()` 是一个方法,需要以 `call()` 的形式调用,并将要判断类型的值作为第一个参数传入。
 
 
 
@@ -3814,6 +4155,11 @@ console.log(greet.method()); // 输出: Greeting
 ## 时间
 
 ### Date
+
+```javascript
+console.log(new Date());  // Sun Oct 06 2024 13:08:40 GMT+0800 (中国标准时间)
+console.log(new Date().getTime());  // 1728191320324
+```
 
 
 
@@ -3973,6 +4319,115 @@ export default defineComponent({
 });
 ```
 
+2. 导入Underscore.js
+
+
+
+## 节流 throttle函数
+
+- 如果事件被频繁触发，节流函数会按照一定的频率来执行函数
+- 不管中间有多少次触发事件，执行函数的频率固定
+
+- 类似于飞机大战，即使按下的频率非常快，子弹也保持一定速度发射
+
+
+
+### 实现
+
+1. 使用Underscore.js里的throttle方法
+
+2. 手写
+
+```javascript
+function hythrottle(fn, interval) { // 执行函数，时间间隔
+    let startTime = 0;
+    
+    const _throttle = function(...args) {
+        const nowTime = new Date().getTime()
+        const waitTime = interval - (nowTime - startTime)
+        if(waitTime <= 0) {
+            fn.apply(this,args)
+            startTime = nowTime
+        }
+    }
+    return _throttle
+}
+```
+
+
+
+
+
+## 事件总线
+
+```javascript
+const info = {
+	name : "li",
+    age: 18,
+    friend: {
+    	name: "zhang"
+	}
+}
+
+// 1.引用赋值
+const obj1 = info
+
+// 2.浅拷贝
+const obj2 = {...info}
+obj2.friend.name = "james"
+console.log(info.friend.name)  // james
+
+const obj3 = Object.assign({},info)
+obj3.friend.name = "james"
+console.log(info.friend.name)  // james
+
+// 3.深拷贝
+const obj4 = JSON.parse(JSON.stringify(info))  // 对于函数，Symobl无法处理
+obj4.friend.name = "curry"
+console.log(info.friend.name)  // zhang
+```
+
+
+
+### 浅拷贝
+
+- 浅拷贝是创建一个新对象，但是新对象的属性值是原始对象属性值的引用（如果属性值是引用类型）。
+- 对于原始对象的基本类型属性（如数字、字符串等），浅拷贝会直接复制其值给新对象的相应属性。
+- 但是，对于原始对象的引用类型属性（如数组、对象等），浅拷贝只会复制属性的引用，而不会创建新的引用类型对象。
+- const obj2 = {...info}、const obj3 = Object.assign({},info)
+
+
+
+### 深拷贝
+
+- 深拷贝是创建一个新对象，并且递归地复制原始对象的所有属性值，包括引用类型属性。
+
+- 对于原始对象的基本类型属性，深拷贝会直接复制其值给新对象的相应属性，与浅拷贝相同。
+
+- 但是，对于原始对象的引用类型属性，深拷贝会创建一个新的引用类型对象，并将原始对象的引用类型属性的值递归地复制到新的引用类型对象中。
+
+- 因此，在深拷贝中，原始对象和新对象的引用类型属性指向不同的引用，修改其中一个对象的引用类型属性不会影响到另一个对象。
+
+
+
+```javascript
+function deepCopy(originValue) {
+    if(!isObject(originValue)) {
+        return originValue
+    }
+    
+    const newObj = Array.isArray(originValue) ? [] : {}
+    for (const key in originValue) {
+        newObj[key] = deepCopy(originValue[key])
+    }
+    return newObj
+}
+```
+
+
+
+
+
 
 
 ## JSON
@@ -4003,13 +4458,387 @@ JSON：JavaScript object Notation（JavaScript对象符号）
 ### 相关方法
 
 1. `JSON.stringify(~)`
+
+   - 语法：JSON.stringify(value[, replacer[, space]])
+     - `value`: 要转换为JSON字符串的JavaScript对象或值。
+     - `replacer` (可选): 用于转换结果的函数或数组。如果是函数,则对象的每个属性都会经过该函数的转换和处理;如果是数组,则只有包含在这个数组中的属性名才会被序列化到最终的JSON字符串中。
+     - `space` (可选): 指定缩进用的空白字符串,用于美化输出。如果参数是个数字,它代表有多少的空格;上限为10。该值若小于1,则意味着没有空格;如果该参数为字符串(字符串的前十个字母),该字符串将被作为空格。
+
+   ```javascript
+   const obj = {
+     name: "John",
+     age: 30,
+     city: "New York",
+     email: "john@example.com"
+   };
+   
+   function replacer(key, value) {
+     if (typeof value === "string") {
+       return value.toUpperCase();
+     }
+     return value;
+   }
+   
+   const jsonString = JSON.stringify(obj, replacer);
+   console.log(jsonString);
+   // 输出: {"name":"JOHN","age":30,"city":"NEW YORK","email":"JOHN@EXAMPLE.COM"}
+   ```
+
+   
+
 2. `JSON.parse(~)`
 
+   - `JSON.parse()`方法用于将一个JSON字符串解析为JavaScript对象。
+   - 语法:JSON：parse(text[, reviver])
+     - `text`: 要解析为JavaScript对象的JSON字符串。
+     - `reviver` (可选): 一个转换结果的函数,将为对象的每个成员调用此函数。
+
+   ```javascript
+   const jsonString = '{"name":"John","age":30,"city":"New York"}';
+   const obj = JSON.parse(jsonString);
+   console.log(obj.name); // 输出: John
+   console.log(obj.age); // 输出: 30
+   ```
 
 
 
 
-## es6
+## 迭代器 iterator（了解）
+
+使用户在`容器对象`上遍访的对象，使用该接口无需关心对象的内部实现细节。
+
+迭代器通过定义 `next()` 方法来遍历数据，每次调用 `next()` 方法返回数据集合中的下一个元素。迭代器让我们能够通过循环的方式依次处理集合中的每个元素。
+
+在JavaScript中，迭代器也是一个具体的对象，这个对象需要符合迭代器协议。
+
+- 迭代器协议定义了<span style="color:red">产生一系列值的标准方式</span>
+- 在JavaScript中这个标准就是一个<span style="color:red">特定的next方法</span>
+
+- next方法：
+  - 一个无参或者有参的函数，返回一个应当拥有以下两个属性的对象
+  - done(boolean)
+    - 如果迭代器可以产生序列中的下一个值，则为false。
+    - 如果迭代器已将序列迭代完毕，则为true。
+  - value
+
+
+
+- 数组迭代器 简单实现
+
+```javascript
+const names = ["li", "wang", "zhang"]
+function createArrayIterator(arr) {
+    let index = 0
+    return {
+        next: function() {
+            if(index < arr.length) {
+                return {done: false, value: names[index++]}
+            }else {
+                return {done: true}
+            }
+        }
+    }
+}
+```
+
+
+
+### 可迭代对象
+
+- 包括：数组、字符串、Map、Set等
+- 可迭代对象必须实现了 `@@iterator` 方法（即 `Symbol.iterator` 属性）
+- 对象中有一个属性，是一个函数，该函数含有返回迭代器，函数中next方法，返回done和value
+
+#### 用于
+
+- for...of语法、展开语法、yield、解构赋值
+
+- 创建一些对象时：new Map([iterable])、new Set([iterable])
+- 一些方法的调用：Promise.all(iterable)、Promise.race(iterable)、Array.from(iterable)
+
+
+
+
+
+#### 把对象变成可迭代
+
+```javascript
+const obj = {
+    name: 'li',
+    age: 20,
+    gender: 'female',
+
+    [Symbol.iterator]: function () {
+        const values = Object.keys(this)
+        let index = 0
+        const iterator = {
+            next: function () {
+                if (index < values.length) {
+                    return { done: false, value: values[index++] }
+                } else {
+                    return { done: true }
+                }
+            }
+        }
+        return iterator
+    }
+}
+for (let key of obj) {
+    console.log(key)
+} // name  age  gender
+```
+
+
+
+## 生成器 generator（了解）
+
+- 生成器是ES6新增的一种函数控制、使用的方案，可以让我们更加灵活控制函数什么时候继续执行、暂停执行等。
+
+- 生成器函数也是一个函数
+
+  - 生成器函数需要在function后加 *
+
+  - 生成器函数可以通过yield关键字控制函数的执行流程
+
+  - 生成器函数的返回值是一个Generator（生成器）：
+
+    生成器事实上是一种特殊的迭代器	
+
+    
+
+- 调用生成器函数，返回一个生成器对象
+- 要想执行函数内部的代码，需要用返回的生成器对象，调用它的next操作
+
+- 简单的例子
+
+```javascript
+function* foo(){
+    console.log("1");
+    yield 
+    console.log("2");
+    yield
+    console.log("3");
+}
+
+const generator = foo();
+
+generator.next(); // 1 {value: undefined, done:false}
+generator.next(); // 2 {value: undefined, done:false}
+generator.next(); // 3 {value: undefined, done:true}
+
+function* foo1(){
+    console.log("1");
+    yield 'aaa'
+}
+
+const generator1 = foo1();
+generator1.next(); // {value: 'aaa', done:false}
+```
+
+
+
+```javascript
+function* foo1() {
+    console.log("1");
+    const textValue = yield 
+    console.log('2',textValue);
+}
+
+const generator1 = foo1();
+generator1.next()  // 1
+generator1.next("hello")  // 2 hello  
+```
+
+
+
+### 提前结束
+
+generator.return()
+
+### 捕获异常
+
+generator.throw(~)
+
+
+
+### yield*
+
+相当于yield语法糖，会依次迭代yield*之后的可迭代对象，每次迭代其中一个值
+
+后面必须跟可迭代对象
+
+```javascript
+class Person {
+    constructor(name, age, friends) {
+        this.name = name
+        this.age = age
+        this.friends = friends
+    }
+    *[Symbol.iterator]() {
+        yield* this.friends
+    }
+}
+
+const p1 = new Person('Alice', 25, ['Bob', 'Charlie'])
+for (const p of p1) {
+    console.log(p);
+}
+
+const pIterator = p1[Symbol.iterator]()
+console.log(pIterator.next());
+console.log(pIterator.next());
+console.log(pIterator.next());
+```
+
+
+
+```javascript
+class Person {
+    constructor(name, age, friends) {
+        this.name = name
+        this.age = age
+        this.friends = friends
+    }
+    *[Symbol.iterator]() {
+        yield* Object.values(this)  // 遍历value 
+    }
+}
+
+const p1 = new Person('Alice', 25, ['Bob', 'Charlie'])
+for (const p of p1) {
+    console.log(p);
+}
+```
+
+
+
+## 异常
+
+throw可以抛出的类型：
+
+- 基本数据类型：number、string、Boolean
+- 对象类型
+
+```javascript
+function sum(num1, num2) {
+	if(typeof num1 !== "number"){
+        throw "type error：num1传入类型错误，必须为number类型"
+    }
+    if(typeof num2 !== "number"){
+        throw "type error：num2传入类型错误，必须为number类型"
+    }
+    return num1 + num2
+}
+```
+
+
+
+### Error类
+
+错误函数的调用栈以及位置信息
+
+- 属性：message，name，stack
+- 子类：RangeError，SyntaxError，TypeError
+
+```javascript
+throw new Error("error")
+```
+
+
+
+### 捕获异常
+
+try...catch...finally
+
+ES10之后，catch后面的参数error可以省略
+
+```javascript
+try {
+    foo()
+}catch(error) {
+    console.log(error)
+}
+```
+
+
+
+## Storage存储
+
+- localStorage：本地存储，提供的是一种<span style="color:red">永久的存储方法</span>，<span style="color:red">在关闭网页重新打开时，存储的内容依然保留</span>。
+- sessionStorage：会话存储，提供的是<span style="color:red">本次会话的存储</span>，在关闭掉会话时，存储的内容会被清除
+
+
+
+### localStorage
+
+1. `setItem(key, value)`: 存储一个键值对。
+   ```javascript
+   localStorage.setItem('username', 'John');
+   ```
+
+2. `getItem(key)`: 根据键获取对应的值。如果键不存在，返回 null。
+   ```javascript
+   let username = localStorage.getItem('username');
+   ```
+
+3. `removeItem(key)`: 删除一个键值对。
+   ```javascript
+   localStorage.removeItem('username');
+   ```
+
+4. `clear()`: 删除所有的键值对。
+   ```javascript
+   localStorage.clear();
+   ```
+
+5. `key(index)`: 根据索引获取对应的键。
+   ```javascript
+   let key = localStorage.key(0);
+   ```
+
+6. `length`: 获取当前存储的键值对的数量。
+   ```javascript
+   let length = localStorage.length;
+   ```
+
+
+
+### sessionStorage
+
+1. `setItem(key, value)`: 存储一个键值对。
+   
+   ```javascript
+   sessionStorage.setItem('username', 'John');
+   ```
+   
+2. `getItem(key)`: 根据键获取对应的值。如果键不存在，返回 null。
+   ```javascript
+   let username = sessionStorage.getItem('username');
+   ```
+
+3. `removeItem(key)`: 删除一个键值对。
+   ```javascript
+   sessionStorage.removeItem('username');
+   ```
+
+4. `clear()`: 删除所有的键值对。
+   ```javascript
+   sessionStorage.clear();
+   ```
+
+5. `key(index)`: 根据索引获取对应的键。
+   ```javascript
+   let key = sessionStorage.key(0);
+   ```
+
+6. `length`: 获取当前存储的键值对的数量。
+   ```javascript
+   let length = sessionStorage.length;
+   ```
+
+
+
+## es6+
 
 ### 相关名词
 
@@ -4064,7 +4893,7 @@ const arr1 = [1, 2, 3];
 const arr2 = [...arr1, 4, 5]; // arr2 将是 [1, 2, 3, 4, 5]
 ```
 
-2. 对象的属性展开
+2. 对象的属性展开，可以用于克隆对象、合并对象（ES9）
 
 ```typescript
 const obj1 = { a: 1, b: 2 };
@@ -4191,6 +5020,10 @@ const obj1 = {
 
 
 
+
+
+
+
 ### 可选链 ?. 运算符
 
 允许你在访问对象的属性或调用对象的方法时，如果对象的某个部分是 `null` 或 `undefined`，运算会短路并返回 `undefined` 而不会继续访问后续属性以及抛出错误。
@@ -4287,6 +5120,36 @@ const e = null ?? 'X' // X
 const num = Math.pow(4,5) // old
 const num1 = 4 ** 5 // new
 ```
+
+
+
+### 箭头函数
+
+- 箭头函数不会绑定this、arguments属性
+
+- 箭头函数不会作为构造函数使用（不能和new一起使用）
+
+
+
+- 省略
+
+  - 如果函数只有一个参数，可以省略()
+
+  - 如果函数体只有一行执行代码，可以省略{}，一行代码中不能带return关键字
+
+    ```javascript
+    var arrFn = () => 123
+    ```
+
+  - <span style="color:red">如果默认返回值是一个对象，且只有一行，那么这个对象必须加上()</span>
+
+    ```javascript
+    var arrFn1 = () => ({name: "li"})
+    ```
+
+    
+
+
 
 
 
@@ -4877,6 +5740,22 @@ obj1.foo()  // 报错
 
 
 
+### onclick和addEventListener
+
+```javascript
+const b1 = document.querySelector('button');
+
+b1.addEventListener('click', function () {
+    console.log(this);  // window对象
+})
+
+b1.onclick = function () {
+    console.log(this);  // button
+}
+```
+
+
+
 ### this绑定规则
 
 #### 默认绑定
@@ -5009,8 +5888,6 @@ function bind(func, obj) {
 var bar = bind(foo, obj);
 
 bar(); // obj对象
-bar(); // obj对象
-bar(); // obj对象
 ```
 
 方案二：使用Function.prototype.bind
@@ -5027,11 +5904,7 @@ var obj = {
 var bar = foo.bind(obj);
 
 bar(); // obj对象
-bar(); // obj对象
-bar(); // obj对象
 ```
-
-
 
 
 
@@ -5141,6 +6014,109 @@ var ctx = "\/jf_view\/"
 
 
 
+# 网络请求
+
+- 早期的网页都是通过后端渲染来完成的：服务端渲染（SSR，server side render）
+  - 服务器接收请求并返回相应的HTML文档
+  - jsp、asp、php
+
+
+
+- AJAX（Asynchronous JavaScript And Xml）：无页面刷新获取服务器数据
+
+
+
+## HTTP
+
+- `超文本传输协议`（HyperText Transfer Protocol）是一种用于分布式、协作式、超媒体信息系统的<span style="color:red">应用层协议</span>
+- 通过HTTP，HTTPS协议请求的资源有`统一资源标识符`(Uniform Resource Identifiers，URI)来标识
+
+
+
+- HTTP是一个客户端和服务端之间请求和响应的标准
+
+
+
+### http版本
+
+1. HTTP/0.9
+   - 只支持get请求方法获取数据
+2. HTTP/1.0
+   - 支持POST、HEAD等请求方法，支持请求头、响应头等
+   - 但是浏览器的每次请求都需要与服务器建立一个TCP连接，请求处理完后立即断开TCP连接
+3. HTTP/1.1（使用最多）
+   - 增加了PUT、DELETE等方法
+   - 采用持久连接，多个请求可以共用同一个TCP连接
+4. HTTP/2.0
+5. HTTP/3.0
+
+
+
+### 请求方式
+
+1. GET：请求指定的资源。GET 请求应该只用于获取数据，而不应当产生其他影响。
+2. POST：将实体提交到指定的资源，通常会导致在服务器上的状态变化或副作用。
+3. PUT：用请求有效载荷替换目标资源的所有当前表现。
+4. DELETE：删除指定的资源。
+5. HEAD：与 GET 请求类似，但返回的响应中没有具体的内容，用于获取报头。
+6. OPTIONS：用于描述目标资源的通信选项。
+7. PATCH：用于对资源进行部分修改。
+8. CONNECT：建立一个到由目标资源标识的服务器的隧道。通常用在代理服务器。
+9. TRACE：沿着到目标资源的路径执行一个消息环回测试。
+
+
+
+### HTTP Request
+
+#### 请求行
+
+由请求方法、请求的URI和HTTP协议版本组成
+
+URL(Uniform Resource Locator**统一资源定位符**)
+
+
+
+#### 请求头
+
+1. <span style="color:red">Host</span>:指定请求的服务器域名和端口号。
+2. <span style="color:red">User-Agent</span>:包含发出请求的用户信息,比如操作系统、浏览器类型及版本等。
+3. <span style="color:red">Accept</span>:指定客户端可以接受的内容类型(MIME类型),如text/html, application/json等。
+4. Accept-Encoding:指定客户端支持的压缩方式,如gzip, deflate等。
+5. Accept-Language:指定客户端支持的语言,如en-US,zh-CN等。
+6. Connection:设置持久连接,如keep-alive。
+7. <span style="color:red">Cookie</span>:客户端发送给服务器的cookie信息。
+8. <span style="color:red">Content-Type</span>:发送给服务器的请求体的MIME类型,常见的有:
+   - application/json：用于指示请求或响应中的实体正文是 JSON 格式的数据。
+   - application/x-www-form-urlencoded：用于指示请求中的实体正文是经过 URL 编码的表单数据，在 HTML 表单中常用的形式。
+   - multipart/form-data：用于指示请求中的实体正文是多部分表单数据，常用于文件上传等场景。
+   - text/plain：用于指示请求或响应中的实体正文是纯文本数据，没有特定的格式或结构。
+   - image/jpeg、image/png、image/gif 等：用于指示实体正文是相应格式的图像数据。
+   - application/xml：用于指示请求或响应中的实体正文是 XML 格式的数据。
+   - application/pdf：用于指示实体正文是 PDF 格式的数据。
+   
+9. Content-Length:请求体的字节长度。
+10. Authorization:身份验证信息,常用于Basic Auth和OAuth。
+11. Origin:发起请求的页面的源地址(协议+域名+端口),用于CORS跨域请求。
+12. Referer:表示请求的来源页面的URL,可以用于防盗链和统计分析。
+13. If-Modified-Since/If-None-Match:用于缓存控制,如果本地资源未过期就从缓存中获取。
+14. X-Requested-With:异步请求标识,常见的如XMLHttpRequest。
+15. DNT(Do Not Track):表示用户不希望被追踪,1表示启用,0表示禁用。
+16. Upgrade-Insecure-Requests:表示客户端优先选择HTTPS。
+17. Pragma:HTTP/1.0时代用于控制缓存的字段,常见的如no-cache。
+18. Cache-Control:控制缓存的字段,常见的如no-cache, no-store, max-age等。
+
+
+
+
+
+#### 空行
+
+用于分隔请求头和请求体
+
+#### 请求体
+
+
+
 # TypeScript
 
 ## 认识TypeScript
@@ -5203,6 +6179,8 @@ const arr = ['a', 'b', 'c'];
 type ArrType = typeof arr; // ArrType 的类型是 ['a', 'b', 'c']
 ```
 
+
+
 ### 类型校验
 
 ```ts
@@ -5220,8 +6198,6 @@ getLength(info);
 getLength("hello")
 getLength(['a','b','c'])
 ```
-
-
 
 
 
@@ -5321,8 +6297,6 @@ console.log( typeof undefined === 'undefined')  // true
 ```javascript
 0bject.prototype.toString.call(null)
 ```
-
-
 
 
 
@@ -5476,8 +6450,6 @@ setCounter(20); // 更新状态并输出: State updated to: 20
 
 
 
-
-
 #### 字符串枚举
 
 字符串的枚举是没有自增长的功能的
@@ -5501,10 +6473,6 @@ console.log(playerDirection); // 输出：1
 
 //枚举成员可以直接通过枚举类型来访问，也可以通过枚举的值来访问。
 ```
-
-
-
-
 
 
 
@@ -5708,8 +6676,6 @@ class Person implements IPerson{
 
 
 
-
-
 ### 类型断言 as
 
 有时候ts无法获取具体的类型信息，需要使用类型断言（Type Assertions）
@@ -5861,7 +6827,7 @@ function move(animal: ISwim | IRun){
 
 
 
-#### instance of
+#### instanceof
 
 判断是否为某个类的实例
 
@@ -6091,16 +7057,6 @@ function getLength(arg:{length:number}){
 
 
 
-## this
-
-在没有对ts进行特殊配置的情况下，this是any类型 
-
-指定this
-
-（跳过）
-
-
-
 ## 类
 
 ### 类的定义
@@ -6280,8 +7236,6 @@ factory(Person)
 
 
 
-
-
 ## 鸭子类型
 
 typescript对于类型检测的时候是用鸭子类型
@@ -6420,15 +7374,13 @@ printPerson(obj)  // 不报错
 
 
 
-
-
-
-
 ## 英文
 
 argument: 参数
 
 parameter: 形参
+
+
 
 ## declare type
 
@@ -6902,12 +7854,6 @@ declare module "*.png"
 declare module "*.jpg"
 declare module "*.svg"
 ```
-
-
-
-
-
-
 
 
 
