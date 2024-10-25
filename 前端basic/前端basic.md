@@ -125,6 +125,40 @@
 
 
 
+### `<radio>`
+
+```html
+<input type="radio" name="group3" value="1"> Option 1
+<input type="radio" name="group3" value="2"> Option 2
+<input type="radio" name="group3" value="3"> Option 3
+```
+
+
+
+### `<select>`
+
+```html
+<select name="group1">
+  <option value="1">Option 1</option>
+  <option value="2">Option 2</option>
+</select>
+```
+
+
+
+v-model绑定：
+
+```vue
+<select v-model="v1">
+  <option value="1">Option 1</option>
+  <option value="2">Option 2</option>
+</select>
+```
+
+
+
+
+
 ## HTML5
 
 ### 新特性和改进
@@ -4115,12 +4149,56 @@ DOM（文档对象模型）：
 
 ## 原型
 
-### 获取原型
+JavaScript当中每个对象都有一个特殊的内置属性`[[prototype]]`，这个特殊的对象可以指向另外一个对象
+
+### 对象原型
 
 ```javascript
 console.log(obj._proto_)  
 console.lof(obj.getPrototypeOf(obj))  
 ```
+
+
+
+- 当我们通过对象的属性key来获取一个value时，它会触发[[Get]]的操作
+  - 它会优先在自己的对象中查找，如果找到直接返回
+  - 如果没有找到，那么会访问对象`[[prototype]]`内置属性指向的对象上的属性
+
+
+
+### 函数的原型 prototype
+
+所有的函数都有一个prototype属性
+
+- 作用：用来构建对象时，给对象设置隐式原型
+
+- new操作
+
+  ```javascript
+  new Person()
+  ```
+
+  1. 创建空对象
+
+     ```javascript
+     var obj = {}
+     ```
+
+  2. 将这个空对象赋值给this
+
+     ```javascript
+     
+     ```
+
+  3. 对象内部的[[prototype]]属性（隐式原型）会被赋值为该构造函数的prototype属性（显式原型）
+
+     ```javascript
+     obj._proto_ = Person.prototype
+     ```
+
+     
+
+
 
 
 
@@ -6779,6 +6857,27 @@ const info = {
 
 
 
+### 类型索引访问
+
+```typescript
+type ComponentConfig = {  
+ width: number;  
+ height: number;  
+ color: string;  
+};  
+ 
+type WidthType = ComponentConfig['width']; // number  
+type ColorType = ComponentConfig['color']; // string
+```
+
+
+
+
+
+
+
+
+
 ### 类型缩小
 
 ```typescript
@@ -6829,7 +6928,7 @@ function move(animal: ISwim | IRun){
 
 #### instanceof
 
-判断是否为某个类的实例
+判断是否为某个类的实例,使用new关键字构造函数
 
 ```typescript
 function printDate(date: string | Date){
@@ -6845,6 +6944,25 @@ function Person() {
 }
 let p1 = new Person();
 console.log(p1 instanceof Person); // true
+```
+
+
+
+```typescript
+class Person {
+    name: string;
+    age: number;
+    address: string;
+    constructor(name: string, age: number, address: string) {
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+}
+
+const p1: Person = new Person('Tom', 25, 'China');
+        
+console.log(p1 instanceof Person); // 输出：true
 ```
 
 
@@ -6865,6 +6983,25 @@ type IKunKeys = keyof IKun // "name" | "age"
 ```
 
 
+
+```typescript
+interface Person {
+    name: string,
+    age: number,
+}
+
+const p1: Person = {
+    name: 'Tom',
+    age: 25
+}
+
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+    return obj[key];
+}
+
+const name = getProperty(p1, 'name'); 
+const age = getProperty(p1, 'age'); 
+```
 
 
 
@@ -7859,17 +7996,5 @@ declare module "*.svg"
 
 # jquery
 
-```js
-<li>
-   分组：<select name="tpl_group">
-   			<option value="" style="color:red" selected>-所有-</option>
-   			<option value="--" style="color:red">-未分组-</option>
-   			#for(item : t_list)
-   				<option value="#@toXmlStr(item.CF_GROUP)">#@toXmlStr(item.CF_REMARK)</option>
-   			#end
-        </select>
-</li>
 
-var tpl_group = $("select[name='tpl_group']").val();
-```
 
