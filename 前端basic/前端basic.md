@@ -6969,7 +6969,7 @@ console.log(p1 instanceof Person); // 输出：true
 
 #### keyof
 
-keyof 是 TypeScript 中的一个关键字，用于获取某个类型的所有公共属性名（public property names）组成的联合类型（union type）。它可以与索引类型（indexed types）一起使用，以确保动态访问属性时的类型安全。
+keyof 是 TypeScript 中的一个关键字，用于获取某个类型的所有公共属性名（public property names）组成的<span style="color:red">联合类型</span>（union type）。它可以与索引类型（indexed types）一起使用，以确保动态访问属性时的类型安全。
 
 
 
@@ -7002,6 +7002,34 @@ function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
 const name = getProperty(p1, 'name'); 
 const age = getProperty(p1, 'age'); 
 ```
+
+
+
+```typescript
+type Person = {
+    name: string,
+    age: number,
+    address: string
+}
+
+const p1: Person = {
+    name: 'John',
+    age: 25,
+    address: 'New York'
+}
+
+const p2: Pick<typeof p1, keyof typeof p1> = {
+    name: 'John',
+    age: 25,
+    address: 'New York'
+}
+```
+
+1. `typeof p1` 获取 `p1` 对象的类型，在这个例子中，`typeof p1` 的结果是 `Person`。
+
+2. `keyof typeof p1` 获取 `Person` 类型的所有属性名，结果是一个联合类型 `"name" | "age" | "address"`。
+
+3. `Pick<typeof p1, keyof typeof p1>` 使用 `Pick` 工具类型，从 `Person` 类型中选择 `"name" | "age" | "address"` 这些属性，生成一个新的类型。
 
 
 
@@ -7438,6 +7466,8 @@ interface Iconllection {
 
 ## 接口继承 extends
 
+接口可以继承type(类型别名)，type不能继承接口
+
 ```typescript
 interface IPerson{
     name: string,
@@ -7454,11 +7484,32 @@ class Person implements IKun{
     name: string,
     age: number,
     slogan: string,
-    playBasketball(){
-        
+    playBasketball(){  
     }
 }
 ```
+
+
+
+类型约束
+
+```typescript
+type Animal = 'cat' | 'dog' | 'bird';
+
+interface Pet extends Animal {
+    name: string;
+}
+```
+
+
+
+```typescript
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+    return obj[key];
+}
+```
+
+
 
 
 
@@ -7652,6 +7703,10 @@ function getValue(value?: string) {
 function bar<T>(arg: T){
     return arg
 }
+
+const bar = <T>(arg: T) => {
+  return arg;
+};
 ```
 
 ```typescript
