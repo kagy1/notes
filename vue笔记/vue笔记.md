@@ -4,19 +4,27 @@
 
 行内样式有两种
 
-```vue
+### tsx
+
+```tsx
 <label style={{ fontSize: '30px', color: 'blue' }}>hello</label> //tsx
-<div style={{ width: '100px', background: 'yellow' }}>1</div >  //动态
-<div style="width:100px;background:yellow">1</div>				//静态
+<div style={{ width: '100px', background: 'yellow' }}>1</div >   //动态
+<label style={{ paddingRight: tableShowType.value === "left-right" ? "10px" : "0px" }}>hello</label>
+<div style="width:100px;background:yellow">1</div>				 //静态
+```
 
+### sfc
 
+可以用驼峰或者短横线分隔（用引号括起来）
+
+```vue
 <label :style="{ fontSize: '30px', color: 'blue'}">hello</label>  //vue
+<label :style="{ 'font-size': '30px', color: 'blue'}">hello</label>
+<label :style="{ 'font-size': size + 'px', color: color}">hello</label>
 //JavaScript 对象的语法来定义样式。属性名使用驼峰式命名，属性值使用字符串或数字。多个属性用逗号隔开
 
-style={{ paddingRight: tableShowType.value === "left-right" ? "10px" : "0px" }}
 
-
-</div> <button onClick={add} style="width:100px">+</button>
+</div> <button onClick={add} style="width:100px;height:100px">+</button>
 //这种方式使用了字符串来定义样式，类似于 HTML 中的 style 属性。属性名和属性值之间使用冒号 : 分隔，不同的属性使用分号 ; 分隔
 
 ```
@@ -46,6 +54,122 @@ export default defineComponent({
                     <div class={style.d1}>hello</div>
                 </div>
             </>
+        )
+    }
+})
+```
+
+
+
+# class
+
+## sfc
+
+- 静态class
+
+```vue
+<div class="d1 d2"}>内容</div>
+```
+
+- 动态class
+
+```vue
+<template>
+  <div :class = "{ d1: condition1, d2: condition2 }"> </div>
+  <div :class = " isActive ? 'active' : '' "> </div>
+  <div :class = "{ active : isActive, why: true, kobe :false }"> </div>
+  <div :class = "['abc', 'cba']"> </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const condition1 = ref(true);
+const condition2 = ref(false);
+</script>
+```
+
+
+
+```vue
+<template>
+  <div :class="[condition1 ? 'd1' : '', condition2 ? 'd2' : '']">
+    <!-- 内容 -->
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const condition1 = ref(true);
+const condition2 = ref(false);
+</script>
+```
+
+
+
+# 动态绑定属性
+
+## sfc
+
+
+
+```vue
+<template>
+<div :[name] = "value">  </div>
+</template>
+```
+
+使用 v-bind ="infos" 将对象属性绑到标签上
+
+```vue
+<template>
+    <div v-bind="infos">1111</div>
+</template>
+
+<script setup lang="ts">
+const infos = {
+    style: {
+        fontSize: '30px',
+        color: 'red'
+    },
+    class: 'd1'
+};
+</script>
+
+<style lang="scss" scoped>
+.d1 {
+    background-color: blue;
+    color: white;
+    padding: 10px;
+}
+</style>
+```
+
+
+
+## tsx
+
+在 Vue 3 的 TSX 语法中，你可以使用对象展开运算符（`...`）将 `infos` 对象中的属性绑定到 `<div>` 元素上。
+
+```tsx
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const infos = {
+            style: {
+                color: 'red',
+                fontSize: '16px',
+                backgroundColor: 'blue'
+            },
+            class: 'd1'
+        }
+
+        return () => (
+            <div>
+                <div {...infos}>1111</div>
+            </div>
         )
     }
 })
@@ -102,7 +226,437 @@ app.mount('#app')
 
 
 
-# vue
+# vue3
+
+## MVC & MVVM
+
+- MVC：Model—View—Controller，是在前期被使用非常多的架构模式，比如IOS，前端
+- MVVM：Model—View—ViewModel，是目前非常流行的架构模式
+
+vue并没有完全遵守MVVM，但整个设计受到它启发
+
+
+
+## 选项式API属性
+
+### data
+
+data属性是传入一个函数，该函数需要返回一个对象
+
+- 在Vue2.x的时候，可以传入一个对象，推荐为传入函数
+- 在Vue3.x的时候，必须传入一个函数
+
+```javascript
+const app = Vue.createApp({
+	data: function() {
+        return {
+            counter: 0
+        }
+    }
+})
+
+// 简化
+const app = Vue.createApp({
+  data() {
+    return {
+      counter: 0
+    }
+  }
+})
+```
+
+
+
+### methods
+
+
+
+## 变量 & 修饰符
+
+### event对象
+
+在模板中想要明确的获取event对象：$event
+
+传入参数同时需要获取event对象
+
+```vue
+<button @click="btnClick('why', age, $event)">按钮3</button>
+```
+
+#### tsx
+
+<span style="color:red">tsx中还是使用event</span>
+
+```tsx
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const btnClick = (name: string, age: number, event: MouseEvent) => {
+            console.log(name, age, event)
+        }
+
+        return () => (
+            <div>
+                <button onClick={(event) => btnClick('why', 18, event)}>
+                    按钮
+                </button>
+            </div>
+        )
+    }
+})
+```
+
+
+
+
+
+### 事件修饰符(可用于 `v-on`)
+
+事件修饰符是Vue提供的特殊后缀,可以用点号 . 连接在事件名称之后。它们允许你以一种很方便的方式处理常见的事件行为,而无需在事件处理函数中手动编写事件处理逻辑。
+
+1. `.stop`:
+   - 作用: 阻止事件冒泡。等同于调用event.stopPropagation()。
+   - 示例: `<button @click.stop="handleClick">Click me</button>`
+   - 解释: 当按钮被点击时,点击事件不会冒泡到父元素。
+2. `.prevent`:
+   - 作用: 阻止事件的默认行为。等同于调用event.preventDefault()。
+   - 示例: `<form @submit.prevent="onSubmit">...</form>`
+   - 解释: 当表单提交时,阻止表单的默认提交行为。
+3. `.capture`:
+   - 作用: 在捕获阶段触发事件处理函数,而不是在冒泡阶段。
+   - 示例: `<div @click.capture="handleClick">...</div>`
+   - 解释: 点击事件将在捕获阶段触发handleClick函数,而不是在冒泡阶段。
+4. `.self`:
+   - 作用: 只有当事件是从事件绑定的元素本身触发时才触发事件处理函数。
+   - 示例: `<div @click.self="handleClick">...</div>`
+   - 解释: 只有当div元素自身被点击时才会触发handleClick函数,而不是其子元素被点击时。
+5. `.once`:
+   - 作用: 事件处理函数只会被触发一次,之后会自动解绑。
+   - 示例: `<button @click.once="handleClick">Click me</button>`
+   - 解释: handleClick函数只会在第一次点击按钮时被调用,之后再点击按钮不会触发这个函数。
+6. `.passive`:
+   - 作用: 表示事件处理函数不会调用preventDefault()。
+   - 示例: `<div @scroll.passive="onScroll">...</div>`
+   - 解释: 当div元素滚动时,onScroll函数不会调用preventDefault()。这可以提高滚动事件的性能,特别是在移动设备上。
+7. `.exact`:
+   - 作用: 精确控制系统修饰键的组合触发事件处理函数。
+   - 示例: `<button @click.ctrl.exact="handleClick">Click me</button>`
+   - 解释: 只有在按下Ctrl键,并且没有按下其他系统修饰键(如Alt、Shift或Meta)时,点击事件才会触发handleClick函数。
+8. `.left`:
+   - 作用: 只在鼠标左键触发事件处理函数。
+   - 示例: `<button @click.left="handleClick">Click me</button>`
+   - 解释: 只有在用鼠标左键点击按钮时,才会触发handleClick函数。
+9. `.right`:
+   - 作用: 只在鼠标右键触发事件处理函数。
+   - 示例: `<button @click.right="handleClick">Click me</button>`
+   - 解释: 只有在用鼠标右键点击按钮时,才会触发handleClick函数。
+10. `.middle`:
+    - 作用: 只在鼠标中键触发事件处理函数。
+    - 示例: `<button @click.middle="handleClick">Click me</button>`
+    - 解释: 只有在用鼠标中键点击按钮时,才会触发handleClick函数。
+11. `.native`:
+    - 作用: 监听组件根元素的原生事件。
+    - 示例: `<my-component @click.native="handleClick"></my-component>`
+    - 解释: 当点击my-component组件的根元素时,会触发handleClick函数。这对于监听自定义组件的原生事件非常有用。
+12. `.sync`:
+    - 作用: 创建一个双向绑定,更新父组件的状态。
+    - 示例: `<my-component :title.sync="pageTitle"></my-component>`
+    - 解释: 当my-component组件内部更新title属性时,pageTitle属性也会被更新。这提供了一种简洁的双向绑定语法。
+13. `.camel`:
+    - 作用: 将kebab-case属性名转换为camelCase。
+    - 示例: `<my-component :my-prop.camel="value"></my-component>`
+    - 解释: 在my-component组件内部,myProp属性将以camelCase的形式可用,而不是kebab-case。
+
+
+
+### 按键修饰符（可用于 `v-on`）
+
+- `.enter`：当按下回车键时触发事件。
+- `.tab`：当按下 Tab 键时触发事件。
+- `.delete`：当按下删除键（Delete）或退格键（Backspace）时触发事件。
+- `.esc`：当按下 Esc 键时触发事件。
+- `.space`：当按下空格键时触发事件。
+- `.up`：当按下上箭头键时触发事件。
+- `.down`：当按下下箭头键时触发事件。
+- `.left`：当按下左箭头键时触发事件。
+- `.right`：当按下右箭头键时触发事件。
+
+### 系统修饰键（可用于 `v-on`）
+
+- `.ctrl`：当按下 Ctrl 键时触发事件。
+- `.alt`：当按下 Alt 键时触发事件。
+- `.shift`：当按下 Shift 键时触发事件。
+- `.meta`：在 Mac 系统下，表示当按下 Command 键时触发事件；在 Windows 系统下，表示当按下 Windows 徽标键时触发事件。
+
+### 鼠标按钮修饰符（可用于 `v-on`）
+
+- `.left`：当点击鼠标左键时触发事件。
+- `.right`：当点击鼠标右键时触发事件。
+- `.middle`：当点击鼠标中键时触发事件。
+
+### 表单修饰符（可用于 `v-model`）
+
+- `.lazy`：默认情况下，`v-model` 会在每次 `input` 事件触发后将输入框的值与数据进行同步。使用 `.lazy` 修饰符可以让数据在触发 `change` 事件后再进行同步，即在失去焦点或按下回车键时才更新数据。
+- `.number`：自动将用户的输入值转为数值类型。如果转换失败，则返回原始的值。
+- `.trim`：自动过滤用户输入的首尾空白字符。
+
+
+
+
+
+## 渲染函数
+
+### h函数
+
+VNode和VDOM
+
+- vue在生成真实的DOM之前，会将我们的节点转换成VNode，而VNode组合在一起形成一颗树结构，就是`虚拟DOM`（VDOM）
+- template中的HTML最终也是使用`渲染函数`生成对应的`VNode`
+
+h函数是一个用于创建VNode的函数
+
+更准确的命名是createVNode()函数，简化为h()函数
+
+- 语法：h(type, ?props, ?children)
+
+  `type`：表示要创建的节点类型，可以是一个字符串（表示 HTML 标签）或一个 Vue 组件对象。
+
+  `props`：表示节点的属性，是一个对象，包含了节点的属性、事件监听器等。
+
+  `children`：表示节点的子节点，可以是一个字符串、数组或者 `null`。
+
+```vue
+<template>
+<vnode></vnode>
+</template>
+
+<script setup lang="ts">
+import { h } from 'vue'
+
+const vnode = h(
+    'div',
+    {
+        class: 'example',
+        onClick: () => {
+            console.log('Clicked!')
+        }
+    },
+    [
+        h('p', 'Hello'),
+        h('p', 'World')
+    ]
+)
+</script>
+
+<style lang="scss" scoped>
+</style>
+```
+
+```vue
+<template></template>
+
+<script>
+import { h } from 'vue'
+
+export default {
+    setup() {
+        return () => h(
+            'div',
+            {
+                class: 'example',
+                onClick: () => {
+                    console.log('Clicked!')
+                }
+            },
+            [
+                h('p', 'Hello'),
+                h('p', 'World')
+            ]
+        )
+    }
+}
+</script>
+```
+
+
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent, ref, h } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const count = ref(0)
+
+        return () => h(
+            'div',
+            null,
+            [
+                h('div', null, count.value),
+                h(ElButton, { onClick: () => count.value++, class: 'b1' }, '+')
+            ]
+        )
+    }
+})
+```
+
+
+
+### 全局api
+
+#### version
+
+暴露当前所使用的 Vue 版本
+
+```typescript
+import { version } from 'vue'
+
+console.log(version)
+```
+
+
+
+#### nextTick()
+
+等待下一次 DOM 更新刷新的工具方法
+
+
+
+#### defineComponent
+
+在定义 Vue 组件时提供类型推导的辅助函数
+
+
+
+## VNode
+
+Virtal Node 虚拟节点
+
+无论组件还是元素，最终在vue里表示出来都是一个个VNode
+
+VNode本质是一个JavaScript对象
+
+VNode Tree：虚拟dom
+
+
+
+## 组件化开发
+
+### 全局组件注册
+
+```typescript
+// main.js
+import { createApp } from 'vue';
+import App from './App.vue';
+import MyComponent from './MyComponent.vue';
+
+const app = createApp(App);
+
+// 全局注册 MyComponent 组件
+app.component('my-component', MyComponent);
+
+app.mount('#app');
+```
+
+在通过app.component注册一个组件的时候，第一个参数是组件的名称，定义组件名的方式有两种
+
+1. 短横线分隔符
+2. 大驼峰
+
+
+
+## 标签ref属性
+
+### 普通dom标签
+
+```vue
+<template>
+    <div class="person">
+        <h1 ref="title1">尚硅谷</h1>
+        <h2 ref="title2">前端</h2>
+        <h3 ref="title3">Vue</h3>
+        <input type="text" ref="inpt"> <br><br>
+        <button @click="showLog">点我打印内容</button>
+    </div>
+</template>
+
+<script lang="ts" setup name="Person">
+import { ref } from 'vue';
+
+let title1 = ref<HTMLHeadingElement>()
+let title2 = ref<HTMLHeadingElement>()
+let title3 = ref<HTMLHeadingElement>()
+let inpt = ref<HTMLInputElement>()
+
+function showLog() {
+    console.log(title1.value?.innerText)
+    console.log(title2.value?.innerText)
+    console.log(title3.value?.innerText)
+    console.log(inpt.value?.value)
+}
+</script>
+```
+
+
+
+### 组件标签
+
+```vue
+<!-- 父组件App.vue -->
+<template>
+  <Person ref="ren"/>
+  <button @click="test">测试</button>
+</template>
+
+<script lang="ts" setup name="App">
+  import Person from './components/Person.vue'
+  import {ref} from 'vue'
+
+  let ren = ref()
+
+  function test(){
+    console.log(ren.value.name)   // 张三
+    console.log(ren.value.age)	  // 18
+  }
+</script>
+
+
+<!-- 子组件Person.vue中要使用defineExpose暴露内容 -->
+<script lang="ts" setup name="Person">
+  import {ref,defineExpose} from 'vue'
+	// 数据
+  let name = ref('张三')
+  let age = ref(18)
+  /****************************/
+  // 使用defineExpose将组件中的数据交给外部
+  defineExpose({name,age})
+</script>
+```
+
+
+
+## 生命周期
+
+### 父子生命周期顺序
+
+父组件setup
+
+父组件beforeMount
+
+子组件setup
+
+子组件beforeMount
+
+子组件mounted
+
+父组件mounted
+
+
+
+
+
+# sfc
 
 ## 与tsx的区别
 
@@ -167,6 +721,31 @@ export default defineComponent({
     }
 })
 ```
+
+
+
+
+
+## v-if
+
+v-if是惰性的，当条件为false时，其判断的内容完全不会被渲染
+
+```vue
+<template>
+    <div v-if="cj > 90"> 优秀</div>
+    <div v-else> 不及格</div>
+</template>
+
+<script setup lang="ts">
+	const cj = 92;
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+
+
+
 
 
 
@@ -333,6 +912,32 @@ const emit = defineEmits(['transDataV'])
 
 
 
+可以使用 TypeScript 的类型推断和泛型来为发出的事件提供类型信息
+
+```vue
+<template>
+  <div>{{ c1 }}</div>
+  <button @click="emit('changeC1')">增加</button>
+</template>
+
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue';
+
+const props = defineProps<{
+  c1: number;
+}>();
+
+const emit = defineEmits<{
+  (event: 'changeC1'): void;
+  (event: 'someOtherEvent', value: string): void;
+}>();
+</script>
+```
+
+
+
+
+
 ## 插槽
 
 ### 默认插槽
@@ -432,6 +1037,171 @@ const persons =reactive([
 
 
 
+## v-model
+
+### 修饰符
+
+1. lazy
+
+默认情况下v-model绑定input事件，加上lazy修饰符后切换为change事件。
+
+2. number
+
+3. trim
+
+
+
+
+
+## computed
+
+1. 默认为get
+
+```vue
+<template>
+    <ElInput v-model.number="t1" clearable></ElInput>
+    <ElInput v-model.number="t2" clearable></ElInput>
+    <div>{{ count }}</div>
+</template>
+
+<script setup lang="ts">
+import { ElInput } from 'element-plus';
+import { computed, ref } from 'vue';
+
+const t1 = ref(0);
+const t2 = ref(0);
+
+const count = computed(() => t1.value + t2.value);
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+2. 传入对象，包含get和set属性
+
+```vue
+<template>
+    <ElInput v-model.number="t1" clearable></ElInput>
+    <ElInput v-model.number="t2" clearable></ElInput>
+    <ElInput v-model.number="count"></ElInput>
+</template>
+
+<script setup lang="ts">
+import { ElInput } from 'element-plus';
+import { computed, ref } from 'vue';
+
+const t1 = ref(0);
+const t2 = ref(0);
+
+const count = computed({
+    get() {
+        return t1.value + t2.value;
+    },
+    set() {
+        console.log('count set');
+    }
+})
+
+</script>
+
+<style lang="scss" scoped></style>
+```
+
+
+
+### 计算属性的缓存
+
+计算属性会基于它们的依赖关系进行缓存
+
+在数据不发生变化时，计算属性不需要重新计算
+
+如果依赖关系发生变化，在使用时，计算属性依然会重新计算。
+
+
+
+## 侦听器watch
+
+1. 监听ref
+
+```vue
+<template>
+  <div class="person">
+    <h1>情况一：监视【ref】定义的【基本类型】数据</h1>
+    <h2>当前求和为：{{sum}}</h2>
+    <button @click="changeSum">点我sum+1</button>
+  </div>
+</template>
+
+<script lang="ts" setup name="Person">
+  import {ref,watch} from 'vue'
+  // 数据
+  let sum = ref(0)
+  // 方法
+  function changeSum(){
+    sum.value += 1
+  }
+  // 监视，情况一：监视【ref】定义的【基本类型】数据
+  const stopWatch = watch(sum,(newValue,oldValue)=>{
+    console.log('sum变化了',newValue,oldValue)
+    if(newValue >= 10){
+      stopWatch()
+    }
+  })
+</script>
+```
+
+2. 监听ref定义的对象
+
+监视`ref`定义的【对象类型】数据：直接写数据名，监视的是对象的【地址值】，若想监视对象内部的数据，要手动开启深度监视。
+
+```vue
+<template>
+  <div class="person">
+    <h1>情况二：监视【ref】定义的【对象类型】数据</h1>
+    <h2>姓名：{{ person.name }}</h2>
+    <h2>年龄：{{ person.age }}</h2>
+    <button @click="changeName">修改名字</button>
+    <button @click="changeAge">修改年龄</button>
+    <button @click="changePerson">修改整个人</button>
+  </div>
+</template>
+
+<script lang="ts" setup name="Person">
+  import {ref,watch} from 'vue'
+  // 数据
+  let person = ref({
+    name:'张三',
+    age:18
+  })
+  // 方法
+  function changeName(){
+    person.value.name += '~'
+  }
+  function changeAge(){
+    person.value.age += 1
+  }
+  function changePerson(){
+    person.value = {name:'李四',age:90}
+  }
+  /* 
+    监视，情况一：监视【ref】定义的【对象类型】数据，监视的是对象的地址值，若想监视对象内部属性的变化，需要手动开启深度监视
+    watch的第一个参数是：被监视的数据
+    watch的第二个参数是：监视的回调
+    watch的第三个参数是：配置对象（deep、immediate等等.....） 
+  */
+  watch(person,(newValue,oldValue)=>{
+    console.log('person变化了',newValue,oldValue)
+  },{deep:true})
+  
+</script>
+```
+
+3. 监视`reactive`定义的【对象类型】数据，默认开启了深度监视。
+
+
+
+
+
 
 
 # tsx
@@ -478,6 +1248,21 @@ export default defineComponent({
             <div>hello1</div>,
             <div>hello2</div>
         ]
+    }
+})
+```
+
+```tsx
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup(props, ctx) {
+        const render = () => {
+            return (
+                <div>111</div>
+            )
+        }
+        return render
     }
 })
 ```
@@ -700,6 +1485,14 @@ emits和props要在setup外定义
 
 
 
+## onClick
+
+在 TSX 语法中，事件处理函数是直接作为组件的属性传递的。当你使用 `onClick={handleClick}` 时，`onClick` 就是一个普通的 JavaScript 属性，它的值是 `handleClick` 函数。这种方式更接近于原生 JavaScript 中的事件绑定方式。
+
+
+
+
+
 ## props
 
 父传子
@@ -850,6 +1643,8 @@ export default defineComponent({
 
 
 ## mitt
+
+事件总线
 
 - 引入
 
@@ -1012,6 +1807,58 @@ export default defineComponent({
     }
 })
 ```
+
+
+
+### API
+
+#### storeToRefs()
+
+- 为了从Store中提取属性同时保持响应式，需要使用storeToRefs(~)
+- 也可以使用vue的toRefs(~)
+
+```typescript
+import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
+
+export const useCounterStore = defineStore('counter', () => {
+  const count = ref(100)
+  const doubleCount = computed(() => count.value * 2)
+  function increment() {
+    count.value++
+  }
+  function decrement() {
+    count.value--
+  }
+
+  return { count, doubleCount, increment, decrement }
+})
+```
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent, ref } from 'vue'
+import { useCounterStore } from '../../stores/counter'
+import { storeToRefs } from 'pinia'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const counterStore = useCounterStore()
+        const { count, doubleCount } = storeToRefs(counterStore)
+        const { increment, decrement } = counterStore
+        return () => (
+            <div>
+                <div>{count.value}</div>
+                <div>{doubleCount.value}</div>
+                <ElButton onClick={increment}>+</ElButton>
+                <ElButton onClick={decrement}>-</ElButton>
+            </div>
+        )
+    }
+})
+```
+
+
 
 
 
@@ -2224,15 +3071,9 @@ import path from 'path';
 
 
 
-
-
 ## Rollup
 
 Rollup 是一款基于 ES Module 模块规范实现的 JavaScript 打包工具
-
-
-
-
 
 
 
@@ -2710,48 +3551,7 @@ export default defineComponent({
 
 ## package.json
 
-```json
-{
-  "name": "vue-tsx-test2",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": { 
-    "dev": "vite",     //npm run dev 执行项目本地的vite
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "test:unit": "vitest",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
-  },
-  "dependencies": {
-    "element-plus": "^2.7.6",
-    "mitt": "^3.0.1",
-    "pinia": "^2.1.7",
-    "vue": "^3.4.29",
-    "vue-router": "^4.3.3"
-  },
-  "devDependencies": {
-    "@tsconfig/node20": "^20.1.4",
-    "@types/jsdom": "^21.1.7",
-    "@types/node": "^20.14.5",
-    "@vitejs/plugin-vue": "^5.0.5",
-    "@vitejs/plugin-vue-jsx": "^4.0.0",
-    "@vue/test-utils": "^2.4.6",
-    "@vue/tsconfig": "^0.5.1",
-    "jsdom": "^24.1.0",
-    "node-sass": "^9.0.0",
-    "npm-run-all2": "^6.2.0",
-    "sass": "^1.77.6",
-    "sass-loader": "^14.2.1",
-    "typescript": "~5.4.0",
-    "vite": "^5.3.1",
-    "vitest": "^1.6.0",
-    "vue-tsc": "^2.0.21"
-  }
-}
 
-```
 
 ## process.env.NODE_ENV
 
@@ -2816,6 +3616,8 @@ export default defineComponent({
     },
 })
 ```
+
+
 
 ## proxy实现 input参数动态传递
 
@@ -3594,10 +4396,6 @@ Promise的any方法，只要参数中有一个Promise实例化对象的状态为
 
 
 
-#### 迭代器 iterator
-
-
-
 
 
 
@@ -3643,6 +4441,125 @@ p.catch((msg) => { () => { alert(msg) } })
 
 
 
+
+
+## 模拟请求
+
+需求：发送三次请求
+
+### 回调地狱
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 2000);
+    })
+}
+
+function handleData() {
+    requestData("data").then(res1 => {
+        console.log(res1)
+        requestData(res1).then(res2 => {
+            console.log(res2)
+            requestData(res2).then(res3 => {
+                console.log(res3)
+            })
+        })
+    })
+}
+
+handleData()
+```
+
+
+
+### promise
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 2000);
+    })
+}
+
+function handleData() {
+    requestData("data").then(res1 => {
+        console.log(res1)
+        return requestData(res1)
+    }).then(res2 => {
+        console.log(res2);
+        return requestData(res2)
+    })
+}
+
+handleData()
+```
+
+
+
+### 生成器
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 1);
+    })
+}
+
+function* handleData() {
+    const res1 = yield requestData("data")
+    console.log(res1)
+    const res2 = yield requestData(res1)
+    console.log(res2)
+    const res3 = yield requestData(res2)
+    console.log(res3)
+}
+
+const generator = handleData()
+generator.next().value.then(res1 => {
+    generator.next(res1).value.then(res2 => {
+        generator.next(res2).value.then(res3 => {
+            generator.next(res3)
+        })
+    })
+})
+```
+
+
+
+### async实现
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(url)
+        }, 2000);
+    })
+}
+
+async function handleData() {
+    const res1 = await requestData("data")
+    console.log(res1)
+    const res2 = await requestData(res1)
+    console.log(res2)
+    const res3 = requestData(res2)
+    console.log(res3)
+}
+
+handleData()
+```
+
+
+
+
+
 ## async / await
 
 ### 出现的原因
@@ -3656,6 +4573,7 @@ Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`
 2. promise对象的结果由async函数执行的返回值决定
    - 返回值为一个非promise类型的数据：成功
    - 返回值是一个promise对象
+   - <span style="color:red">返回值是一个对象实现了thenable，由对象的then方法决定 </span>
    - 抛出异常：失败
 
 `async` 用于声明一个异步函数。异步函数是一种特殊的函数，它总是返回一个 Promise。
@@ -3688,7 +4606,7 @@ async function f() {return 'TEST';}
 
 ```js
 const f1 = async () => {
-    return "hello world"
+    return "hello world" // 相当于返回Promise.resolve("hello world")
 }
 const p1 = f1()
 p1.then((msg) => {
@@ -3759,6 +4677,48 @@ m()
 console.log(2);
 // 输出 0,2,1,3
 ```
+
+
+
+- await 右侧为rejected Promise
+
+```javascript
+function requestData(url) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(url)
+        }, 2000);
+    })
+}
+
+// 1.函数内try catch 捕获
+async function getData() {
+    try{
+        const res1 = await requestData("data")
+        console.log(res1)
+        const res2 = await requestData(res1)
+        console.log(res2)
+    } catch (error) {
+        console.log("error")
+    }
+}
+
+// 2.外面捕获
+async function getData() {
+    const res1 = await requestData("data")
+    console.log(res1)
+    const res2 = await requestData(res1)
+    console.log(res2)
+}
+
+getData().catch(err => {
+    console.log("error", err)
+})
+```
+
+
+
+
 
 
 
@@ -3903,8 +4863,6 @@ t1();
 ### async,await解决
 
 ```vue
-<template></template>
-
 <script setup lang="ts">
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -3943,7 +4901,7 @@ JS执行的任务分为`同步任务`和`异步任务`
 
 <span style="color:red;">异步任务</span>分为<span style="color:red;">微任务</span>（micro task）和<span style="color:red;">宏任务</span>（macro task）。
 
-- 微任务主要有：Promise.then，，Promise.catch，Promise.finally，process.nextTick等
+- 微任务主要有：Promise.then，Promise.catch，Promise.finally，process.nextTick等
 - 宏任务主要有：异步Ajax请求，setInterval，setTimeout，文件操作，事件等
 
 
@@ -4241,13 +5199,13 @@ export default defineComponent({
 
 ### 属性
 
-clientX：当鼠标事件发生时（不管是onclick，还是omousemove，onmouseover等），鼠标相对于浏览器（这里说的是浏览器的有效区域）x轴的位置；
-clientY：当鼠标事件发生时，鼠标相对于浏览器（这里说的是浏览器的有效区域）y轴的位置；
-screenX：当鼠标事件发生时，鼠标相对于显示器屏幕x轴的位置；
-screenY：当鼠标事件发生时，鼠标相对于显示器屏幕y轴的位置；
-offsetX：当鼠标事件发生时，鼠标相对于事件源x轴的位置
-offsetY：当鼠标事件发生时，鼠标相对于事件源y轴的位置
-pageX：参照点是页面本身的body原点，而不是浏览器内容区域左上角，它计算的值不会随着滚动条而变动，它在计算时其实是以body左上角原点（即页面本身的左上角，而不是浏览器可见区域的左上角）为参考点计算的，这个相当于已经把滚动条滚过的高或宽计算在内了，所以无论滚动条是否滚动，他都是一样的距离值。
+`clientX`：当鼠标事件发生时（不管是onclick，还是omousemove，onmouseover等），鼠标相对于浏览器（这里说的是浏览器的有效区域）x轴的位置；
+`clientY`：当鼠标事件发生时，鼠标相对于浏览器（这里说的是浏览器的有效区域）y轴的位置；
+`screenX`：当鼠标事件发生时，鼠标相对于显示器屏幕x轴的位置；
+`screenY`：当鼠标事件发生时，鼠标相对于显示器屏幕y轴的位置；
+`offsetX`：当鼠标事件发生时，鼠标相对于事件源x轴的位置
+`offsetY`：当鼠标事件发生时，鼠标相对于事件源y轴的位置
+`pageX`：参照点是页面本身的body原点，而不是浏览器内容区域左上角，它计算的值不会随着滚动条而变动，它在计算时其实是以body左上角原点（即页面本身的左上角，而不是浏览器可见区域的左上角）为参考点计算的，这个相当于已经把滚动条滚过的高或宽计算在内了，所以无论滚动条是否滚动，他都是一样的距离值。
 
 ### 效果实现
 
@@ -4329,4 +5287,96 @@ pageX：参照点是页面本身的body原点，而不是浏览器内容区域�
 
 
 
+
+# 实际案例
+
+## 本地视频播放，调整速率
+
+```tsx
+import { ElButton } from 'element-plus';
+import { defineComponent, ref } from 'vue';
+import video from './lgcr.mp4'
+
+export default defineComponent({
+    setup() {
+        const rate = ref(1);
+        const videoRef = ref<HTMLVideoElement | null>(null);
+
+        const increaseRate = () => {
+            rate.value += 0.5;
+            if (videoRef.value) videoRef.value.playbackRate = rate.value;
+        };
+
+        const decreaseRate = () => {
+            rate.value = Math.max(0.5, rate.value - 0.5); // 设置最小速率为0.5
+            if (videoRef.value) videoRef.value.playbackRate = rate.value;
+        };
+
+        return () => (
+            <div>
+                <video ref={videoRef} src={video} controls style={{ width: '300px', height: '170px' }}></video>
+                <br></br>
+                <div style={{ display: 'flex', width: '150px' }}>
+                    <ElButton onClick={decreaseRate}>-</ElButton>
+                    <div style={{ width: '50px', textAlign: 'center' }}>{rate.value}</div>
+                    <ElButton onClick={increaseRate}>+</ElButton>
+                </div>
+
+            </div >
+        );
+    }
+});
+
+```
+
+
+
+## 下划线动态
+
+通过background，no-repeat bottom left。和background-size实现
+
+```html
+<!DOCTYPE html>
+<html lang="en" style="height: 3000px;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .d1 {
+            width: 200px;
+        }
+        .p1 {
+            background: linear-gradient(to right, rgb(255, 0, 195), rgb(0, 255, 255), rgb(0, 26, 255)) no-repeat bottom left;
+            background-size: 0 2px;
+            transition: background-size 1300ms;
+        }
+
+        .p1:hover {
+            background-size: 100% 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d1">
+        <span class="p1">
+            内心满是憔悴 眼神游动不止
+            我在这世界孤身一人
+            这不断凋零的春季中
+            每年都只感受到冰冷
+            在一片黑暗中 单向往前走着
+            我只能不断胡乱写着
+            明知期待也是一场空
+            却依然不断寻求救赎
+        </span>
+    </div>
+</body>
+<script>
+
+</script>
+
+</html>
+```
 
