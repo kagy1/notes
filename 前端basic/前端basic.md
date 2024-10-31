@@ -2334,6 +2334,42 @@ arr1.reduce((pre, next) => {
 
 ### Object方法&属性
 
+#### Object.assign(~)
+
+用于将一个或多个源对象的可枚举属性复制到目标对象，并返回修改后的目标对象
+
+浅拷贝
+
+1. 合并对象属性
+
+```javascript
+const obj1 = { a: 1, b: 2 };
+const obj2 = { b: 3, c: 4 };
+const mergedObj = Object.assign({}, obj1, obj2);
+console.log(mergedObj); // { a: 1, b: 3, c: 4 }
+```
+
+2. 克隆对象
+
+```javascript
+const originalObj = { x: 1, y: 2 };
+const clonedObj = Object.assign({}, originalObj);
+console.log(clonedObj); // { x: 1, y: 2 }
+```
+
+3. 修改目标对象
+
+```javascript
+const targetObj = { a: 1 };
+const sourceObj = { b: 2 };
+Object.assign(targetObj, sourceObj);
+console.log(targetObj); // { a: 1, b: 2 }
+```
+
+
+
+
+
 #### Object.keys()
 
 - old
