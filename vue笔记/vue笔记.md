@@ -177,6 +177,8 @@ export default defineComponent({
 
 
 
+
+
 # main.ts
 
 ```tsx
@@ -2089,7 +2091,6 @@ h函数接受三个参数，分别表示：
 
 
 
-- tsx
 ```tsx
 const customVNode2 = () => (
     <p onClick={() => alert('hello p2')}>This is VNode2</p>
@@ -2101,6 +2102,113 @@ const customVNode2 = () => (
 <customVNode1></customVNode1>
 <customVNode2></customVNode2>
 ```
+
+
+
+## 示例
+
+### 示例1
+
+在 Vue 3 中，当你在 JSX 中使用 `{node}` 时，Vue 会自动对 `node` 进行处理和渲染。
+
+当 Vue 遇到 `{node}` 时，它会检查 `node` 的类型。如果 `node` 是一个虚拟节点对象（VNode），Vue 会直接将其渲染为相应的 DOM 节点。这是因为 Vue 的渲染引擎能够识别和处理虚拟节点对象。
+
+```tsx
+import { defineComponent, h } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        function useTest() {
+            return () => {
+                return <div>hello world</div>
+            }
+        }
+		
+        // 简单写法
+        
+        function useTest() {
+            return () => 
+                <div>hello world</div>
+        }
+        
+        const node = useTest()()
+
+        return () => (
+            <div>
+                {h(node)}   
+                <node></node>
+                {node}
+            </div>
+        )
+    }
+})
+```
+
+
+
+### 示例2
+
+返回函数
+
+```tsx
+import { defineComponent, h } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        function useT() {
+            return {
+                element: () => {
+                    return <div>hello</div>
+                }
+            }
+        }
+
+        const node2 = useT()
+
+
+        return () => (
+            <div>
+                {node2.element()}
+            </div>
+        )
+    }
+})
+```
+
+
+
+### 示例3
+
+直接返回对象
+
+```tsx
+import { defineComponent, h } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        function useT() {
+            return {
+                element: <div>hello</div>
+            }
+        }
+        const node2 = useT()
+
+
+        return () => (
+            <div>
+                {node2.element}
+                {h(node2.element)}
+            </div>
+        )
+    }
+})
+```
+
+
+
+
 
 
 
