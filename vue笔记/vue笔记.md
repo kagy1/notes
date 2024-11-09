@@ -3185,6 +3185,14 @@ Rollup 是一款基于 ES Module 模块规范实现的 JavaScript 打包工具
 
 
 
+### Tree Shaking
+
+可以分析出未使用到的模块并自动擦除
+
+
+
+
+
 ## 配置文件
 
 项目中一般使用`vite.config.ts`作为配置文件
