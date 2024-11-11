@@ -5263,7 +5263,19 @@ const num1 = 4 ** 5 // new
 
     
 
+### 对象属性简写
 
+将一个变量作为对象的属性，并且属性名与变量名相同，可以使用简写语法
+
+```javascript
+let name = "John";
+let age = 30;
+
+let person = {
+  name,
+  age
+};
+```
 
 
 
