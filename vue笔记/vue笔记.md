@@ -745,7 +745,9 @@ v-if是惰性的，当条件为false时，其判断的内容完全不会被渲�
 
 
 
+## reactive
 
+reactive重新分配一个对象，会失去响应式（可以使用Object.assign()）整体替换
 
 
 
@@ -805,6 +807,28 @@ const props = defineProps({
 <style lang="scss" scoped></style>
 
 ```
+
+
+
+子组件可以用泛型限制父组件传递的props
+
+```typescript
+defineProps<{list?:Persons}>()
+```
+
+```typescript
+withDefaults(defineProps<{list?:Persons}>(),{
+    list:[{id:'a1',name:'test',age:19}]
+})
+```
+
+
+
+
+
+
+
+
 
 
 
@@ -1121,7 +1145,18 @@ const count = computed({
 
 ## 侦听器watch
 
-1. 监听ref
+watch第一个参数可以是ref或者reactive，watch会自动解包
+
+在Vue 3中,watch函数的第一个参数可以是以下几种类型:
+
+1. 一个函数,该函数返回一个值
+2. 一个ref
+3. 一个响应式对象
+4. ...或者是由以上几种类型构成的数组
+
+
+
+监听ref
 
 ```vue
 <template>
@@ -1150,53 +1185,59 @@ const count = computed({
 </script>
 ```
 
-2. 监听ref定义的对象
-
-监视`ref`定义的【对象类型】数据：直接写数据名，监视的是对象的【地址值】，若想监视对象内部的数据，要手动开启深度监视。
+监视上述的多个数据
 
 ```vue
 <template>
   <div class="person">
-    <h1>情况二：监视【ref】定义的【对象类型】数据</h1>
+    <h1>情况五：监视上述的多个数据</h1>
     <h2>姓名：{{ person.name }}</h2>
     <h2>年龄：{{ person.age }}</h2>
+    <h2>汽车：{{ person.car.c1 }}、{{ person.car.c2 }}</h2>
     <button @click="changeName">修改名字</button>
     <button @click="changeAge">修改年龄</button>
-    <button @click="changePerson">修改整个人</button>
+    <button @click="changeC1">修改第一台车</button>
+    <button @click="changeC2">修改第二台车</button>
+    <button @click="changeCar">修改整个车</button>
   </div>
 </template>
 
 <script lang="ts" setup name="Person">
-  import {ref,watch} from 'vue'
+  import {reactive,watch} from 'vue'
+
   // 数据
-  let person = ref({
+  let person = reactive({
     name:'张三',
-    age:18
+    age:18,
+    car:{
+      c1:'奔驰',
+      c2:'宝马'
+    }
   })
   // 方法
   function changeName(){
-    person.value.name += '~'
+    person.name += '~'
   }
   function changeAge(){
-    person.value.age += 1
+    person.age += 1
   }
-  function changePerson(){
-    person.value = {name:'李四',age:90}
+  function changeC1(){
+    person.car.c1 = '奥迪'
   }
-  /* 
-    监视，情况一：监视【ref】定义的【对象类型】数据，监视的是对象的地址值，若想监视对象内部属性的变化，需要手动开启深度监视
-    watch的第一个参数是：被监视的数据
-    watch的第二个参数是：监视的回调
-    watch的第三个参数是：配置对象（deep、immediate等等.....） 
-  */
-  watch(person,(newValue,oldValue)=>{
-    console.log('person变化了',newValue,oldValue)
+  function changeC2(){
+    person.car.c2 = '大众'
+  }
+  function changeCar(){
+    person.car = {c1:'雅迪',c2:'爱玛'}
+  }
+
+  // 监视，情况五：监视上述的多个数据
+  watch([()=>person.name,person.car],(newValue,oldValue)=>{
+    console.log('person.car变化了',newValue,oldValue)
   },{deep:true})
-  
+
 </script>
 ```
-
-3. 监视`reactive`定义的【对象类型】数据，默认开启了深度监视。
 
 
 
@@ -1715,6 +1756,26 @@ export default defineComponent({
     }
 })
 ```
+
+
+
+### 方法
+
+1. `emitter.on(type, handler)`
+   - 用于订阅事件。
+   - `type` 参数表示事件类型，是一个字符串。
+   - `handler` 参数是事件处理函数，当相应的事件被触发时会调用该函数。
+2. `emitter.emit(type, [...args])`
+   - 用于触发事件。
+   - `type` 参数表示要触发的事件类型，是一个字符串。
+   - `[...args]` 参数表示要传递给事件处理函数的参数，可以有多个。
+3. `emitter.off(type, handler)`
+   - 用于取消订阅事件。
+   - `type` 参数表示要取消订阅的事件类型，是一个字符串。
+   - `handler` 参数是要取消订阅的事件处理函数，需要与 `on` 方法中传递的处理函数相同。
+4. `emitter.all`
+   - 这是一个对象，包含了所有已注册的事件类型和对应的处理函数。
+   - 可以通过 `emitter.all[type]` 来访问特定事件类型的处理函数数组。
 
 
 
@@ -2557,6 +2618,57 @@ export default defineComponent({
 这里的 `onClick={() => alt()}` 是定义了一个新的匿名函数，这个函数调用了 `alt`
 
 Vue 将箭头函数作为 `onClick` 回调，并在事件触发时执行该箭头函数
+
+
+
+## customRef
+
+用hooks实现防抖
+
+```tsx
+import { clear } from 'console'
+import { ElButton, ElInput } from 'element-plus'
+import { tr } from 'element-plus/es/locales.mjs'
+import { customRef, defineComponent, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+
+        function useCustomRef(v1: string, time: number) {
+            let timer: NodeJS.Timeout
+            return customRef((track, trigger) => {
+                return {
+                    get() {
+                        track()
+                        return v1
+                    },
+                    set(value: string) {
+                        clearTimeout(timer)
+                        timer = setTimeout(() => {
+                            v1 = value
+                            trigger()
+                        },time)
+                    }
+                }
+            })
+        }
+
+        let inputV = useCustomRef('hhh', 1000)
+
+        return () => (
+            <div>
+                <input type="text" v-model={inputV.value}></input>
+                <h3>{inputV.value}</h3>
+            </div>
+        )
+    }
+})
+```
+
+
+
+
 
 # 路由
 
