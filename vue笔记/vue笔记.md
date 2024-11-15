@@ -177,6 +177,26 @@ export default defineComponent({
 
 
 
+通过展开语法 `{...}` 传递时，不会强制检查这些属性是否存在于组件的 `props` 定义中
+
+```tsx
+<ElInput
+  {...{ maxlength: 7 }}   
+  onInput={(val) => {
+    // 转换中文逗号
+    if (val.includes("，")) {
+      form.DRUG_TRACEID_CODE = val.replaceAll("，", ",");
+    }
+    // 转换中文竖线
+    if (val.includes("｜")) {
+      form.DRUG_TRACEID_CODE = val.replaceAll("｜", "|");
+    }
+  }}
+  {...share(query)}
+  readonly={options.disabled}
+/>
+```
+
 
 
 # main.ts
