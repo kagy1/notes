@@ -308,7 +308,7 @@ v-model绑定：
    - 元素原本所占的空间不再保留
 4. fixed:
    - 元素脱离文档流
-   - 可以使用top、bottom、left、right属性相对于浏览器窗口进行偏移
+   - 可以使用top、bottom、left、right属性相对于<span style="color:red">浏览器窗口</span>进行偏移
    - 元素原本所占的空间不再保留
    - <span style="color:red">即使页面滚动，元素仍然保持在固定位置</span>
 5. sticky（CSS3新增）:

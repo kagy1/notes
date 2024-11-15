@@ -2519,10 +2519,12 @@ export default function(initValue:string,delay:number){
   let msg = customRef((track,trigger)=>{
     let timer:number
     return {
+      // msg被读取时调用
       get(){
         track() // 告诉Vue数据msg很重要，要对msg持续关注，一旦变化就更新
         return initValue
       },
+      // msg被修改时调用
       set(value){
         clearTimeout(timer)
         timer = setTimeout(() => {
@@ -2590,12 +2592,12 @@ const Child = defineAsyncComponent(()=>import('./Child.vue'))
 
 ## 8.3.【全局API转移到应用对象】
 
-- `app.component`
-- `app.config`
+- `app.component`     注册全局组件
+- `app.config`        
 - `app.directive`
-- `app.mount`
-- `app.unmount`
-- `app.use`
+- `app.mount`      挂载应用
+- `app.unmount`         卸载应用
+- `app.use`        路由,pinia   
 
 ## 8.4.【其他】
 
