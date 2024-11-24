@@ -7959,6 +7959,48 @@ type ProductSummary = {
 
 
 
+### 例子
+
+#### 范例1
+
+```typescript
+const form = {
+    name: '',
+    age: 0,
+    email: ''
+};
+
+interface IFormData<T> {
+    data: T;
+}
+
+interface IUserFormData extends IFormData<typeof form> {
+    // 这里可以添加其他属性或方法
+}
+                                          
+// 根据 form 对象的类型，IUserFormData 接口将具有以下属性
+interface IUserFormData {
+    data: {
+        name: string;
+        age: number;
+        email: string;
+    };
+}
+
+//  可以创建一个符合 IUserFormData 接口的对象
+const userFormData: IUserFormData = {
+    data: {
+        name: 'John',
+        age: 25,
+        email: 'john@example.com'
+    }
+};
+```
+
+
+
+
+
 ## ts模块化
 
 ### 非模块（Non-modules）
