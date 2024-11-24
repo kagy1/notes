@@ -24,8 +24,6 @@
    
 
 
-启动面板 systemctl start mcsm-{daemon,web}.service
-停止面板 systemctl stop mcsm-{daemon,web}.service
-重启面板 systemctl restart mcsm-{daemon,web}.service
 
-systemctl status mcsm-{daemon,web}.service
+## 基础命令
+

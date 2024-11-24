@@ -5355,6 +5355,79 @@ nextTick(() => {
 
 
 
+# hooks
+
+## 回调函数
+
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent } from 'vue'
+
+type TCall = {
+    type: "t1" | "t2" | "t3"
+}
+
+function useTest(call: (e: TCall) => void) {
+
+    function t1() {
+        call({
+            type: "t1"
+        })
+    }
+
+    function t2() {
+        call({
+            type: "t2"
+        })
+    }
+
+    function t3() {
+        call({
+            type: "t3"
+        })
+    }
+
+    return {
+        element: () => {
+            return (
+                <>
+                    <ElButton onClick={t1}>t1 </ElButton>
+                    <ElButton onClick={t2}>t2 </ElButton>
+                    <ElButton onClick={t3}>t3 </ElButton>
+                </>
+            )
+        }
+    }
+}
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const test = useTest((obj) => {
+            switch (obj.type) {
+                case 't1': alert('t1')
+                    break;
+                case 't2': alert("t2");
+                    break;
+                case 't3': alert("t3");
+                    break;
+                default: break;
+
+            }
+        })
+        return () => (
+            <div>
+                {test.element()}
+            </div>
+        )
+    }
+})
+```
+
+
+
+
+
 # css效果
 
 ## 跟随鼠标移动
