@@ -8,7 +8,7 @@
 
 
 
-## 基本语法
+## DDL
 
 ### 创建表
 
@@ -83,6 +83,35 @@ create table product(
 
 
 
+### 复制表
+
+表会复制源表的数据,但不会完全复制源表的所有属性。具体来说:
+
+1. 列的数据类型:新表中的列将具有与源表中对应列相同的数据类型。
+2. 列的名称:新表中的列名将与 SELECT 语句中指定的列名相同。如果使用 `*` 选择所有列,则新表的列名将与源表的列名相同。
+3. 数据:新表将包含 SELECT 语句返回的所有数据。
+
+但是,以下属性不会被复制到新表:
+
+1. 约束:源表的主键、外键、唯一键和检查约束不会被复制到新表。
+2. 索引:源表上的索引不会被复制到新表。
+3. 触发器:附加到源表的触发器不会被复制到新表。
+4. 列的默认值:源表列的默认值不会被复制到新表。新表中的所有列都将有默认值 NULL。
+5. 列的 NOT NULL 约束:源表列的 NOT NULL 约束不会被复制到新表。新表中的所有列都将允许 NULL 值。
+6. 列的注释:源表列的注释不会被复制到新表。
+
+```sql
+create table 表名 as 查询语句;
+
+create table emp_copy as 
+     select * from emp
+;
+```
+
+
+
+
+
 ### 修改表
 
 1. 主键约束
@@ -149,55 +178,6 @@ select sysdate,trunc(sysdate,'mi') from dual;-- 截取到分：2021/9/5 16:48:05
 select sysdate,trunc(add_months(sysdate,-1),'mm') from dual;-- 获取上月第一天 2021/9/5 16:48:05   2021/8/1
 select sysdate,trunc(sysdate) from dual;-- 获取今天的日期：2021/9/5 16:48:05   2021/9/5
 select sysdate,trunc(sysdate,'d') from dual;-- 获取当前星期的第一天(星期天) 2021/9/5 16:48:05  2021/9/5
-```
-
-
-
-## 用户
-
-### 用户类型
-
-normal，sysdba，sysoper
-
-
-
-### 用户信息表
-
-dba_users保存了所有用户信息
-
-all_users保存了所有用户信息。该表的属性信息比dba_users少
-
-user_users表保存当前用户信息
-
-```sql
--- 查询所有用户
-SELECT * FROM DBA_USERS;
-SELECT * FROM all_users;
-
--- 查询当前用户
-SELECT user FROM dual;
--- 查询当前用户信息
-select * from USER_USERS;
-```
-
-### 用户权限表
-
-```sql
--- 查询当前用户的所有权限
-SELECT * FROM session_privs;
-
--- 查看当前用户的系统权限
-select * from user_sys_privs;
-
--- 查询指定用户的系统权限
-SELECT * FROM dba_sys_privs WHERE grantee = 'username';
-
--- 查询指定用户的对象权限
-SELECT * FROM dba_tab_privs WHERE grantee = 'username';
-
--- 查询指定用户的角色
-SELECT * FROM dba_role_privs WHERE grantee = 'username';
-
 ```
 
 
@@ -341,9 +321,7 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
 
 ### 字符型函数
 
-当然,以下是 Oracle 中一些常用的字符型函数:
-
-1. LENGTH(char) - 返回字符串的长度。
+1. LENGTH(char) - 返回字符串的长度
 2. SUBSTR(char, m [, n]) - 返回字符串的子串,从位置 m 开始,截取 n 个字符。如果省略 n,则返回从位置 m 到字符串末尾的子串。
 3. INSTR(char, substr [, m [, n]]) - 在字符串 char 中查找子串 substr,返回子串的位置。可选参数 m 指定开始搜索的位置,n 指定第 n 次出现的位置。
 4. CONCAT(char1, char2) - 连接两个字符串。
@@ -357,9 +335,93 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
 12. REGEXP_SUBSTR(char, pattern [, position [, occurrence [, match_param]]]) - 返回字符串中匹配正则表达式 pattern 的子串。
 13. REGEXP_REPLACE(char, pattern [, replacement [, position [, occurrence [, match_param]]]]) - 将字符串中匹配正则表达式 pattern 的部分替换为 replacement。
 14. TRANSLATE(char, from_string, to_string) - 将字符串中的字符依次替换为 to_string 中对应位置的字符。
-15. CHR(n) - 返回 ASCII 码为 n 的字符。
-16. ASCII(char) - 返回字符的 ASCII 码。
-17. LTRIM(char [, set]) 和 RTRIM(char [, set]) - 从字符串的开头或结尾删除 set 中指定的字符。如果省略 set,则删除空格。
+15. LTRIM(char [, set]) 和 RTRIM(char [, set]) - 从字符串的开头或结尾删除 set 中指定的字符。如果省略 set,则删除空格。
+
+
+
+### 分析函数
+
+1. ROW_NUMBER() OVER (ORDER BY ...) - 为结果集中的每一行分配一个唯一的连续数字。
+
+2. RANK() OVER (ORDER BY ...) - 为结果集中的每一行分配一个排名,排名可能不连续。
+
+3. DENSE_RANK() OVER (ORDER BY ...) - 为结果集中的每一行分配一个排名,排名是连续的。
+
+4. LAG(expr [, offset] [, default]) OVER (ORDER BY ...) - 返回当前行的前 offset 行的 expr 值。如果前 offset 行不存在,则返回 default。
+
+5. LEAD(expr [, offset] [, default]) OVER (ORDER BY ...) - 返回当前行的后 offset 行的 expr 值。如果后 offset 行不存在,则返回 default。
+
+6. FIRST_VALUE(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 返回窗口框架中第一行的 expr 值。
+
+7. LAST_VALUE(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 返回窗口框架中最后一行的 expr 值。
+
+8. SUM(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 计算窗口框架中 expr 的累计和。
+
+   输出的行数与原始数据的行数相同
+
+9. AVG(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 计算窗口框架中 expr 的累计平均值。
+
+10. COUNT(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 计算窗口框架中 expr 的累计计数。
+
+
+
+### 其他函数
+
+1. NVL(expr1, expr2) - 如果 expr1 为 NULL,则返回 expr2;否则返回 expr1。
+
+2. COALESCE(expr1, expr2, ..., exprn) - 返回第一个非 NULL 的表达式。
+
+3. DECODE(expr, search1, result1 [, search2, result2 ] ... [, default]) - 将 expr 依次与 search 比较,返回匹配的 result。如果没有匹配,则返回 default。
+
+   ```sql
+   -- 根据 department_id 返回不同的部门名称
+   SELECT employee_id, DECODE(department_id, 
+                              10, 'Administration',
+                              20, 'Marketing',
+                              30, 'Purchasing',
+                              40, 'Human Resources',
+                              50, 'Shipping',
+                              'Other') AS department
+   FROM employees;
+   ```
+
+4. CASE WHEN condition1 THEN result1 [WHEN condition2 THEN result2] ... [ELSE default] END - 根据条件返回不同的结果。
+
+   ```sql
+   -- 根据 salary 返回不同的工资等级
+   SELECT employee_id, salary,
+          CASE 
+            WHEN salary >= 15000 THEN 'A'
+            WHEN salary >= 10000 THEN 'B'
+            WHEN salary >= 5000 THEN 'C'
+            ELSE 'D'
+          END AS salary_grade
+   FROM employees;
+   ```
+
+5. GREATEST(expr1, expr2, ..., exprn) - 返回表达式列表中的最大值。
+
+   ```sql
+   -- GREATEST 和 LEAST
+   SELECT GREATEST(10, 20, 30) FROM DUAL; -- 返回 30
+   ```
+
+6. LEAST(expr1, expr2, ..., exprn) - 返回表达式列表中的最小值。
+
+   ```sql
+   SELECT LEAST('Apple', 'Banana', 'Cherry') FROM DUAL; -- 返回 'Apple'
+   SELECT LEAST(SYSDATE, DATE '2023-12-31') FROM DUAL; -- 返回当前日期
+   ```
+
+7. NULLIF(expr1, expr2) - 如果 expr1 等于 expr2,则返回 NULL;否则返回 expr1。
+
+8. TO_CHAR(date|number [, format]) - 将日期或数字转换为字符串。
+
+9. TO_DATE(char [, format]) - 将字符串转换为日期。
+
+10. TO_NUMBER(char [, format]) - 将字符串转换为数字。
+
+11. CAST(expr AS type) - 将表达式转换为指定的数据类型。
 
 
 
@@ -393,8 +455,6 @@ ORDER BY
     CASE WHEN mgr IS NULL THEN 1 ELSE 0 END ASC,
     mgr ASC;
 ```
-
-
 
 
 
@@ -476,8 +536,6 @@ select * from emp where job = 'PRESIDENT' or job = 'MANAGER';
 
 
 
-
-
 ## 子查询
 
 - 单行子查询：>、>=、<、<=、!=、<>、=、<=>
@@ -504,8 +562,6 @@ where not exists(
     where a.pid = i.PAT_ID
 );
 ```
-
-
 
 
 
@@ -668,6 +724,193 @@ ALTER SESSION SET TIME_ZONE = '+08:00'; -- 设置为中国标准时间(北京时
 
 
 
+## DCL
+
+### 表空间
+
+#### 创建表空间
+
+```sql
+create tablespace 表空间的名称
+datafile '文件的路径'
+size 初始化大小
+autoextend on
+next 每次扩展的大小;
+```
+
+示例
+
+```sql
+create tablespace mytest
+datafile 'd:/mytest.dbf'
+size 100m
+autoextend on
+next 10m;
+```
+
+#### 删除表空间
+
+```sql
+drop tablespace 表空间的名称;
+-- 示例
+drop tablespace mytest;
+```
+
+#### 查询表空间
+
+`DBA_TABLESPACES` 视图、`USER_TABLESPACES` 视图
+
+```sql
+SELECT * FROM dba_data_files;
+SELECT * FROM user_tablespaces;
+```
+
+
+
+### 用户
+
+#### 创建用户
+
+```sql
+create user 用户名
+identified by 密码
+default tablespace 表空间的名称;
+```
+
+演示
+
+```sql
+create user kagy
+identified by "123456"
+default tablespace HIS;
+```
+
+
+
+#### 用户类型
+
+normal，sysdba，sysoper
+
+
+
+#### 用户信息表
+
+dba_users保存了所有用户信息
+
+all_users保存了所有用户信息。该表的属性信息比dba_users少
+
+user_users表保存当前用户信息
+
+```sql
+-- 查询所有用户
+SELECT * FROM DBA_USERS;
+SELECT * FROM all_users;
+
+-- 查询当前用户
+SELECT user FROM dual;
+-- 查询当前用户信息
+select * from USER_USERS;
+```
+
+#### 用户权限表
+
+```sql
+-- 查询当前用户的所有权限
+SELECT * FROM session_privs;
+
+-- 查看当前用户的系统权限
+select * from user_sys_privs;
+
+-- 查询指定用户的系统权限
+SELECT * FROM dba_sys_privs WHERE grantee = 'username';
+
+-- 查询指定用户的对象权限
+SELECT * FROM dba_tab_privs WHERE grantee = 'username';
+
+-- 查询指定用户的角色
+SELECT * FROM dba_role_privs WHERE grantee = 'username';
+
+```
+
+
+
+#### 授权用户
+
+```sql
+grant 系统权限列表 to 用户名;
+-- 或者
+grant 实体权限列表 on 表名称 to 用户名;
+```
+
+示例
+
+```sql
+grant CONNECT to zhangsan;
+-- 或者
+grant CONNECT,RESOURCE to zhangsan;
+-- 或者
+grant CONNECT,RESOURCE,DBA to zhangsan;
+-- 或者
+grant DBA to zhangsan;
+-- 或者
+grant all on emp to zhangsan;
+
+-- 赋予所有权限
+GRANT ALL PRIVILEGES TO kagy;
+```
+
+
+
+#### 权限列表
+
+系统权限分类：（系统权限只能由DBA用户授出）
+
+- DBA：拥有全部特权，是系统最高权限，只有DBA才可以创建数据库结构。
+- RESOURCE：拥有Resource权限的用户只可以创建实体，不可以创建数据库结构。
+- CONNECT：拥有Connect权限的用户只可以登录Oracle，不可以创建实体，不可以创建数据库结构。
+
+实体权限分类：select、update、insert、alter、index、delete、all
+
+
+
+#### 取消授权
+
+系统权限只能由DBA用户回收
+
+```sql
+revoke 系统权限列表 from 用户名;
+-- 或者
+revoke 实体权限列表 on 表名称 from 用户名;
+```
+
+示例
+
+```sql
+revoke CONNECT from zhangsan;
+或者
+revoke CONNECT,RESOURCE from zhangsan;
+或者
+revoke CONNECT,RESOURCE,DBA from zhangsan;
+或者
+revoke DBA from zhangsan;
+或者
+revoke all on emp from zhangsan;
+
+-- 取消所有权限
+revoke all PRIVILEGES FROM kagy;
+```
+
+
+
+#### 修改密码
+
+```sql
+alter user 用户名 identified by "密码";
+alter user zhangsan identified by "123456";
+```
+
+
+
 ## 事务
 
 ### 含义
@@ -680,14 +923,6 @@ ALTER SESSION SET TIME_ZONE = '+08:00'; -- 设置为中国标准时间(北京时
 2. 一致性：一个事务的执行不能破坏数据库数据的完整性和一致性
 3. 隔离性：一个事务不受其它事务的干扰，多个事务是互相隔离的
 4. 持久性：一个事务一旦提交了，则永久的持久化到本地
-
-
-
-
-
-
-
-
 
 
 
