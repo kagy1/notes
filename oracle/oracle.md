@@ -110,35 +110,110 @@ create table emp_copy as
 
 
 
+### 删除表
+
+```sql
+-- 方式一：
+drop table 表名;
+-- 方式二：
+truncate table 表名;
+```
+
+- DROP TABLE 会完全删除表的结构和数据，并且会从数据字典中移除表的定义。执行后，该表不再存在。
+- TRUNCATE TABLE 只删除表中的所有数据，但保留表的结构。执行后，该表仍然存在，只是变成了一个空表。
+
 
 
 ### 修改表
 
-1. 主键约束
+添加列
+
+add
 
 ```sql
-添加
-alter table product add constraint PK_PRODUCT_PID primary key(pid);
-删除
-alter table product drop constraint PK_PRODUCT_PID;
-或者
-alter table product drop primary key;
+-- 格式：
+alter table 表名 add 列名 列的类型;
+-- 演示：
+alter table users add phone varchar2(11);
 ```
 
-2. 非空约束
+修改列名
+
+rename
 
 ```sql
-添加
-alter table product modify pname not null;
-删除
-alter table product modify pname null;
+-- 格式：
+alter table 表名 rename column 旧列名 to 新列名;
+-- 演示：
+alter table users rename column phone to mobile;
+```
+
+修改类型
+
+modify
+
+```sql
+-- 格式：
+alter table 表名 modify 列名 列的类型;
+-- 演示：
+alter table users modify mobile char(11);
+```
+
+删除列
+
+drop
+
+```sql
+-- 格式：
+alter table 表名 drop column 列名;
+-- 演示：
+alter table users drop column mobile;
 ```
 
 
 
-### 选择语句
 
-#### in
+
+## DML
+
+### 插入
+
+```sql
+-- 格式：
+insert into 表名(列名1,列名2,...) values(值1,值2,...);
+-- 演示：
+INSERT INTO course(cid, cname, credit) VALUES(1, '数学', 3);
+INSERT INTO course(cid, cname, credit) VALUES(2, '英语', 2);
+INSERT INTO course(cid, cname, credit) VALUES(3, '计算机基础', 4);
+```
+
+### 修改
+
+```sql
+-- 格式：
+update 表名 set 列名1=值1,列名2=值2,... where 查询条件;
+-- 演示：
+update category set cname='汽车' where cid = 1;
+```
+
+### 删除
+
+```sql
+-- 格式：
+delete from 表名 where 查询条件;
+-- 演示：
+delete from category where cid = 1;
+```
+
+
+
+
+
+
+
+## 选择语句
+
+### in
 
 ```sql
 select * from Customers where state in('VA','GA','Fl')
@@ -148,7 +223,9 @@ select * from Customers where state = 'VA' or 'GA' or 'FL'
 
 
 
-### trunc
+
+
+## trunc
 
 对值进行截断，通常用于截断数字和日期
 
@@ -911,18 +988,571 @@ alter user zhangsan identified by "123456";
 
 
 
-## 事务
+## 事务 TCL
 
 ### 含义
 
 一条或多条sql语句组成一个执行单位，一组sql语句要么都执行要么都不执行
 
-### 特点
+### 特点 ACID
 
-1. 原子性：一个事务是不可再分割的整体，要么都执行要么都不执行
-2. 一致性：一个事务的执行不能破坏数据库数据的完整性和一致性
-3. 隔离性：一个事务不受其它事务的干扰，多个事务是互相隔离的
-4. 持久性：一个事务一旦提交了，则永久的持久化到本地
+1. 原子性(**Atomicity**)：一个事务是不可再分割的整体，要么都执行要么都不执行
+2. 一致性(**Consistency**)：一个事务的执行不能破坏数据库数据的完整性和一致性
+3. 隔离性(**Isolation**)：一个事务不受其它事务的干扰，多个事务是互相隔离的
+4. 持久性(**Durability**)：一个事务一旦提交了，则永久的持久化到本地
+
+
+
+### 使用
+
+Oracle 11g中事务是隐式自动开始的，它不需要用户显示的执行开始事务语句
+
+```sql
+-- 【设置回滚点】
+savepoint 回滚点名;
+
+-- 结束事务
+-- 提交：
+commit;
+-- 回滚：
+rollback;
+-- 回滚到指定的地方： 
+rollback to 回滚点名;
+```
+
+
+
+```sql
+INSERT INTO employees(employee_id, last_name, hire_date, salary)
+VALUES(1, 'Smith', SYSDATE, 5000);
+
+SAVEPOINT save1;
+
+UPDATE employees SET salary = salary * 1.1 WHERE employee_id = 1;
+
+ROLLBACK TO SAVEPOINT save1;
+```
+
+在这个例子中,我们在第一条INSERT语句后设置了保存点`save1`,然后执行了一条UPDATE语句。如果我们想撤销UPDATE操作,但保留INSERT操作,可以使用`ROLLBACK TO SAVEPOINT save1`命令,这将回滚到`save1`点,撤销UPDATE操作,但保留INSERT操作。
+
+
+
+## PLSQL
+
+在任何一个ORACLE 的PL/SQL块中至少需要一个BEGIN..END来表示这是一个完整的块。这些PL/SQL块包括DECLARE开头的自定义虚拟块,存储过程,函数,包等
+
+### 格式
+
+```sql
+declare
+  --声明变量
+          
+begin
+  --业务逻辑
+
+end;
+```
+
+
+
+### 变量
+
+```sql
+declare
+  --声明变量
+  -- 格式一：变量名 变量类型;
+  -- 格式二：变量名 变量类型 := 初始值;
+  -- 格式三：变量名 变量类型 := &文本框名;
+  -- 格式四：变量名 表名.字段名%type;
+  -- 格式五：变量名 表名%rowtype;
+  vnum number;
+  vage number := 28;
+  vabc number := &abc;--输入一个数值，从一个文本框输入
+  vsal emp.sal%type;  --引用型的变量，代表emp.sal的类型
+  vrow emp%rowtype;   --记录型的变量，代表emp一行的类型          
+begin
+  --业务逻辑
+  dbms_output.put_line(vnum);                       --输出一个未赋值的变量
+  dbms_output.put_line(vage);                       --输出一个已赋值的变量
+  dbms_output.put_line(vabc);                       --输出一个文本框输入的变量
+  select sal into vsal from emp where empno = 7654; --将查询到的sal内容存入vsal并输出
+  dbms_output.put_line(vsal);
+  select * into vrow from emp where empno = 7654;   --将查询到的一行内容存入vrow并输出  
+  dbms_output.put_line(vrow.sal);
+  dbms_output.put_line(123);                        --输出一个整数
+  dbms_output.put_line(123.456);                    --输出一个小数  
+  dbms_output.put_line('Hello,World');              --输出一个字符串
+  dbms_output.put_line('Hello'||',World');          --输出一个拼接的字符串，||拼接符Oracle特有
+  dbms_output.put_line(concat('Hello',',World'));   --输出一个拼接的字符串，concat函数比较通用
+end;
+
+```
+
+
+
+
+
+### while循环
+
+```sql
+while 条件 loop
+        
+end loop;
+
+--输出1~10
+declare
+  i number := 1;
+begin
+  while i <= 10 loop
+    dbms_output.put_line(i);
+    i := i + 1;
+  end loop;
+end;
+```
+
+
+
+### for循环
+
+```sql
+for 变量  in [reverse] 起始值..结束值 loop
+        
+end loop;
+
+--输出1~10
+declare
+
+begin
+  for i in  1 .. 10 loop
+    dbms_output.put_line(i);
+  end loop;
+end;
+
+-- 输出1加到10
+declare
+   num1 number := 0;
+begin
+   for i in 1..10 loop
+        num1 := num1 + i;
+   end loop;
+    DBMS_OUTPUT.put_line(num1);
+end;
+```
+
+
+
+### loop循环
+
+```sql
+loop
+  
+  exit when 条件
+  
+end loop;
+
+--输出1~10
+declare
+  i number := 1;
+begin
+  loop
+    exit when i > 10;
+    dbms_output.put_line(i);
+    i := i + 1;
+  end loop;
+end;
+```
+
+
+
+### 意外
+
+```sql
+declare
+   --声明变量
+begin
+   --业务逻辑
+exception
+   --处理异常
+   when 异常1 then
+     ...
+   when 异常2 then
+     ...
+   when others then
+     ...处理其它异常
+end;
+```
+
+分类
+
+系统异常
+
+- zero_divide ：除数为零异常
+- value_error ：类型转换异常
+- no_data_found : 没有找到数据
+- too_many_rows : 查询出多行记录，但是赋值给了%rowtype一行数据变量
+
+自定义异常
+
+```sql
+declare
+   --声明变量
+   异常名称 exception;
+begin
+   --业务逻辑
+   if 触发条件 then
+      raise 异常名称; --抛出自定义的异常
+exception
+   --处理异常
+   when 异常名称 then
+     dbms_output.put_line('输出了自定义异常');  
+   when others then
+     dbms_output.put_line('输出了其它的异常');  
+end;
+```
+
+```sql
+  vi   number;
+  vrow emp%rowtype;
+begin
+  --以下四行对应四个异常，测试请依次放开
+  vi := 8/0;  
+  --vi := 'aaa';
+  --select * into vrow from emp where empno = 1234567;
+  --select * into vrow from emp;
+exception
+  when zero_divide then
+    dbms_output.put_line('发生除数为零异常');
+  when value_error then
+    dbms_output.put_line('发生类型转换异常');
+  when no_data_found then
+    dbms_output.put_line('没有找到数据异常');
+  when too_many_rows then
+    dbms_output.put_line('查询出多行记录，但是赋值给了%rowtype一行数据变量');
+  when others then
+    dbms_output.put_line('发生了其它的异常' || sqlerrm);
+end;
+```
+
+
+
+### if
+
+```sql
+IF condition THEN
+  statements;
+ELSIF condition THEN
+  statements;
+ELSE
+  statements;
+END IF;
+```
+
+```sql
+DECLARE
+  v_number NUMBER := 10;
+BEGIN
+  IF v_number > 0 THEN
+    DBMS_OUTPUT.PUT_LINE('Positive number');
+  ELSIF v_number < 0 THEN
+    DBMS_OUTPUT.PUT_LINE('Negative number');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('Zero');
+  END IF;
+END;
+```
+
+
+
+### select  into
+
+将查询结果直接赋值给变量
+
+```sql
+SELECT column1, column2, ... INTO variable1, variable2, ...
+FROM table_name
+WHERE condition;
+```
+
+
+
+
+
+## 存储过程
+
+```sql
+CREATE [OR REPLACE] PROCEDURE procedure_name
+	-- 输入参数（IN）、输出参数（OUT）还是既是输入又是输出参数（IN OUT）。如果省略,默认为 IN。
+	-- [DEFAULT default_value]：参数的默认值,如果调用存储过程时没有传入该参数的值,就使用默认值。
+    [(parameter_name [IN | OUT | IN OUT] data_type [DEFAULT default_value])]
+IS
+    -- 声明部分
+    -- 在此声明局部变量、游标等
+BEGIN
+    -- 执行部分
+    -- 在此编写存储过程的主体逻辑
+    -- 可以包含 SQL 语句和 PL/SQL 控制结构
+    
+    -- 异常处理部分（可选）
+    EXCEPTION
+        WHEN exception_name THEN
+            -- 处理特定异常的代码
+        WHEN OTHERS THEN
+            -- 处理其他异常的代码
+END procedure_name;
+```
+
+
+
+### 示例
+
+```sql
+create or replace procedure p_ssjk_receive
+  (emrid          varchar2, --住院患者的唯一标识
+   orderno        varchar2, --商品订单号
+   type           varchar2, --销售状态 标识（1发药未结算，2 已退药,3已结算)
+   resultCode out varchar2,
+   resultMessage out varchar2) 
+is
+begin
+  declare  l_emrid          varchar2(10);
+           l_orderno        varchar2(50);
+           l_type           varchar2(1);
+           l_count          int;
+begin
+  resultCode:='0';
+  resultMessage:='';
+  l_emrid:=emrid;
+  l_orderno:=orderno;
+  l_type:=type;
+
+  if nvl(trim(l_emrid),'0')='0' then
+    begin
+    resultCode:='-99';
+    resultMessage:='入参emrid(住院患者的唯一标识)不能为空!';
+    return;
+    end; end if;
+
+  if nvl(trim(l_orderno),'0')='0' then
+    begin
+    resultCode:='-99';
+    resultMessage:='入参orderno(商品订单号)不能为空!';
+    return;
+    end; end if;
+
+  if nvl(trim(l_type),'0')='0' then
+    begin
+    resultCode:='-99';
+    resultMessage:='入参type(销售状态标识)不能为空!';
+    return;
+    end; end if;
+
+  if nvl(trim(l_type),'0')='1' then      --新增膳食订单信息
+    begin
+    -- 将查询结果（记录数）赋值给变量 l_count
+    select count(*) into l_count from his.meals_orders where orderno=l_orderno;
+    if l_count>0 then
+      begin
+      resultCode:='-1';
+      resultMessage:='新增订单失败！商品订单号 '||l_orderno||' 已经存在!';
+      return;
+      end; end if;
+
+    insert into his.meals_orders (emrid,orderno,type) values (l_emrid,l_orderno,l_type);
+    commit;
+    resultCode:='1';
+    resultMessage:='新增订单成功！';
+    return;
+    end; end if;
+
+  if nvl(trim(l_type),'0')='2' then      --退膳食订单  修改销售状态 标识（1发药未结算，2 已退药,3已结算)
+    begin
+    select count(*) into l_count from his.meals_orders where orderno=l_orderno;
+    if l_count=0 then
+      begin
+      resultCode:='-2';
+      resultMessage:='退订失败！商品订单号 '||l_orderno||' 不存在!';
+      return;
+      end; end if;
+
+    select count(*) into l_count from his.meals_orders where type='2' and orderno=l_orderno;
+    if l_count>0 then
+      begin
+      resultCode:='-2';
+      resultMessage:='退订失败！商品订单号 '||l_orderno||' 已退订!';
+      return;
+      end; end if;
+
+    select count(*) into l_count from his.meals_orders where type='3' and orderno=l_orderno;
+    if l_count>0 then
+      begin
+      resultCode:='-2';
+      resultMessage:='退订失败！商品订单号 '||l_orderno||' 已结算!';
+      return;
+      end; end if;
+
+    update his.meals_orders set type='2' where emrid=l_emrid and orderno=l_orderno;
+    commit;
+    resultCode:='2';
+    resultMessage:='商品退订成功！';
+    return;
+    end; end if;
+
+  if nvl(trim(l_type),'0')='3' then      --结算膳食订单  修改销售状态 标识（1发药未结算，2 已退药,3已结算)
+    begin
+    select count(*) into l_count from his.meals_orders where orderno=l_orderno;
+    if l_count=0 then
+      begin
+      resultCode:='-3';
+      resultMessage:='结算失败！商品订单号 '||l_orderno||' 不存在!';
+      return;
+      end; end if;
+
+    select count(*) into l_count from his.meals_orders where type='2' and orderno=l_orderno;
+    if l_count>0 then
+      begin
+      resultCode:='-3';
+      resultMessage:='结算失败！商品订单号 '||l_orderno||' 已结算!';
+      return;
+      end; end if;
+
+    select count(*) into l_count from his.meals_orders where type='3' and orderno=l_orderno;
+    if l_count>0 then
+      begin
+      resultCode:='-3';
+      resultMessage:='结算失败！商品订单号 '||l_orderno||' 已结算!';
+      return;
+      end; end if;
+
+    update his.meals_orders set type='3' where emrid=l_emrid and orderno=l_orderno;
+    commit;
+    resultCode:='3';
+    resultMessage:='商品结算成功！';
+    return;
+    end; end if;
+
+ commit;
+end;
+end p_ssjk_receive;
+```
+
+### 调用
+
+```sql
+declare
+  v_emrid          varchar2(10) := '1000000001';  -- 住院患者的唯一标识
+  v_orderno        varchar2(50) := 'ORDER20230601001';  -- 商品订单号
+  v_type           varchar2(1) := '1';  -- 销售状态标识（1发药未结算，2 已退药,3已结算)
+  v_resultCode     varchar2(10);
+  v_resultMessage  varchar2(200);
+begin
+  -- 调用存储过程
+  p_ssjk_receive(emrid => v_emrid,
+                 orderno => v_orderno,
+                 type => v_type,
+                 resultCode => v_resultCode,
+                 resultMessage => v_resultMessage);
+                 
+  -- 或者
+  p_ssjk_receive(v_emrid, v_orderno, v_type, v_resultCode, v_resultMessage);
+                 
+  -- 输出返回结果
+  dbms_output.put_line('resultCode: ' || v_resultCode);
+  dbms_output.put_line('resultMessage: ' || v_resultMessage);
+exception
+  when others then
+    dbms_output.put_line('Error occurred: ' || SQLCODE || ' - ' || SQLERRM);
+end;
+```
+
+
+
+### 检查
+
+如果状态为 `INVALID`，需要进一步检查存储过程的创建是否存在问题。
+
+```sql
+SELECT OBJECT_NAME, STATUS
+FROM USER_OBJECTS
+WHERE OBJECT_TYPE = 'PROCEDURE'
+  AND OBJECT_NAME = 'CALCULATE_TEST';
+```
+
+
+
+
+
+## 视图
+
+创建视图
+
+```sql
+create view 视图名称
+as 查询语句
+[with read only];
+
+
+create view view_emp as
+select ename,job,mgr from emp;
+```
+
+修改视图
+
+```sql
+create or replace view 视图名称
+as 查询语句
+[with read only];
+
+create or replace view view_emp as
+select ename,job,mgr,deptno from emp;
+```
+
+删除视图
+
+```sql
+drop view 视图名称;
+
+drop view view_emp;
+```
+
+
+
+
+
+
+
+## 索引
+
+### 创建索引
+
+```sql
+create [UNIQUE]|[BITMAP] index 索引名 on 表名(列名1,列名2,...);
+
+create index INX_CATEGORY_CNAME on category(cname);
+
+CREATE INDEX IDX_EMPLOYEES_LAST_NAME ON EMPLOYEES (LAST_NAME)  -- 在 EMPLOYEES 表的 LAST_NAME 列上创建索引
+  TABLESPACE USERS  -- 指定索引将被创建在 USERS 表空间中
+  PCTFREE 10  -- 指定了索引块中保留 10% 的空闲空间，用于未来的索引增长。
+  INITRANS 2
+  MAXTRANS 255
+  STORAGE (
+    INITIAL 64K  -- 指定了索引的初始大小为 64 KB
+    NEXT 1M  -- 指定了索引的下一个扩展大小为 1 MB
+    MINEXTENTS 1  -- 指定了索引的最小扩展数为 1
+    MAXEXTENTS UNLIMITED  -- 指定了索引的最大扩展数为无限制
+    PCTINCREASE 0 
+    BUFFER_POOL DEFAULT
+  );
+```
+
+
+
+### 删除索引
+
+```sql
+drop index INX_CATEGORY_CNAME;
+```
+
+
 
 
 
