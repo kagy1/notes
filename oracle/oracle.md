@@ -1037,6 +1037,14 @@ ROLLBACK TO SAVEPOINT save1;
 
 
 
+
+
+
+
+
+
+
+
 ## PLSQL
 
 在任何一个ORACLE 的PL/SQL块中至少需要一个BEGIN..END来表示这是一个完整的块。这些PL/SQL块包括DECLARE开头的自定义虚拟块,存储过程,函数,包等
@@ -1512,6 +1520,106 @@ select ename,job,mgr,deptno from emp;
 drop view 视图名称;
 
 drop view view_emp;
+```
+
+
+
+## 同义词
+
+### 创建同义词
+
+```sql
+create [public] synonym 同义词名称 for 对象的名称;
+
+--创建
+create synonym syno_emp for emp;
+--调用
+select * from syno_emp;
+```
+
+### 修改同义词
+
+```sql
+create or replace [public] synonym 同义词名称 for 对象的名称;
+
+--创建
+create or replace synonym syno_emp_update for emp;
+--调用
+select * from syno_emp_update;
+```
+
+### 删除同义词
+
+```sql
+drop [public] synonym 同义词名称;
+
+drop synonym syno_emp_update;
+```
+
+
+
+## 游标
+
+### 语法
+
+```sql
+--第一步：定义游标
+    --第一种：普通游标
+    cursor 游标名[(参数 参数类型)] is 查询语句;
+    --第二种：系统引用游标
+    游标名 sys_refcursor;
+
+--第二步：打开游标
+    --第一种：普通游标
+    open 游标名[(参数 参数类型)];
+    --第二种：系统引用游标
+    open 游标名 for 查询语句;
+
+--第三步：获取一行
+	fetch 游标名 into 变量;
+
+--第四步：关闭游标
+	close 游标名;
+```
+
+### 示例
+
+```sql
+DECLARE
+  CURSOR c_order_cost IS
+    SELECT SFXM_MC, DYZYYZJL_ID, ZYLSH
+    FROM his.PAT_INPAT_ORDER_COST
+    WHERE PAT_ID ='77004495'
+      AND trunc(SQ_RQ) = to_date('2024-10-06','yyyy-mm-dd');
+
+  v_sfxm_mc VARCHAR2(200);
+  v_dyzyyzjl_id VARCHAR2(50);
+  v_zylsh VARCHAR2(50);
+BEGIN
+  OPEN c_order_cost;  -- 打开游标
+
+  LOOP
+    FETCH c_order_cost INTO v_sfxm_mc, v_dyzyyzjl_id, v_zylsh;
+
+    EXIT WHEN c_order_cost%NOTFOUND;
+
+    DBMS_OUTPUT.PUT_LINE('收费项目:'||v_sfxm_mc||', 医嘱ID:'||v_dyzyyzjl_id||', 住院流水号:'||v_zylsh);
+  END LOOP;
+
+  CLOSE c_order_cost;
+END;
+```
+
+### for循环使用游标
+
+```sql
+declare
+    cursor v1 is select * from his.PAT_INPAT_ORDER_COST where PAT_ID ='77004495' and trunc(SQ_RQ)= to_date('2024-10-06','yyyy-mm-dd');
+begin
+    for v in v1 loop
+        dbms_output.put_line(v.SFXM_MC);
+    end loop;
+end;
 ```
 
 
