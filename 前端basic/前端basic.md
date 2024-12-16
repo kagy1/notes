@@ -3180,6 +3180,41 @@ var timeStamp1 = Date.parse(timeString)
 
 
 
+## Console
+
+### console.dir()
+
+用于输出一个对象的详细信息到控制台
+
+```javascript
+const person = {
+  name: "John",
+  age: 30,
+  address: {
+    city: "New York",
+    country: "USA"
+  }
+};
+
+console.log(person);
+// 输出: [object Object]
+
+console.dir(person);
+// 输出:
+// {
+//   name: "John",
+//   age: 30,
+//   address: {
+//     city: "New York",
+//     country: "USA"
+//   }
+// }
+```
+
+
+
+
+
 ## Dom
 
 - 例子
@@ -4322,13 +4357,110 @@ console.log(test.prototype.constructor === test);  // true
 Object.prototype.constructor === Object  // true
 ```
 
+```javascript
+Array.prototype.abc = 123;
+console.log([].abc);  // 123
+console.log([1, 2, 3].abc);  // 123
+// 可以通过prototype加入新方法
+```
+
+
+
 ### 隐式原型
 
 所有对象都有一个属性: `__protp__`,称之为隐式原型
 
+默认情况下，隐式原型指向创建该对象的函数的原型
+
+当访问一个对象的成员时：
+
+1. 看该对象自身是否拥有该成员，如果有直接使用
+2. 看该对象的隐式原型是否拥有该成员，如果有直接使用
+3. 在原型链中依次查找
+
 ```javascript
 
 ```
+
+
+
+### 原型链
+
+所有函数（除箭头函数）都有call，apply，bind。存在于Function的原型里
+
+```javascript
+var A = new Function();
+A.__proto__ === Function.prototype
+```
+
+Object的隐式原型是Fuction函数的原型，Object的prototype是Object原型。
+
+1. Function的`__proto__`指向自身的`prototype`
+
+2. Object的`prototype`的`__proto__`指向null
+
+
+
+所有的函数对象都是 `Function` 的实例，因此它们继承了 `Function.prototype` 的属性和方法。同时，由于 `Function.prototype` 继承自 `Object.prototype`，函数对象也间接继承了 `Object.prototype` 的属性和方法。
+
+![yx](.\img\yx.jpg)
+
+
+
+```javascript
+var obj = {}
+obj.toString()
+
+```
+
+在 JavaScript 中，所有的对象都继承自 `Object` 原型（prototype）。`Object` 原型定义了一些基本的方法，其中就包括 `toString()` 方法。因此，所有的对象都拥有 `toString()` 方法，包括通过对象字面量创建的空对象 `{}`。
+
+当你调用 `obj.toString()` 时，实际上是调用了 `Object.prototype.toString()` 方法。这个方法的默认实现返回一个字符串 `"[object Object]"`，表示该对象是一个普通的对象。
+
+你可以通过覆盖 `toString()` 方法来自定义对象的字符串表示形式。许多内置对象，如 `Array`、`Date`、`Number` 等，都重写了 `toString()` 方法，以提供更有意义的字符串表示。
+
+```javascript
+var arr = [1, 2, 3];
+console.log(arr.toString()); // 输出: "1,2,3"
+// arr调用Object的toString
+Object.prototype.toString.call(arr)  // "[Object Array]"
+
+
+var date = new Date();
+console.log(date.toString()); // 输出: 当前日期和时间的字符串表示
+
+var num = 42;
+console.log(num.toString()); // 输出: "42"
+```
+
+
+
+### 面试题
+
+```javascript
+function User() {}
+User.prototype.sayHello = function() {}
+
+const u1 = new User()
+const u2 = new User()
+
+console.log(u1.sayHello === u2.sayHello);  // true
+console.log(User.prototype.constructor);  // true
+console.log(User.prototype === Function.prototype);  // false
+console.log(User.__proto__ === Function.prototype);  // true
+console.log(User.__proto__ === Function.__proto__);  // true
+console.log(u1.__proto__ === u2.__proto__);  // true
+console.log(u1.__proto__ === User.__proto__);  // false
+console.log(Function.__proto__ === Object.__proto__);  // true
+console.log(Function.prototype.__proto__ === Object.prototype.__proto__);  // false
+console.log(Function.prototype.__proto__ === Object.prototype);  // true
+```
+
+
+
+
+
+
 
 
 
