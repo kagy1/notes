@@ -2861,9 +2861,23 @@ const flag1 = arr.every(item => item > 3)  //false
 
 #### arr.reduce(~)
 
-pre: 上一次调用的返回值
+```js
+arr.reduce((accumulator, currentValue, currentIndex, array) => {
+    // 操作逻辑
+}, init)
+```
 
-next: 数组中当前被处理的元素
+accumulator: 累加器，上一次调用的返回值
+
+currentValue: 当前值，数组中当前被处理的元素
+
+currentIndex:（当前索引，可选）,当前元素在数组中的索引。表示当前迭代到数组的第几个元素。
+
+array:（原数组，可选）,调用 `reduce` 的数组本身
+
+init:（初始值，可选），用于指定 `accumulator` 的初始值。如果不提供，`reduce` 会将数组的第一个元素作为 `accumulator` 的初始值，并从第二个元素开始迭代
+
+##### 累加
 
 ```js
 const arr = [1, 2, 3, 4, 5];
@@ -2884,7 +2898,31 @@ arr1.reduce((pre, next) => {
 }, new Map())
 
 // pre第一次调用时为初始值 new Map()
+```
 
+```js
+const data = ref([{ age: 18, name: '张三' }, { age: 20, name: '李四' }, { age: 25, name: '王五' }, { age: 30, name: '赵六' }])
+
+let num = data.value.reduce((sum, cur) => {
+    return sum + cur.age
+}, 0)
+
+//  简化
+let num = data.value.reduce((sum, cur) =>sum + cur.age, 0)
+```
+
+##### 统计元素出现次数
+
+```js
+const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];
+
+const count = fruits.reduce((acc, fruit) => {
+    acc[fruit] = (acc[fruit] || 0) + 1;
+    return acc;
+}, {});
+
+console.log(count); 
+// 输出: { apple: 3, banana: 2, orange: 1 }
 ```
 
 
@@ -4210,9 +4248,9 @@ console.lof(obj.getPrototypeOf(obj))
 
 
 
-### 函数的原型 prototype
+### 函数原型 prototype
 
-所有的函数都有一个prototype属性
+所有的函数都有一个prototype属性，箭头函数没有
 
 - 作用：用来构建对象时，给对象设置隐式原型
 
@@ -4242,9 +4280,55 @@ console.lof(obj.getPrototypeOf(obj))
 
      
 
+所有的对象都是通过new函数创建的
+
+```javascript
+var obj = { a: 1 }  // 是一个语法糖，本质上是
+var obj = new Object();
+obj.a = 1;
+```
+
+所有的函数也是对象，本质上是 new Function创建
+
+- 函数可以有属性 
+
+- 所有对象都是引用类型，保存的是地址
+
+```javascript
+function foo() {}
+// 等价于
+var foo = new Function(); // 创建一个空函数
+
+var sum = new Function('a', 'b', 'return a + b');
+console.log(sum(1, 2)); // 3
+```
+
+箭头函数没有this，没有prototype属性，箭头函数的创建不是通过 `Function` 构造函数
+
+Function函数不是通过new创建的是直接放在js内存里
 
 
 
+默认情况下，property是一个普通的Object对象。
+
+默认情况下，property中有一个属性，constructor，它也是一个对象，它指向构造函数本身。
+
+```javascript
+function test() {
+    return {}
+}
+
+console.log(test.prototype.constructor === test);  // true
+Object.prototype.constructor === Object  // true
+```
+
+### 隐式原型
+
+所有对象都有一个属性: `__protp__`,称之为隐式原型
+
+```javascript
+
+```
 
 
 
@@ -6242,6 +6326,48 @@ document.styleSheets[0].addRule('div','border:2px solid #f40 !important')
 
 
 
+# 属性描述符
+
+**Object.defineProperty** 
+
+是vue2的响应式原理
+
+**得到属性描述符**
+
+```js
+var obj ={
+    a: 1,
+    b: 2
+}
+
+var desc = Object.getOwnPropertyDescriptor(obj,'a')
+//  { value: 1, writable: true, enumerable: true, configurable: true }
+```
+
+
+
+**设置属性描述符**
+
+```js
+Object.defineProperty(person, 'name', {
+  value: 'John Doe',   // 属性的值
+  writable: false,	// 是否可写
+  enumerable: true,	// 是否可枚举
+  configurable: false	// 是否可修改
+});
+
+// 定义一个具有getter和setter的属性
+let internalValue = '';
+Object.defineProperty(obj, 'accessor', {
+  get: function() {
+    return internalValue;
+  },
+  set: function(newValue) {
+    internalValue = newValue;
+  }
+});
+```
+
 
 
 # 网络请求
@@ -6489,9 +6615,9 @@ myInfo["name"]= "zhang"  // 元素隐式具有 "any" 类型，因为类型为 ""
 console.log(muInfo.age)  // 类型“object”上不存在属性“age”。
 ```
 
+### 类型
 
-
-### Symbol类型(js)
+#### Symbol类型(js)
 
 可以通过symbol类型定义相同的名称，因为symbol函数返回的是不同的值
 
@@ -6513,7 +6639,7 @@ const person = {
 
 
 
-### null & undefined
+#### null & undefined
 
 在typescript里，它们各自的类型也是undefined 和 null
 
@@ -6540,7 +6666,7 @@ console.log( typeof undefined === 'undefined')  // true
 
 
 
-### unKnown类型
+#### unKnown类型
 
 用于描述类型不确定的变量
 
@@ -6563,7 +6689,7 @@ if(typeof foo === "string"){ // 类型缩小
 
 
 
-### void类型
+#### void类型
 
 如果一个函数返回值是void类型，也可以返回undefined
 
@@ -6571,7 +6697,7 @@ if(typeof foo === "string"){ // 类型缩小
 
 
 
-### never类型
+#### never类型
 
 实际开发时很少会用到，一般是推导出为never
 
@@ -6614,7 +6740,7 @@ function handleMessage(message: string | number){
 
 
 
-### tuple 元组类型
+#### tuple 元组类型
 
 ```typescript
 const tInfo: [string,number,number] = ["why",18,1.88];
@@ -6636,9 +6762,9 @@ cosnt info2 = {
 
 
 
-### enmu 枚举类型
+#### enmu 枚举类型
 
-#### 数字类型枚举
+##### 数字类型枚举
 
 如果我们枚举里面的内容不指定默认的值那么将会默认赋值 从0开始
 
@@ -6690,7 +6816,7 @@ setCounter(20); // 更新状态并输出: State updated to: 20
 
 
 
-#### 字符串枚举
+##### 字符串枚举
 
 字符串的枚举是没有自增长的功能的
 
@@ -6705,7 +6831,7 @@ enum Direction {
 
 
 
-#### 使用枚举
+##### 使用枚举
 
 ```typescript
 let playerDirection: Direction = Direction.Up;
@@ -6716,7 +6842,7 @@ console.log(playerDirection); // 输出：1
 
 
 
-### 函数类型
+#### 函数类型
 
 ```typescript
 const foo: ()=>void = () => {
@@ -6756,7 +6882,7 @@ type calcfunc =(num1: number, num2: number) => void
 
 
 
-### 联合类型 |
+#### 联合类型 |
 
 从现有类型中构建新类型
 
@@ -6768,7 +6894,7 @@ function getLength(args: string | any[]){
 
 
 
-### 交叉类型 &
+#### 交叉类型 &
 
 表示一个值必须同时具备所有类型的特性
 
@@ -6796,6 +6922,72 @@ const employee: EmployeePerson = {
 ```typescript
 type MyType = number & string // 不存在，是never类型
 ```
+
+
+
+#### 实用类型 Utility Types
+
+1. Record<K, T>
+
+   - 定义一个对象类型,其中键的类型为K,值的类型为T。
+
+   - 示例:Record<string, number>表示一个对象,其中键为字符串类型,值为数字类型
+
+     ```typescript
+     type StringToNumber = Record<string, number>;
+     
+     const ages: StringToNumber = {
+         'Alice': 25,
+         'Bob': 30,
+         'Charlie': 35
+     };
+     ```
+
+2. Pick<T, K>
+
+   - 从类型T中选择一组属性K,构造一个新的类型。
+
+   - 示例:Pick<{ a: number, b: string, c: boolean }, 'a' | 'b'>表示从原类型中选择属性a和b,构造一个新的类型{ a: number, b: string }。
+
+     ```typescript
+     interface Person {
+         name: string;
+         age: number;
+         email: string;
+     }
+     
+     type NameAndAge = Pick<Person, 'name' | 'age'>;
+     
+     const person: NameAndAge = {
+         name: 'Alice',
+         age: 25
+     };
+     ```
+
+3. Exclude<T, U>
+
+   - 从类型T中排除可分配给类型U的属性,构造一个新的类型。
+   - 示例:Exclude<'a' | 'b' | 'c', 'a'>表示从联合类型'a' | 'b' | 'c'中排除'a',得到新的类型'b' | 'c'。
+
+4. Extract<T, U>
+
+   - 从类型T中提取可分配给类型U的属性,构造一个新的类型。
+   - 示例:Extract<'a' | 'b' | 'c', 'a' | 'b'>表示从联合类型'a' | 'b' | 'c'中提取可分配给'a' | 'b'的属性,得到新的类型'a' | 'b'
+
+5. Partial<T>
+   - 将类型T中的所有属性转换为可选属性,构造一个新的类型。
+   - 示例:Partial<{ a: number, b: string }>表示将原类型中的属性a和b都转换为可选属性,得到新的类型{ a?: number, b?: string }。
+6. Required<T>
+   - 将类型T中的所有属性转换为必选属性,构造一个新的类型。
+   - 示例:Required<{ a?: number, b?: string }>表示将原类型中的可选属性a和b都转换为必选属性,得到新的类型{ a: number, b: string }。
+7. Readonly<T>
+   - 将类型T中的所有属性转换为只读属性,构造一个新的类型。
+   - 示例:Readonly<{ a: number, b: string }>表示将原类型中的属性a和b都转换为只读属性,得到新的类型{ readonly a: number, readonly b: string }。
+8. Omit<T, K>
+   - 从类型T中排除一组属性K,构造一个新的类型。
+   - 示例:Omit<{ a: number, b: string, c: boolean }, 'a' | 'b'>表示从原类型中排除属性a和b,得到新的类型{ c: boolean }。
+
+
 
 
 
