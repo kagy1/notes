@@ -224,6 +224,10 @@ v-model绑定：
 
  height: 100vh; /* 设置容器高度为视口高度 */
 
+### width: 100%
+
+这里相对的是包含块的宽度
+
 ### content
 
 在 CSS 中，`content` 属性只能用于伪元素（如 `::before` 和 `::after`），而不能直接用于普通元素
@@ -1462,6 +1466,10 @@ top: 50%, left: 50%
 
 </html>
 ```
+
+
+
+
 
 
 
@@ -2853,9 +2861,23 @@ const flag1 = arr.every(item => item > 3)  //false
 
 #### arr.reduce(~)
 
-pre: 上一次调用的返回值
+```js
+arr.reduce((accumulator, currentValue, currentIndex, array) => {
+    // 操作逻辑
+}, init)
+```
 
-next: 数组中当前被处理的元素
+accumulator: 累加器，上一次调用的返回值
+
+currentValue: 当前值，数组中当前被处理的元素
+
+currentIndex:（当前索引，可选）,当前元素在数组中的索引。表示当前迭代到数组的第几个元素。
+
+array:（原数组，可选）,调用 `reduce` 的数组本身
+
+init:（初始值，可选），用于指定 `accumulator` 的初始值。如果不提供，`reduce` 会将数组的第一个元素作为 `accumulator` 的初始值，并从第二个元素开始迭代
+
+##### 累加
 
 ```js
 const arr = [1, 2, 3, 4, 5];
@@ -2876,7 +2898,31 @@ arr1.reduce((pre, next) => {
 }, new Map())
 
 // pre第一次调用时为初始值 new Map()
+```
 
+```js
+const data = ref([{ age: 18, name: '张三' }, { age: 20, name: '李四' }, { age: 25, name: '王五' }, { age: 30, name: '赵六' }])
+
+let num = data.value.reduce((sum, cur) => {
+    return sum + cur.age
+}, 0)
+
+//  简化
+let num = data.value.reduce((sum, cur) =>sum + cur.age, 0)
+```
+
+##### 统计元素出现次数
+
+```js
+const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];
+
+const count = fruits.reduce((acc, fruit) => {
+    acc[fruit] = (acc[fruit] || 0) + 1;
+    return acc;
+}, {});
+
+console.log(count); 
+// 输出: { apple: 3, banana: 2, orange: 1 }
 ```
 
 
@@ -3132,7 +3178,42 @@ var timeStamp = date.getTime()
 var timeStamp1 = Date.parse(timeString)
 ```
 
-## 
+
+
+## Console
+
+### console.dir()
+
+用于输出一个对象的详细信息到控制台
+
+```javascript
+const person = {
+  name: "John",
+  age: 30,
+  address: {
+    city: "New York",
+    country: "USA"
+  }
+};
+
+console.log(person);
+// 输出: [object Object]
+
+console.dir(person);
+// 输出:
+// {
+//   name: "John",
+//   age: 30,
+//   address: {
+//     city: "New York",
+//     country: "USA"
+//   }
+// }
+```
+
+
+
+
 
 ## Dom
 
@@ -4202,9 +4283,9 @@ console.lof(obj.getPrototypeOf(obj))
 
 
 
-### 函数的原型 prototype
+### 函数原型 prototype
 
-所有的函数都有一个prototype属性
+所有的函数都有一个prototype属性，箭头函数没有
 
 - 作用：用来构建对象时，给对象设置隐式原型
 
@@ -4233,6 +4314,149 @@ console.lof(obj.getPrototypeOf(obj))
      ```
 
      
+
+所有的对象都是通过new函数创建的
+
+```javascript
+var obj = { a: 1 }  // 是一个语法糖，本质上是
+var obj = new Object();
+obj.a = 1;
+```
+
+所有的函数也是对象，本质上是 new Function创建
+
+- 函数可以有属性 
+
+- 所有对象都是引用类型，保存的是地址
+
+```javascript
+function foo() {}
+// 等价于
+var foo = new Function(); // 创建一个空函数
+
+var sum = new Function('a', 'b', 'return a + b');
+console.log(sum(1, 2)); // 3
+```
+
+箭头函数没有this，没有prototype属性，箭头函数的创建不是通过 `Function` 构造函数
+
+Function函数不是通过new创建的是直接放在js内存里
+
+
+
+默认情况下，property是一个普通的Object对象。
+
+默认情况下，property中有一个属性，constructor，它也是一个对象，它指向构造函数本身。
+
+```javascript
+function test() {
+    return {}
+}
+
+console.log(test.prototype.constructor === test);  // true
+Object.prototype.constructor === Object  // true
+```
+
+```javascript
+Array.prototype.abc = 123;
+console.log([].abc);  // 123
+console.log([1, 2, 3].abc);  // 123
+// 可以通过prototype加入新方法
+```
+
+
+
+### 隐式原型
+
+所有对象都有一个属性: `__protp__`,称之为隐式原型
+
+默认情况下，隐式原型指向创建该对象的函数的原型
+
+当访问一个对象的成员时：
+
+1. 看该对象自身是否拥有该成员，如果有直接使用
+2. 看该对象的隐式原型是否拥有该成员，如果有直接使用
+3. 在原型链中依次查找
+
+```javascript
+
+```
+
+
+
+### 原型链
+
+所有函数（除箭头函数）都有call，apply，bind。存在于Function的原型里
+
+```javascript
+var A = new Function();
+A.__proto__ === Function.prototype
+```
+
+Object的隐式原型是Fuction函数的原型，Object的prototype是Object原型。
+
+1. Function的`__proto__`指向自身的`prototype`
+
+2. Object的`prototype`的`__proto__`指向null
+
+
+
+所有的函数对象都是 `Function` 的实例，因此它们继承了 `Function.prototype` 的属性和方法。同时，由于 `Function.prototype` 继承自 `Object.prototype`，函数对象也间接继承了 `Object.prototype` 的属性和方法。
+
+![yx](.\img\yx.jpg)
+
+
+
+```javascript
+var obj = {}
+obj.toString()
+
+```
+
+在 JavaScript 中，所有的对象都继承自 `Object` 原型（prototype）。`Object` 原型定义了一些基本的方法，其中就包括 `toString()` 方法。因此，所有的对象都拥有 `toString()` 方法，包括通过对象字面量创建的空对象 `{}`。
+
+当你调用 `obj.toString()` 时，实际上是调用了 `Object.prototype.toString()` 方法。这个方法的默认实现返回一个字符串 `"[object Object]"`，表示该对象是一个普通的对象。
+
+你可以通过覆盖 `toString()` 方法来自定义对象的字符串表示形式。许多内置对象，如 `Array`、`Date`、`Number` 等，都重写了 `toString()` 方法，以提供更有意义的字符串表示。
+
+```javascript
+var arr = [1, 2, 3];
+console.log(arr.toString()); // 输出: "1,2,3"
+// arr调用Object的toString
+Object.prototype.toString.call(arr)  // "[Object Array]"
+
+
+var date = new Date();
+console.log(date.toString()); // 输出: 当前日期和时间的字符串表示
+
+var num = 42;
+console.log(num.toString()); // 输出: "42"
+```
+
+
+
+### 面试题
+
+```javascript
+function User() {}
+User.prototype.sayHello = function() {}
+
+const u1 = new User()
+const u2 = new User()
+
+console.log(u1.sayHello === u2.sayHello);  // true
+console.log(User.prototype.constructor);  // true
+console.log(User.prototype === Function.prototype);  // false
+console.log(User.__proto__ === Function.prototype);  // true
+console.log(User.__proto__ === Function.__proto__);  // true
+console.log(u1.__proto__ === u2.__proto__);  // true
+console.log(u1.__proto__ === User.__proto__);  // false
+console.log(Function.__proto__ === Object.__proto__);  // true
+console.log(Function.prototype.__proto__ === Object.prototype.__proto__);  // false
+console.log(Function.prototype.__proto__ === Object.prototype);  // true
+```
+
+
 
 
 
@@ -6140,6 +6364,144 @@ var ctx = "\/jf_view\/"
 
 
 
+# 浏览器原理
+
+## 浏览器如何渲染页面
+
+当浏览器的网络线程收到HTML文档后，会产生一个渲染任务，并将其传递给渲染主线程的消息队列。
+
+在事件循环机制的作用下，渲染主线程取出消息队列中的渲染任务，开启渲染流程
+
+整个渲染流程分为多个阶段，分别是：HTML 解析、样式计算、布局、分层、绘制、分块、光栅化、画
+
+每个阶段都有明确的输入输出，上一阶段的输出会成为下一个阶段的输入。
+
+**渲染的第一步是解析HTML**
+
+解析过程中遇到 CSS 解析CSS，遇到 JS 执行JS。为了提高解析效率，`浏览器在开始解析前，会启动一个预解析的线程`，率先下载HTML中外部CSS文件和外部的JS文件。
+
+如果主线程解析到`link`位置，此时外部的CSS文件还没有下载解析好，主线程不会等待，继续解析后续的HTML。这是因为下载和解析CSS的工作室在预解析线程中进行的。这就是CSS不会阻塞HTML解析的根本原因。
+
+如果主线程解析到`script`位置，会停止解析HTML，转而等待JS文件下载好，并将全局代码解析执行完成后，才能继续解析HTML。这是因为 JS 代码的执行过程可能会修改当前的 dom 树，所以dom树的生成必须暂停。这就是JS会阻塞HTML解析的根本原因。
+
+第一步完成后，会得到 DOM 树和 CSSOM 树，浏览器的默认样式、内部样式、外部样式、行内样式均会包含在 CSSOM 树中。
+
+**渲染的第二步是样式计算**
+
+主线程会遍历得到的DOM树，依次为树中的每个节点计算出它最终的样式，称之为 Computed Style。
+
+在这一过程中，很多预设值会变成绝对值，比如red会变成 rgb(255,0,0)相对单位会变成绝对单位，比如em会变成px
+
+这一步完成后，会得到一棵带有样式的DOM树
+
+**渲染的第三步是布局**
+
+布局阶段会依次遍历DOM树的每一个节点，计算每个节点的几何信息。例如节点的宽高、相对包含块的位置。
+
+大部分时候，DOM树和布局树并非一一对应。
+
+比如`display:none`的节点没有几何信息，因此不会生成到布局树；又比如使用了伪元素选择器，虽然DOM树中不会存在这些伪元素节点，但它们拥有几何信息，所以会生成到布局树中。还有匿名行盒、匿名块盒等等都会导致DOM树和布局树无法一一对应。
+
+**渲染的第四步是分层**
+
+主线程会使用一套复杂的策略对整个布局树中进行分层。
+
+分层的好处在于，将来某一个层改变后，仅会对该层进行后续处理，从而提高效率。
+
+滚动条、堆叠上下文、transform、opacity 等样式都会或多或少的影响分层结果，也可以通过 `will-change`属性更大程度的影响分层结果。
+
+**渲染的第五步是绘制**
+
+ 主线程会为每个层单独产生绘制指令集，用于描述这一层的内容该如何画出来
+
+完成渲染后，渲染主线程将每个图层的绘制信息提交给合成线程，剩余工作将由合成线程完成。
+
+合成线程首先对每个图层进行分块，将其划分为更多的小区域。
+
+他会从线程池中拿取多个线程来完成分块工作。
+
+**分块完成后，进入光栅化阶段**
+
+合成线程会将块信息交给`GPU`,以极高的速度完成光栅化。
+
+GPU进程会开启多个线程来完成光栅化，并且优先处理靠近视口区域的块。
+
+光栅化的结果，就是一块一块的位图。
+
+**最后一步就是画了**
+
+合成线程拿到每个层、每个块的位图后，生成一个个指引（quad）信息。
+
+指引会标识出每个位图应该画到屏幕的哪个位置，以及会考虑到旋转、缩放等变形。
+
+变形发生在合成线程，与渲染主线程无关，这就是`transform`效率高的根本原因
+
+合成线程会把quad提交给GPU进程，由GPU进程产生系统调用，提交给GPU硬件，完成最终的屏幕成像。
+
+
+
+
+
+## 解析HTML
+
+**styleSheets**
+
+控制台输入
+
+```
+document.styleSheets[0].addRule('div','border:2px solid #f40 !important')
+```
+
+**HTML解析过程中遇到css**
+
+为了提高解析效率，浏览器会启动一个预解析器率先下载和解析CSS
+
+
+
+# 属性描述符
+
+**Object.defineProperty** 
+
+是vue2的响应式原理
+
+**得到属性描述符**
+
+```js
+var obj ={
+    a: 1,
+    b: 2
+}
+
+var desc = Object.getOwnPropertyDescriptor(obj,'a')
+//  { value: 1, writable: true, enumerable: true, configurable: true }
+```
+
+
+
+**设置属性描述符**
+
+```js
+Object.defineProperty(person, 'name', {
+  value: 'John Doe',   // 属性的值
+  writable: false,	// 是否可写
+  enumerable: true,	// 是否可枚举
+  configurable: false	// 是否可修改
+});
+
+// 定义一个具有getter和setter的属性
+let internalValue = '';
+Object.defineProperty(obj, 'accessor', {
+  get: function() {
+    return internalValue;
+  },
+  set: function(newValue) {
+    internalValue = newValue;
+  }
+});
+```
+
+
+
 # 网络请求
 
 - 早期的网页都是通过后端渲染来完成的：服务端渲染（SSR，server side render）
@@ -6149,6 +6511,16 @@ var ctx = "\/jf_view\/"
 
 
 - AJAX（Asynchronous JavaScript And Xml）：无页面刷新获取服务器数据
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6375,9 +6747,9 @@ myInfo["name"]= "zhang"  // 元素隐式具有 "any" 类型，因为类型为 ""
 console.log(muInfo.age)  // 类型“object”上不存在属性“age”。
 ```
 
+### 类型
 
-
-### Symbol类型(js)
+#### Symbol类型(js)
 
 可以通过symbol类型定义相同的名称，因为symbol函数返回的是不同的值
 
@@ -6399,7 +6771,7 @@ const person = {
 
 
 
-### null & undefined
+#### null & undefined
 
 在typescript里，它们各自的类型也是undefined 和 null
 
@@ -6426,7 +6798,7 @@ console.log( typeof undefined === 'undefined')  // true
 
 
 
-### unKnown类型
+#### unKnown类型
 
 用于描述类型不确定的变量
 
@@ -6449,7 +6821,7 @@ if(typeof foo === "string"){ // 类型缩小
 
 
 
-### void类型
+#### void类型
 
 如果一个函数返回值是void类型，也可以返回undefined
 
@@ -6457,7 +6829,7 @@ if(typeof foo === "string"){ // 类型缩小
 
 
 
-### never类型
+#### never类型
 
 实际开发时很少会用到，一般是推导出为never
 
@@ -6500,7 +6872,7 @@ function handleMessage(message: string | number){
 
 
 
-### tuple 元组类型
+#### tuple 元组类型
 
 ```typescript
 const tInfo: [string,number,number] = ["why",18,1.88];
@@ -6522,9 +6894,9 @@ cosnt info2 = {
 
 
 
-### enmu 枚举类型
+#### enmu 枚举类型
 
-#### 数字类型枚举
+##### 数字类型枚举
 
 如果我们枚举里面的内容不指定默认的值那么将会默认赋值 从0开始
 
@@ -6576,7 +6948,7 @@ setCounter(20); // 更新状态并输出: State updated to: 20
 
 
 
-#### 字符串枚举
+##### 字符串枚举
 
 字符串的枚举是没有自增长的功能的
 
@@ -6591,7 +6963,7 @@ enum Direction {
 
 
 
-#### 使用枚举
+##### 使用枚举
 
 ```typescript
 let playerDirection: Direction = Direction.Up;
@@ -6602,7 +6974,7 @@ console.log(playerDirection); // 输出：1
 
 
 
-### 函数类型
+#### 函数类型
 
 ```typescript
 const foo: ()=>void = () => {
@@ -6642,7 +7014,7 @@ type calcfunc =(num1: number, num2: number) => void
 
 
 
-### 联合类型 |
+#### 联合类型 |
 
 从现有类型中构建新类型
 
@@ -6654,7 +7026,7 @@ function getLength(args: string | any[]){
 
 
 
-### 交叉类型 &
+#### 交叉类型 &
 
 表示一个值必须同时具备所有类型的特性
 
@@ -6682,6 +7054,72 @@ const employee: EmployeePerson = {
 ```typescript
 type MyType = number & string // 不存在，是never类型
 ```
+
+
+
+#### 实用类型 Utility Types
+
+1. Record<K, T>
+
+   - 定义一个对象类型,其中键的类型为K,值的类型为T。
+
+   - 示例:Record<string, number>表示一个对象,其中键为字符串类型,值为数字类型
+
+     ```typescript
+     type StringToNumber = Record<string, number>;
+     
+     const ages: StringToNumber = {
+         'Alice': 25,
+         'Bob': 30,
+         'Charlie': 35
+     };
+     ```
+
+2. Pick<T, K>
+
+   - 从类型T中选择一组属性K,构造一个新的类型。
+
+   - 示例:Pick<{ a: number, b: string, c: boolean }, 'a' | 'b'>表示从原类型中选择属性a和b,构造一个新的类型{ a: number, b: string }。
+
+     ```typescript
+     interface Person {
+         name: string;
+         age: number;
+         email: string;
+     }
+     
+     type NameAndAge = Pick<Person, 'name' | 'age'>;
+     
+     const person: NameAndAge = {
+         name: 'Alice',
+         age: 25
+     };
+     ```
+
+3. Exclude<T, U>
+
+   - 从类型T中排除可分配给类型U的属性,构造一个新的类型。
+   - 示例:Exclude<'a' | 'b' | 'c', 'a'>表示从联合类型'a' | 'b' | 'c'中排除'a',得到新的类型'b' | 'c'。
+
+4. Extract<T, U>
+
+   - 从类型T中提取可分配给类型U的属性,构造一个新的类型。
+   - 示例:Extract<'a' | 'b' | 'c', 'a' | 'b'>表示从联合类型'a' | 'b' | 'c'中提取可分配给'a' | 'b'的属性,得到新的类型'a' | 'b'
+
+5. Partial<T>
+   - 将类型T中的所有属性转换为可选属性,构造一个新的类型。
+   - 示例:Partial<{ a: number, b: string }>表示将原类型中的属性a和b都转换为可选属性,得到新的类型{ a?: number, b?: string }。
+6. Required<T>
+   - 将类型T中的所有属性转换为必选属性,构造一个新的类型。
+   - 示例:Required<{ a?: number, b?: string }>表示将原类型中的可选属性a和b都转换为必选属性,得到新的类型{ a: number, b: string }。
+7. Readonly<T>
+   - 将类型T中的所有属性转换为只读属性,构造一个新的类型。
+   - 示例:Readonly<{ a: number, b: string }>表示将原类型中的属性a和b都转换为只读属性,得到新的类型{ readonly a: number, readonly b: string }。
+8. Omit<T, K>
+   - 从类型T中排除一组属性K,构造一个新的类型。
+   - 示例:Omit<{ a: number, b: string, c: boolean }, 'a' | 'b'>表示从原类型中排除属性a和b,得到新的类型{ c: boolean }。
+
+
 
 
 

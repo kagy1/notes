@@ -5,6 +5,7 @@
 ### $confirm  确认框
 
 - 示例1
+
 <img src=".\img\Snipaste_2024-07-04_08-46-14.jpg" align="left"/>
 
 ```tsx
@@ -13,8 +14,6 @@ await $confirm({
         type: "warning"
 });
 ```
-
-
 
 ```tsx
 export async function $confirm(params: ILdAlertParams) {
@@ -27,7 +26,8 @@ export async function $confirm(params: ILdAlertParams) {
 ```
 
 - 示例2
-  <img src=".\img\2.jpg" align="left"/>
+
+<img src=".\img\2.jpg" align="left"/>
 
 ````tsx
 $confirm({
