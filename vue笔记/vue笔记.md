@@ -5360,9 +5360,9 @@ CallStack是用来处理函数调用与返回的。每次调用一个函数，Ja
 
 
 
-## nextTick
+# nextTick
 
-- 作用
+## 作用
 
 nextTick是等待下一次更新刷新的工具方法
 
@@ -5372,13 +5372,154 @@ nextTick是等待下一次更新刷新的工具方法
 
 DOM更新通过微队列，在同步任务之后。
 
+## 示例
+
+示例1
+
+```tsx
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const num = ref(0);
+
+        const handleClick = () => {
+            num.value++;
+            nextTick(() => {
+                console.log(document.querySelector('.d1')?.innerHTML);
+            })
+        }
+
+        return () => (
+            <div>
+                <div class="d1">value:{num.value}</div>
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+})
+
+//  或者
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const num = ref(0);
+
+        const handleClick = async () => {
+            num.value++;
+            await nextTick();
+            console.log(document.querySelector('.d1')?.innerHTML);
+        }
+
+        return () => (
+            <div>
+                <div class="d1">value:{num.value}</div>
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+})
+```
+
+示例2
+
+```tsx
+// 当 isRender 从 false 变为 true 时，<div class="d2"> 确实被渲染了，但此时 d2Ref 还没有与实际的 DOM 元素建立关联，所以对 d2Ref 的样式修改并不会生效
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const isRender = ref(false);
+
+        const handleClick = () => {
+            isRender.value = !isRender.value
+            d2Ref.value!.style.width = '300px';
+            d2Ref.value!.style.backgroundColor = 'red';
+            d2Ref.value!.innerText = 'd2 changed';
+            d2Ref.value!.style.textAlign = 'center';
+        }
+
+        const d2Ref = ref<HTMLDivElement | null>(null);
+
+        return () => (
+            <div>
+                {isRender.value ? (
+                    <div class="d2" ref={d2Ref}>d2</div>
+                ) : null}
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+}) 
+
+// 修改为
+import { de } from 'element-plus/es/locales.mjs';
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const isRender = ref(false);
+
+        const handleClick = async() => {
+            isRender.value = !isRender.value;
+            await nextTick();
+            d2Ref.value!.style.width = '300px';
+            d2Ref.value!.style.backgroundColor = 'red';
+            d2Ref.value!.innerText = 'd2 changed';
+            d2Ref.value!.style.textAlign = 'center';
+        }
+
+        const d2Ref = ref<HTMLDivElement | null>(null);
+
+        return () => (
+            <div>
+                {isRender.value ? (
+                    <div class="d2" ref={d2Ref}>d2</div>
+                ) : null}
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+})
+```
 
 
-- 使用场景
+
+
+
+
+
+## 使用方式
+
+1. 传入回调函数作为参数
+
+   ```javascript
+   nextTick(() => {
+     // 在DOM更新完成后执行的操作
+   });
+   ```
+
+2. 不传入回调函数,直接返回一个Promise对象
+
+   ```javascript
+   nextTick().then(() => {
+     // 在DOM更新完成后执行的操作
+   });
+   
+   // 或者
+   await nexttick();
+   ```
+
+   
+
+## 使用场景
 
 1. 在数据变化后立即操作更新后的DOM
-
-
 
 ```vue
 <script setup>
