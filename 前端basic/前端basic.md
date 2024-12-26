@@ -474,6 +474,47 @@ transform-origin: left top; /* 设置原点为元素的左上角 */
 
 
 
+### transition
+
+`transition` 是用来设置元素状态之间的平滑过渡效果的。它通常是在某个状态（例如 `hover`、`focus`）发生变化时，平滑地过渡到另一个状态。
+
+#### 属性
+
+```css
+transition: [property] [duration] [timing-function] [delay];
+```
+
+- **`property`**：指定需要过渡的 CSS 属性（如 `width`、`background-color`、`transform` 等）。可以设置为 `all`，表示所有支持的属性。
+  - all：所有可动画属性
+  - none：无过渡效果
+  - CSS 属性名：如 width, height, color, background-color 等
+- **`duration`**：过渡持续时间（如 `1s`, `500ms`）。
+- **`timing-function`**：过渡效果（如 `ease`, `linear`, `ease-in-out`）。
+  - ease：默认值，慢速开始，然后加快，然后慢速结束
+  - linear：匀速
+  - ease-in：慢速开始
+  - ease-out：慢速结束
+  - ease-in-out：慢速开始和结束
+  - cubic-bezier(n,n,n,n)：在 cubic-bezier 函数中自定义速度曲线，n 取值范围为 0 到 1
+  - steps(n, start|end)：分步过渡效果，n 为正整数，指定过渡分几步完成，可选 start 或 end
+- **`delay`**：过渡开始前的延迟时间（如 `0s`, `200ms`）。
+
+
+
+
+
+### cursor
+
+```css
+.d1 {
+    cursor: pointer;  // 添加鼠标样式，表示可以点击
+}
+```
+
+
+
+
+
 ## 颜色渐变
 
 1. 线性渐变 linear-gradient
