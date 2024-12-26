@@ -411,6 +411,41 @@ public class Main {
 }
 ```
 
+提取出内容形成字符串
+
+通过Collectors.joining用分号分隔并在 前后插入
+
+```java
+package test1;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class test {
+    public static void main(String[] args) {
+        Map<Object, String> map1 = new HashMap<>();
+        map1.put("name", "John");
+        map1.put("age", "30");
+        map1.put("city", "New York");
+        Map<Object, String> map2 = new HashMap<>();
+        map2.put("name", "Jane");
+        map2.put("age", "25");
+        map2.put("city", "Los Angeles");
+        List<Map<Object, String>> list = new ArrayList<>();
+        list.add(map1);
+        list.add(map2);
+        String result = list.stream().map(s -> "姓名" + s.get("name") + "，年龄" + s.get("age") + "，城市" + s.get("city"))
+                .collect(Collectors.joining(";", "start ", " end"));
+        System.out.println(result);
+        // start 姓名John，年龄30，城市New York;姓名Jane，年龄25，城市Los Angeles end
+    }
+}
+
+```
+
 
 
 ### 中间方法
