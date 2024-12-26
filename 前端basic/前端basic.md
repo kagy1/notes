@@ -4445,7 +4445,7 @@ const u1 = new User()
 const u2 = new User()
 
 console.log(u1.sayHello === u2.sayHello);  // true
-console.log(User.prototype.constructor);  // true
+console.log(User.prototype.constructor);  // [Function: User]
 console.log(User.prototype === Function.prototype);  // false
 console.log(User.__proto__ === Function.prototype);  // true
 console.log(User.__proto__ === Function.__proto__);  // true
