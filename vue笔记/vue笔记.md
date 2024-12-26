@@ -4119,6 +4119,8 @@ handleData()
 
 ### promise
 
+#### 示例
+
 ```javascript
 function requestData(url) {
     return new Promise((resolve, reject) => {
@@ -4140,6 +4142,45 @@ function handleData() {
 
 handleData()
 ```
+
+```javascript
+function sendMessage() {
+    let count = Math.floor(Math.random() * 10);
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (count > 5) {
+                resolve(count);
+            } else {
+                reject(count);
+            }
+        })
+    })
+}
+
+sendMessage().then((res) => {
+    console.log('success:', res);
+}, (res) => console.log('failed:', res))
+
+// 等同于
+const sendMessage = new Promise((resolve, reject) => {
+    let count = Math.floor(Math.random() * 10);
+    setTimeout(() => {
+        if (count > 5) {
+            resolve(count);
+        } else {
+            reject(count);
+        }
+    });
+});
+
+sendMessage
+    .then(() => console.log('success:', count))
+    .catch(() => console.log('failed:', count));
+```
+
+
+
+
 
 
 
@@ -4220,6 +4261,8 @@ Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`
 
 `async` 用于声明一个异步函数。异步函数是一种特殊的函数，它总是返回一个 Promise。
 
+被async 声明的函数一定返回promise
+
 `await` 只能在异步函数内部使用。它会暂停函数的执行，直到后面的 Promise 完成（resolved 或 rejected）。
 
 `await` 会自动解包后面的 Promise 的值。如果 Promise 被 resolve，`await` 会返回 resolve 的值；如果 Promise 被 reject，`await` 会抛出 reject 的错误。
@@ -4244,6 +4287,18 @@ function f() {return Promise.resolve('TEST');}  // asyncF is equivalent to f!
 async function f() {return 'TEST';}
 ```
 
+```javascript
+async function m() {
+    return 123;
+}
+
+async function m() {
+    return new Promise((resolve) => {
+        resolve(123)
+    })
+}
+```
+
 - 简单示例
 
 ```js
@@ -4255,6 +4310,35 @@ p1.then((msg) => {
     alert(msg)
 })
 ```
+
+```javascript
+async function m() {
+    const data = null
+    data.toString()
+    return 123
+}
+
+// promise失败，报错，运行失败的回调
+m().then((data) => { console.log("suc", data) }, () => { console.log("falied") }) 
+```
+
+针对失败的任务进行处理可以使用`try-catch`语法
+
+```javascript
+async function method() {
+	try{
+        const n = await Promise.reject(123) // 这段代码会抛出异常
+        console.log("success")
+    }
+    catch(err) {
+        console.log("failed", err)
+    }
+}
+
+method();  // 输出： 失败 123
+```
+
+
 
 
 
@@ -4670,9 +4754,9 @@ CallStack是用来处理函数调用与返回的。每次调用一个函数，Ja
 
 
 
-## nextTick
+# nextTick
 
-- 作用
+## 作用
 
 nextTick是等待下一次更新刷新的工具方法
 
@@ -4682,13 +4766,154 @@ nextTick是等待下一次更新刷新的工具方法
 
 DOM更新通过微队列，在同步任务之后。
 
+## 示例
+
+示例1
+
+```tsx
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const num = ref(0);
+
+        const handleClick = () => {
+            num.value++;
+            nextTick(() => {
+                console.log(document.querySelector('.d1')?.innerHTML);
+            })
+        }
+
+        return () => (
+            <div>
+                <div class="d1">value:{num.value}</div>
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+})
+
+//  或者
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const num = ref(0);
+
+        const handleClick = async () => {
+            num.value++;
+            await nextTick();
+            console.log(document.querySelector('.d1')?.innerHTML);
+        }
+
+        return () => (
+            <div>
+                <div class="d1">value:{num.value}</div>
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+})
+```
+
+示例2
+
+```tsx
+// 当 isRender 从 false 变为 true 时，<div class="d2"> 确实被渲染了，但此时 d2Ref 还没有与实际的 DOM 元素建立关联，所以对 d2Ref 的样式修改并不会生效
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const isRender = ref(false);
+
+        const handleClick = () => {
+            isRender.value = !isRender.value
+            d2Ref.value!.style.width = '300px';
+            d2Ref.value!.style.backgroundColor = 'red';
+            d2Ref.value!.innerText = 'd2 changed';
+            d2Ref.value!.style.textAlign = 'center';
+        }
+
+        const d2Ref = ref<HTMLDivElement | null>(null);
+
+        return () => (
+            <div>
+                {isRender.value ? (
+                    <div class="d2" ref={d2Ref}>d2</div>
+                ) : null}
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+}) 
+
+// 修改为
+import { de } from 'element-plus/es/locales.mjs';
+import { defineComponent, nextTick, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const isRender = ref(false);
+
+        const handleClick = async() => {
+            isRender.value = !isRender.value;
+            await nextTick();
+            d2Ref.value!.style.width = '300px';
+            d2Ref.value!.style.backgroundColor = 'red';
+            d2Ref.value!.innerText = 'd2 changed';
+            d2Ref.value!.style.textAlign = 'center';
+        }
+
+        const d2Ref = ref<HTMLDivElement | null>(null);
+
+        return () => (
+            <div>
+                {isRender.value ? (
+                    <div class="d2" ref={d2Ref}>d2</div>
+                ) : null}
+                <button onClick={handleClick}>+</button>
+            </div>
+        )
+    }
+})
+```
 
 
-- 使用场景
+
+
+
+
+
+## 使用方式
+
+1. 传入回调函数作为参数
+
+   ```javascript
+   nextTick(() => {
+     // 在DOM更新完成后执行的操作
+   });
+   ```
+
+2. 不传入回调函数,直接返回一个Promise对象
+
+   ```javascript
+   nextTick().then(() => {
+     // 在DOM更新完成后执行的操作
+   });
+   
+   // 或者
+   await nexttick();
+   ```
+
+   
+
+## 使用场景
 
 1. 在数据变化后立即操作更新后的DOM
-
-
 
 ```vue
 <script setup>
