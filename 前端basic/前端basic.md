@@ -5247,13 +5247,104 @@ node.js遵循了CommonJS的模块化规范，其中：
 
 
 
-#### es6模块化规范
+#### esmodule 
+
+es6模块化规范
 
 ES6模块化规范是浏览器端和服务器端通用的模块化开发规范
 
 - 每个 js 文件都是一个独立的模块
 - 导入其他模块成员使用 import 关键字
 - 向外共享模块成员使用 export 关键字
+
+
+
+##### 导出
+
+**命名导出**
+
+```javascript
+// math.js
+export function add(a, b) {
+  return a + b;
+}
+
+export function subtract(a, b) {
+  return a - b;
+}
+```
+
+**默认导出**
+
+```javascript
+// config.js
+const config = {
+  apiKey: 'your-api-key',
+  authDomain: 'your-auth-domain',
+};
+
+export default config;
+```
+
+##### 导入
+
+**导入全部功能**：使用 `import * as` 关键字，可以导入模块中的所有功能并将它们放在一个对象中。
+
+```javascript
+// app.js
+import * as math from './math.js';
+
+console.log(math.add(2, 3)); // 使用命名导出的功能
+console.log(math.subtract(5, 2));
+```
+
+**命名导入** ：使用 `import { functionName }` 语法，可以导入模块中的特定功能。
+
+```javascript
+// app.js
+import { add, subtract } from './math.js';
+
+console.log(add(2, 3)); // 使用命名导出的功能
+console.log(subtract(5, 2));
+```
+
+也可以使用别名导入
+
+```javascript
+import { name as personName, sayHello as greet } from './module.js';
+```
+
+**默认导入**：使用 `import name from 'module'` 语法，可以导入默认导出的模块。你可以为导入的内容使用任何名称。
+
+```javascript
+// main.js
+import config from './config.js';
+
+console.log(config.apiKey); // 访问默认导出的内容
+```
+
+
+
+##### 严格模式：use strict
+
+```javascript
+//  加上
+"use strict"
+```
+
+
+
+#### html文件采用esmodule加载js
+
+使用`type="module"`
+
+```html
+<script scr="./foo.js" type="module"></script>
+```
+
+
+
+
 
 
 

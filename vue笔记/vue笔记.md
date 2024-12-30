@@ -4261,7 +4261,7 @@ Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`
 
 `async` 用于声明一个异步函数。异步函数是一种特殊的函数，它总是返回一个 Promise。
 
-被async 声明的函数一定返回promise
+<span style="color:red">被async 声明的函数一定返回promise</span>
 
 `await` 只能在异步函数内部使用。它会暂停函数的执行，直到后面的 Promise 完成（resolved 或 rejected）。
 
@@ -4336,6 +4336,20 @@ async function method() {
 }
 
 method();  // 输出： 失败 123
+```
+
+等同于
+
+```javascript
+async function method() {
+    const n = await Promise.reject(123); // 抛出异常
+    console.log("success");
+}
+
+method()
+    .catch(err => {
+        console.log("failed", err); // 捕获异常
+    });
 ```
 
 
