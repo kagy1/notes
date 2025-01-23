@@ -61,6 +61,49 @@ export default defineComponent({
 
 
 
+## Scoped
+
+### 作用
+
+当一个style标签拥有scoped属性时，它的CSS样式就只能作用于当前的组件，通过该属性，可以使得组件之间的样式不互相污染。
+
+### 原理
+
+1. 为组件实例生成一个唯一标识，给组件中的每个标签对应的dom元素添加一个标签属性，data-v-xxxx。这个属性是一个哈希值
+
+2. 给`<style scoped>`中的每个选择器的最后一个选择器添加一个属性选择器，`原选择器[data-v-xxxx]`
+
+   如：原选择器为.container #id div，则更改后选择器为.container #id div[data-v-xxxx]
+
+### 示例
+
+```vue
+<template>
+	<div class="example">hello world</div>
+</template>
+<style scoped>
+.example {
+	color: red;
+}
+</style>
+
+// 转译后
+<template>
+	<div class="example" data-v-49729759>hello world</div>
+</template>
+<style scoped>
+.example[data-v-49729759] {
+	color: red;
+}
+</style>
+```
+
+
+
+
+
+
+
 # class
 
 ## sfc
@@ -169,6 +212,7 @@ export default defineComponent({
         return () => (
             <div>
                 <div {...infos}>1111</div>
+                <div {...{ style: { width: '100px', height: '100px', backgroundColor: 'blue' } }}>
             </div>
         )
     }
@@ -196,6 +240,73 @@ export default defineComponent({
   readonly={options.disabled}
 />
 ```
+
+
+
+# 自定义属性
+
+## 作用
+
+在 Vue 中，`data-*` 自定义属性是一种在 HTML 元素上存储额外信息的方式，这些属性可以在 JavaScript 中方便地访问。
+
+## 示例
+
+```vue
+<div data-id="1" data-user="John" data-date="2023-05-20">
+  <!-- ... -->
+</div>
+```
+
+```javascript
+const div = document.querySelector('div');
+
+// 使用 dataset 属性访问
+console.log(div.dataset.id);    // 输出: "1"
+console.log(div.dataset.user);  // 输出: "John"
+console.log(div.dataset.date);  // 输出: "2023-05-20"
+
+// 使用 getAttribute 方法访问
+console.log(div.getAttribute('data-id'));    // 输出: "1"
+console.log(div.getAttribute('data-user'));  // 输出: "John"
+console.log(div.getAttribute('data-date'));  // 输出: "2023-05-20"
+```
+
+```css
+/* 选中具有 data-id 属性的元素 */
+[data-id] {
+  background-color: yellow;
+}
+
+/* 选中 data-user 属性值为 "John" 的元素 */
+[data-user="John"] {
+  color: blue;
+}
+
+/* 选中 data-date 属性值以 "2023" 开头的元素 */
+[data-date^="2023"] {
+  font-weight: bold;
+}
+```
+
+动态绑定属性
+
+```vue
+<template>
+  <div :data-id="id" :data-user="user" :data-date="date">
+    <!-- ... -->
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+
+const id = ref(1);
+const user = ref('John');
+const date = ref('2023-05-20');
+</script>
+```
+
+
 
 
 
@@ -333,7 +444,7 @@ export default defineComponent({
 
 
 
-### 事件修饰符(可用于 `v-on`)
+### 事件修饰符(可用于 `v-on`)（SFC）
 
 事件修饰符是Vue提供的特殊后缀,可以用点号 . 连接在事件名称之后。它们允许你以一种很方便的方式处理常见的事件行为,而无需在事件处理函数中手动编写事件处理逻辑。
 
@@ -982,6 +1093,72 @@ const emit = defineEmits<{
 
 
 
+## defineOptions
+
+背景说明：
+有 `<script setup>` 之前，如果要定义 props, emits 可以轻而易举地添加一个与 setup 平级的属性。
+但是用了` <script setup>` 后，就没法这么干了 setup 属性已经没有了，自然无法添加与其平级的属性。
+为了解决这一问题，引入了 `defineProps` 与 `defineEmits` 这两个宏。但这只解决了 props 与 emits 这两个属性。
+如果我们要定义组件的 name 或其他自定义的属性，还是得回到最原始的用法——再添加一个普通的 `<script>` 标签。这样就会存在两个`<script> `标签。让人无法接受
+
+所以在 Vue 3.3 中新引入了 defineOptions 宏。顾名思义，主要是用来定义 Options API 的选项。
+
+可以用 defineOptions 定义任意的选项， props, emits, expose, slots 除外（因为这些可以使用 defineXXX 来做到）
+
+```vue
+<template>
+  <div>
+    <h1>{{ title }}</h1>
+    <ChildComponent :message="message" @custom-event="handleEvent" />
+    <p>Count: {{ count }}</p>
+    <button @click="increment">Increment</button>
+  </div>
+</template>
+
+<script setup>
+import { ref, defineOptions } from 'vue'
+import ChildComponent from './ChildComponent.vue'
+
+const title = 'My Component'
+const message = 'Hello from parent!'
+const count = ref(0)
+
+const increment = () => {
+  count.value++
+}
+
+const handleEvent = (data) => {
+  console.log('Custom event received:', data)
+}
+
+defineOptions({
+  name: 'MyComponent',
+  inheritAttrs: false,
+  components: {
+    ChildComponent
+  },
+  directives: {
+    // 注册自定义指令
+    focus: {
+      mounted(el) {
+        el.focus()
+      }
+    }
+  },
+  emits: ['custom-event'],
+  expose: ['increment'],
+  serverPrefetch() {
+    // 服务端预取数据的逻辑
+    console.log('Server prefetch')
+  }
+})
+</script>
+```
+
+
+
+
+
 
 
 ## 插槽
@@ -1083,17 +1260,7 @@ const persons =reactive([
 
 
 
-## v-model
 
-### 修饰符
-
-1. lazy
-
-默认情况下v-model绑定input事件，加上lazy修饰符后切换为change事件。
-
-2. number
-
-3. trim
 
 
 
@@ -1261,9 +1428,32 @@ watch第一个参数可以是ref或者reactive，watch会自动解包
 </script>
 ```
 
+### 停止监听
+
+watch和watchEffect都会返回一个停止函数
+
+```vue
+<script setup>
+const stopWatch = watch(source, callback);
+// 停止监听
+stopWatch();
+    
+const stopEffect = watchEffect(() => {
+  // 监听逻辑
+});
+// 停止监听
+stopEffect();
+</script>
+```
 
 
 
+### 与watchEffect的区别
+
+1. 初始化执行时机。watchEffect在组件初始化时会立即执行一次，用来收集依赖，而watch则是惰性执行的，只有在被监听的数据发生变化时才会执行，如果设置了{ immediate:true }，则watch在页面首次加载时就会执行。
+2. 指定监听的数据。watch需要手动指定要监听的数据和回调函数，而watchEffect则不需要显式地指定要监听的数据，它会自动追踪函数内部使用的响应式数据。
+3. 获取数据变化前后的值。watch可以同时获取更改前后的值，而watchEffect则无法获取到更改前的值，它只能获取到变化后的值。
+4. `watchEffect`函数默认会深度监听其内部使用到的所有响应式数据的变化。不需要显式设置`deep`选项，`watchEffect`会自动进行深度监听。
 
 
 
@@ -1495,7 +1685,23 @@ export default defineComponent({
 })
 ```
 
+```tsx
+import { ElButton, ElInput, ElSwitch, ElTag } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
 
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const r1 = ref('')
+        return () => (
+            <div>
+                <ElInput onUpdate:modelValue={(data) => r1.value = data} modelValue={r1.value}></ElInput>
+                {r1.value}
+            </div>
+        )
+    }
+})
+```
 
 不同组件内v-model
 
@@ -1545,6 +1751,36 @@ props: ['modelValue'],
 emits: ['update:modelValue']
 
 emits和props要在setup外定义
+
+### 封装v-model属性
+
+```tsx
+import { ElButton, ElInput, ElSwitch, ElTag } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        // 封装 v-model 属性的逻辑
+        function share(refValue: any) {
+            return {
+                modelValue: refValue,
+                'onUpdate:modelValue': (newValue: any) => {
+                    refValue.value = newValue
+                }
+            };
+        }
+
+        const r1 = ref('')
+        return () => (
+            <div>
+                <ElInput {...share(r1)} placeholder="请输入内容" />
+                {r1.value}
+            </div>
+        )
+    }
+})
+```
 
 
 
@@ -1650,7 +1886,38 @@ export default defineComponent({
 })
 ```
 
+对组件触发的事件进行更细粒度的控制和验证
 
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent, Fragment } from 'vue'
+
+export default defineComponent({
+    emits: {
+        update1: (payload: any) => {
+            if (typeof payload !== 'string') {
+                alert('update1 event expects a string payload')
+                return false
+            }
+            return true  
+        }
+    },
+    setup(props, { emit }) {
+        const handleClick = () => {
+            emit('update1', 1111)
+        }
+
+        return () => (
+            <div>
+                <ElButton onClick={handleClick}></ElButton>
+            </div>
+        )
+    }
+})
+```
+
+- 当验证函数返回 `true` 时，事件将正常触发，并且事件的参数会被传递给父组件。
+- 当验证函数返回 `false` 时，事件将不会被触发，即使在子组件中调用了 `emit` 函数，事件也不会传递给父组件。
 
 ## expose
 
@@ -1702,6 +1969,51 @@ export default defineComponent({
 })
 
 ```
+
+
+
+### expose传递vnode
+
+```tsx
+// 父
+import { defineComponent, ref, type VNodeRef } from "vue"
+import Child1 from './child1'
+import { ElInput } from "element-plus"
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const childRef = ref<VNodeRef | null>(null)
+
+        return () => (
+            <div>
+                <div><Child1 ref={childRef}></Child1></div>
+                <div>{childRef.value ? childRef.value.vNode : '组件尚未加载'}</div>
+            </div>
+        )
+    }
+})
+
+// 子
+import { ElButton } from 'element-plus'
+import { defineComponent, Fragment } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const vNode = (<div><div><ElButton onClick={() => { console.log("hello world"); }}>111111</ElButton></div></div>)
+
+        expose({
+            vNode
+        })
+        
+        return () => (
+            <div>
+            </div>
+        )
+    }
+})
+```
+
+
 
 
 
@@ -5458,6 +5770,10 @@ export default defineComponent({
 
 
 
+# Scss
+
+
+
 
 
 # 实际案例
@@ -5551,4 +5867,76 @@ export default defineComponent({
 
 </html>
 ```
+
+
+
+# 组件封装
+
+## 示例
+
+### 示例1
+
+```javascript
+export const $clg = {
+    log: console.log("log")
+}
+// 等价于
+const result = console.log("log"); // 输出 "log"，result 为 undefined
+export const $clg = {
+    log: result // log 等于 undefined
+};
+```
+
+1. **`console.log("log")`** 是一个**立即执行的表达式**，在定义 `$clg` 时会立刻执行。
+   - 这会直接输出 `"log"` 到控制台。
+2. **`log`** 的值是 `console.log("log")` 的**返回值**，而 `console.log()` 的返回值是 `undefined`。
+   - 因此，`$clg.log` 的值是 `undefined`。
+
+**任何 JavaScript 对象的属性定义时，右侧的表达式都会被求值。**
+
+```javascript
+const obj = {
+    prop: 1 + 2 // 右侧表达式 1 + 2 立即求值，结果是 3
+};
+
+console.log(obj.prop); // 输出 3
+```
+
+```javascript
+const obj = {
+    prop: console.log("Hello") // 右侧表达式是 console.log("Hello")
+};
+
+// "Hello" 会立即被打印到控制台
+// obj.prop 的值是 undefined，因为 console.log() 返回 undefined
+```
+
+
+
+
+
+第二种
+
+```javascript
+export const $clg = {  // 方法简写语法
+    log() {
+        console.log("log");
+    }
+}
+
+// 等价于
+export const $clg = {
+    log: function() {
+        console.log("log");
+    }
+}
+
+export const $clg = {
+    log: () => console.log("log")
+};
+```
+
+这里定义了一个对象$clg，包含一个方法log
+
+`log` 是一个函数，只有在调用 `$clg.log()` 时，`console.log("log")` 才会执行并打印 `"log"`。
 

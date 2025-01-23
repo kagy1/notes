@@ -157,6 +157,23 @@ v-model绑定：
 
 
 
+### `<fieldset>`,`<legend>`
+
+`<fieldset>`标签是一个块级容器标签，表示控件的集合，用于将一组相关控件组合成一组
+
+`<legend>`标签用来设置`<fieldset>`控件组的标题，通常是`<fieldset>`内部的第一个元素，会嵌入显示在控件组的上边框里面
+
+```vue
+<form>
+  <fieldset>
+    <p>年龄：<input type="text" name="age"></p>
+    <p>性别：<input type="text" name="gender"></p>
+  </fieldset>
+</form>
+```
+
+上面代码中，两个输入框是一组，它们的外面会显示一个方框
+
 
 
 ## HTML5
@@ -182,20 +199,32 @@ v-model绑定：
    - p.intro { ... } 选择所有具有class="intro"的 <p> 元素
 
 2. 属性选择器（Attribute Selectors）：
+   
+   选择含有指定属性的元素
+   
    - [attribute] { ... } 选择具有指定属性的元素
    - [attribute="value"] { ... } 选择具有指定属性和值的元素
    - [attribute~="value"] { ... } 选择属性值包含指定词汇的元素
    - [attribute^="value"] { ... } 选择属性值以指定值开头的元素
    - [attribute$="value"] { ... } 选择属性值以指定值结尾的元素
    - [attribute*="value"] { ... } 选择属性值包含指定值的元素
+   
 3. 后代选择器：
+
    - div p { ... } 选择div内部的所有p元素
+
 4. 子元素选择器（Child Selectors）：
+
    - parent > child { ... } 选择parent元素的直接子元素child
+
 5. 相邻兄弟选择器（Adjacent Sibling Selectors）：
+
    - element1 + element2 { ... } 选择紧跟在element1后面的element2元素
+
 6. 通用兄弟选择器（General Sibling Selectors）：
+
    - element1 ~ element2 { ... } 选择element1之后的所有element2同级元素
+
 7. 伪类选择器（Pseudo-classes）：
    - :hover { ... } 选择鼠标悬停的元素
    - :active { ... } 选择被激活的元素
@@ -209,10 +238,191 @@ v-model绑定：
    - :only-child { ... } 选择父元素下唯一的子元素
    - :only-of-type { ... } 选择父元素下唯一指定类型的子元素
    - :not(selector) { ... } 对selector取反
+   - :root { ... } 选择文档的根元素，可以用来定义全局变量
+
+### 其他示例
+
+```css
+.a1.a2 {  // 同时拥有a1和a2类
+  color: red;
+}
+
+.a1 .a2 {  // 选择a1类内部的子元素，子元素含a2类
+  color: blue;
+}
+
+.a1, .a2 {  // 同时选择a1，a2  
+  color: red;
+}
+```
 
 
 
 
+
+
+
+## 数值计算
+
+```css
+/* 使用加法 */
+.element {
+  width: calc(100% - 20px);
+}
+ 
+/* 使用减法 */
+.element {
+  padding: calc(10px - 2px);
+}
+
+/* 使用乘法 */
+.element {
+  font-size: calc(16px * 1.2);
+}
+ 
+/* 使用除法 */
+.element {
+  line-height: calc(24px / 1.5);
+}
+```
+
+## 自定义属性
+
+### 定义
+
+1. 使用`--`作为前缀
+2. 变量通常定义在一个选择器中，如 :root 或者如何其他选择器
+
+### 使用
+
+1. 使用var()函数来引用变量的值
+2. var()函数接受变量名作为参数，并返回变量的值
+3. 可以在任何接受属性的地方使用var()函数
+
+```css
+:root {
+  --primary-color: #007bff;
+  --font-size: 16px;
+  --spacing: 10px;
+}
+ 
+.button {
+  background-color: var(--primary-color);
+  font-size: var(--font-size);
+  padding: var(--spacing);
+}
+```
+
+
+
+变量默认值
+
+可以在var()函数中提供第二个参数作为变量的默认值
+
+```css
+.button {
+  background-color: var(--button-color, #000); /* 如果 --button-color 未定义，则使用 #000 作为默认值 */
+}
+```
+
+
+
+## css模块化
+
+CSS 模块化是一种将样式作用域局限于特定组件的技术，避免样式在全局作用域下的冲突。其核心思想是：每个组件的样式文件只服务于该组件。
+
+### 实现方式
+
+1. **CSS Modules**：自动为类名添加哈希，避免冲突。
+
+   命名规范：`xxx.module.scss`
+
+   ```vue
+   // u4.module.scss
+   .d1 {color:red}
+   
+   import { defineComponent, onMounted } from 'vue';
+   import styles from './u4.module.scss';
+   
+   export default defineComponent({
+       setup() {
+           return () => (
+               <div class={styles.d1}>
+                   hello world
+               </div>
+           );
+       },
+   });
+   ```
+
+   原理：
+
+   打包工具会对CSS模块文件进行处理。它会分析模块中的类名,并对每个类名进行转换,生成一个唯一的哈希值。例如,如果`u4.module.scss`文件内容如下
+
+   ```css
+   .d1 {
+     color: red;
+   }
+   ```
+
+   打包完成后为
+
+   ```css
+   .u4-module__d1__a1b2c3 {
+     color: red;
+   }
+   ```
+
+   ```vue
+   <div class="u4-module__d1__a1b2c3">
+     hello world
+   </div>
+   ```
+
+   
+
+2. **Scoped CSS**：在 Vue 中通过 `<style scoped>` 实现样式隔离。（为标签添加data-v-哈希值 属性）
+
+3. **CSS-in-JS**：用 JavaScript 管理样式（如 styled-components）。
+
+
+
+## 样式穿透
+
+样式穿透的写法有三种：`>>>`、`/deep/`、`::v-deep`
+
+`>>>` ：如果项目使用的是css原生样式，那么可以直接使用 `>>>` 穿透修改
+
+```css
+div >>> .cla {
+	color: red;
+}
+```
+
+`/deep/`：
+
+```css
+/*  用法：  */
+div /deep/ .cla {
+	color: red;
+}
+```
+
+`::v-deep`
+
+```css
+/*  用法：  */
+div ::v-deep .cla {
+	color: red;
+}
+```
+
+
+
+原理
+
+scoped后选择器最后默认会加上当前组件的一个标识，比如[data-v-49729759]
+用了样式穿透后，在deep之后的选择器最后就不会加上标识。
 
 
 
@@ -2653,6 +2863,8 @@ const fruits = ['apple', 'banana', 'orange', 'mango'];
 const slicedFruits = fruits.slice(1, 3);
 console.log(slicedFruits); // 输出: ['banana', 'orange']
 console.log(fruits); // 输出: ['apple', 'banana', 'orange', 'mango'] (原始数组未被修改)
+
+let bottomColumn1 = bottomColumn.slice(0, -1);  // 除去最后一个元素
 ```
 
 2. arr.concat(~)
@@ -2736,7 +2948,7 @@ console.log(num1.includes(6)); // 输出: false
 
 8. arr.sort(~)
 
-数组排序
+数组排序，修改原数组的同时返回一个数组
 
 在 `sort()` 方法中，比较函数的返回值决定了元素的排序顺序：
 
@@ -2800,6 +3012,14 @@ arr.forEach((item, index, arr) => {
 arr.forEach(function (item, index, arr) {
     console.log(item, index, arr)
 })
+
+const numbers = [1, 2, 3, 4, 5];
+// 使用 forEach 修改原数组
+numbers.forEach((num, index, arr) => {
+  arr[index] = num * 2; // 修改原数组
+});
+
+console.log(numbers); // [2, 4, 6, 8, 10] （原数组被改变）
 ```
 
 #### 手写forEach
@@ -2870,6 +3090,8 @@ var n = arr.map(item => {
 - `forEach()` 方法没有返回值,它只是对数组中的每个元素执行回调函数,不会生成新的数组。
 
 #### arr.filter(~)
+
+<span style="color:red">不会修改原数组</span>
 
 ```js
 const arr = [1, 2, 3, 4, 5]
@@ -2976,7 +3198,7 @@ console.log(count);
 
 用于将一个或多个源对象的可枚举属性复制到目标对象，并返回修改后的目标对象
 
-浅拷贝
+Object.assign(~)和扩展运算符都只能 浅拷贝，不会递归拷贝对象，如果对象里有嵌套对象，拷贝的仅是引用。
 
 1. 合并对象属性
 
@@ -2984,6 +3206,17 @@ console.log(count);
 const obj1 = { a: 1, b: 2 };
 const obj2 = { b: 3, c: 4 };
 const mergedObj = Object.assign({}, obj1, obj2);
+console.log(obj1); // { a: 1, b: 2 }
+console.log(obj2); // { b: 3, c: 4 }
+console.log(mergedObj); // { a: 1, b: 3, c: 4 }
+
+
+
+const obj1 = { a: 1, b: 2 };
+const obj2 = { b: 3, c: 4 };
+const mergedObj = Object.assign(obj1, obj2);
+console.log(obj1); // { a: 1, b: 3, c: 4 }
+console.log(obj2); // { b: 3, c: 4 }
 console.log(mergedObj); // { a: 1, b: 3, c: 4 }
 ```
 
@@ -3002,6 +3235,25 @@ const targetObj = { a: 1 };
 const sourceObj = { b: 2 };
 Object.assign(targetObj, sourceObj);
 console.log(targetObj); // { a: 1, b: 2 }
+```
+
+4. 如果源对象是从原型链继承的属性，`Object.assign` 会将这些属性合并到目标对象中
+
+```javascript
+const proto = { inherited: 42 };
+const obj = Object.create(proto);
+obj.own = 1;
+
+const target = Object.assign({}, obj);
+console.log(target); // { inherited: 42, own: 1 }
+
+
+const proto = { inherited: 42 };
+const obj = Object.create(proto);
+obj.own = 1;
+
+const target = { ...obj };
+console.log(target); // { own: 1 }
 ```
 
 
@@ -4146,12 +4398,6 @@ console.log(params.toString()); // "key1=value1&key2=value2&key3=value3"
 ### navigator
 
 ### screen
-
-
-
-## 
-
-
 
 
 
@@ -6737,8 +6983,6 @@ URL(Uniform Resource Locator**统一资源定位符**)
 
 
 
-
-
 #### 空行
 
 用于分隔请求头和请求体
@@ -6747,7 +6991,92 @@ URL(Uniform Resource Locator**统一资源定位符**)
 
 
 
+## XHR
+
+`XMLHttpRequest`（简称XHR）是浏览器提供的 JavaScript对象，通过它，可以请求服务器上的数据资源，从URL获取数据而无需让整个页面刷新。Ajax函数，就是基于xhr对象封装出来了的。它可以发送和接收各种格式的数据，包括 JSON、XML、HTML 和纯文本。
+
+
+
+## 区别一般http请求和ajax请求
+
+1. ajax请求是一种特别的http请求
+
+2. 对服务器来说没有任何区别，区别在浏览器端
+
+3. 浏览器端发请求：只有`XHR`或`fetch`发送的才是ajax请求。
+
+   **Ajax** 是 **Asynchronous JavaScript and XML** 的简称，其本质是一个概念或技术组合，而不是特定的工具或 API。
+
+   **Fetch API** 也能实现异步 HTTP 请求，但是传统意义上的 Ajax 通常指的是通过 **XHR** 实现的异步请求，而 Fetch 是一种全新的方式，它摆脱了对 XHR 的依赖，拥有更现代的设计。
+
+4. 浏览器端接收到响应
+
+   - 一般请求：浏览器会直接显示响应体数据，也就是我们常说的刷新/跳转页面
+   - ajax请求：浏览器不会对界面进行任何更新操作，只是调用监视的回调函数并传入相应相关数据。
+
+## axios
+
+发送ajax请求：`XHR对象`和`fetch函数`
+
+可以用json-server 搭建rest接口 
+
+```node
+npm i -g json-server
+```
+
+
+
+### html使用
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.7.2/axios.js"></script>
+</head>
+
+<body>
+    <div><button class="d1" onclick="testHandle()">点击</button></div>
+</body>
+<script>
+    function testHandle() {
+        axios.post("http://ld.zjldsoft.com/ld/common/v1/materialpharmsort?method=getPharmSort", { "kf_id": "16" })
+            .then(response => {
+                console.log(response.data)
+            }).catch(error => alert(error))
+    }
+</script>
+
+</html>
+```
+
+
+
+## 赋值表达式
+
+在 JavaScript 中，赋值表达式（`=`）的返回值是被赋的值。
+
+```javascript
+let a;
+console.log(a = 42); // 输出: 42
+
+const obj = {};
+console.log(obj["key"] = 123); // 输出: 123
+```
+
+
+
 # TypeScript
+
+## js的缺点
+
+js是弱类型语言，可以随时变换类型
+
+
 
 ## 认识TypeScript
 
@@ -6907,6 +7236,8 @@ const person = {
 
 在typescript里，它们各自的类型也是undefined 和 null
 
+null和undefined是所有其他类型的子类型，他们可以赋值给其他类型  
+
 ```typescript
 let n: null = null
 let u: undefined = undefined
@@ -6927,6 +7258,10 @@ console.log( typeof undefined === 'undefined')  // true
 ```javascript
 0bject.prototype.toString.call(null)
 ```
+
+
+
+通过添加`strictNullChecks: true`可以获得更严格的类型检查，null和undefined只能赋值给自身
 
 
 
@@ -7028,9 +7363,21 @@ cosnt info2 = {
 
 #### enmu 枚举类型
 
+枚举的值可以为字符串和数字
+
 ##### 数字类型枚举
 
 如果我们枚举里面的内容不指定默认的值那么将会默认赋值 从0开始
+
+```typescript
+// 定义枚举
+enum 枚举名{
+    枚举字段1 = 值1,
+    枚举字段2 = 值2
+}
+```
+
+
 
 ```ty
 enum NumerEnum {
@@ -7093,6 +7440,17 @@ enum Direction {
 }
 ```
 
+##### 编译为js
+
+```javascript
+var Level;
+(function (Level) {
+    Level[Level["level1"] = 0] = "level1";
+    Level[Level["level2"] = 1] = "level2";
+    Level[Level["level3"] = 2] = "level3";
+})(Level || (Level = {}));
+```
+
 
 
 ##### 使用枚举
@@ -7103,6 +7461,64 @@ console.log(playerDirection); // 输出：1
 
 //枚举成员可以直接通过枚举类型来访问，也可以通过枚举的值来访问。
 ```
+
+##### 枚举可重复
+
+```tsx
+import { defineComponent, Fragment } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        enum gender {
+            "male" = "男",
+            "female" = "女",
+            "male1" = "男"
+        }
+
+        console.log(gender.male);
+        console.log(gender.male1);
+        return () => (
+            <div>
+
+            </div>
+        )
+    }
+})
+```
+
+##### 反向映射
+
+对于重复值的枚举，反向映射只会返回第一个匹配的成员名。
+
+
+
+```typescript
+import { defineComponent, Fragment } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        enum gender {
+            "male",
+            "female",
+            "male1"
+        }
+
+        console.log(gender[1]); // "male"
+		
+        return () => (
+            <div>
+
+            </div>
+        )
+    }
+})
+```
+
+
+
+
 
 
 
@@ -7342,10 +7758,11 @@ const myBird: Bird = {
   name: "Tweety",
   canFly: true
 };
-
+// interface可以继承 interface和type
+// type可以通过 & 合并 type和interface
 ```
 
-3. 多次声明的同名 interface 会进行声明合并，type 则不允许多次声明；
+3. <span style="color:red">多次声明的同名 interface 会进行声明合并，type 则不允许多次声明；</span>
 
 ```typescript
 interface User {
@@ -7368,6 +7785,59 @@ const user: User = {
 class Person implements IPerson{
     xxx
 }
+```
+
+5. 继承多个
+
+```typescript
+type Employee = Person & Contact & {
+  id: number;
+  role: string;
+};
+
+interface C extends A, B {
+  role: string;
+}
+```
+
+6. 子接口不能覆盖父接口的成员
+
+   交叉类型会把相同成员的类型进行交叉
+
+
+
+#### 冲突
+
+```typescript
+// 如果继承的多个接口中有相同的属性名，但属性类型一致，则会正常合并
+// 如果继承的多个接口中有相同的属性名，但类型不一致，则会报错
+
+interface A {
+  x: number;
+}
+
+interface B {
+  x: string;
+}
+
+interface C extends A, B {}  // 报错
+
+// 如果继承的类型中存在冲突，可以通过类型合并或重写属性来解决
+interface A {
+  x: number;
+}
+
+interface B {
+  x: string;
+}
+
+interface C extends A, B {
+  x: number | string; // 手动定义为联合类型
+}
+
+const obj: C = {
+  x: 42, // 或者 x: "Hello"
+};
 ```
 
 
@@ -7856,6 +8326,7 @@ typescript成员属性必须进行声明
 
 ```typescript
 class Person{
+    // ts要求使用属性列表描述类中的属性
     name: string
     age: number
     
@@ -7906,7 +8377,11 @@ class Student extends Person{
 在TypeScript中，类的属性和方法支持三种修饰符：public、private、protected 
 
 - public 修饰的是在任何地方可见、公有的属性或方法，默认编写的属性就是public的； 
+
 - private 修饰的是仅在同一类中可见、私有的属性或方法； 可以在类内部构造器，方法里使用。可以用getter/setter设置
+
+  一般私有的变量前面加 下划线`_`
+
 - protected 修饰的是仅在类自身及子类中可见、受保护的属性或方法
 
 
@@ -7936,6 +8411,13 @@ interface User{
 }
 ```
 
+只读修饰符不在编译结果中
+
+```typescript
+let arr: readonly number[] = [3, 4, 6]; // 无法使用push,pop,slice
+
+```
+
 
 
 ### getter/setter
@@ -7959,6 +8441,43 @@ class Person{
     }
 }
 
+```
+
+```typescript
+class Person {
+    private _age: number;
+
+    constructor(age: number) {
+        this._age = age;
+    }
+
+    // Getter: 用于获取属性
+    get age(): number {
+        console.log("Getting age...");
+        return this._age;
+    }
+
+    // Setter: 用于设置属性
+    set age(value: number) {
+        if (value < 0) {
+            console.error("Age cannot be negative!");
+        } else {
+            console.log("Setting age...");
+            this._age = value;
+        }
+    }
+}
+
+// 使用示例
+const person = new Person(25);
+
+console.log(person.age); // 调用 getter，输出: "Getting age..." 然后输出: 25
+
+person.age = 30;  // 调用 setter，输出: "Setting age..."
+console.log(person.age); // 调用 getter，输出: "Getting age..." 然后输出: 30
+
+person.age = -5;  // 调用 setter，输出: "Age cannot be negative!"
+console.log(person.age); // 调用 getter，输出: "Getting age..." 然后输出: 30
 ```
 
 
@@ -8315,6 +8834,13 @@ function getValue(value?: string) {
 
 ## 泛型
 
+```typescript
+let nums: number[] = [2, 3, 4]
+let nums: Array<number> = [2, 3, 4]
+```
+
+
+
 ### 类型的参数化
 
 ```typescript
@@ -8340,6 +8866,10 @@ E：Element的缩写，元素
 O：Object的缩写，对象
 
 
+
+很多时候TS会根据传递的参数，推导出泛型的具体类型。
+
+如果无法完成推导并且没有传递具体的类型，默认为空对象。
 
 ### 泛型的接口使用
 
@@ -8569,9 +9099,111 @@ const userFormData: IUserFormData = {
 
 
 
+## ts配置文件 tsconfig.json
+
+命令行生成文件
+
+```
+tsc --init 
+```
+
+
+
+```json
+{
+  "compilerOptions": {  // 编译选项
+    "target": "esnext", 
+    // 指定 ECMAScript 的目标版本，这里是 "esnext"，表示支持最新的 ECMAScript 特性。
+    // 浏览器可能不支持所有最新特性，因此可  能需要额外的转译。
+    
+    "useDefineForClassFields": true, 
+    // 启用 `useDefineForClassFields`。在类字段声明上使用 `Object.defineProperty` 替代直接赋值。
+    // 这会更接近 JavaScript 的标准行为，但可能与旧代码的行为不一致。
+
+    "module": "esnext", 
+    // 指定模块系统，这里是 "esnext"，表示生成使用 ES 模块系统（`import`/`export`）的代码。
+    // 可选值包括 "commonjs"（Node.js 中常用）或其他模块规范。
+
+    "moduleResolution": "node", 
+    // 指定模块解析策略，这里使用 "node"，表示使用 Node.js 的模块解析逻辑。
+    // 例如，自动解析 `node_modules` 中的模块。
+
+    "strict": true, 
+    // 启用 TypeScript 的严格模式。严格模式会打开所有类型检查的严格选项。
+    // 例如：`noImplicitAny`, `strictNullChecks`, `strictFunctionTypes` 等。
+
+    "jsx": "preserve", 
+    // 指定 JSX 语法的处理方式。这里选择 "preserve"，表示保留 JSX 语法，不转译为 JavaScript。
+    // 通常用于 React 或其他框架的编译器会进一步处理 JSX。
+
+    "jsxFactory": "h", 
+    // 指定用于 JSX 的工厂函数。这里设置为 `h`，通常用于像 Preact 等框架。
+    // 如果你使用 React，默认值为 `React.createElement`，可以省略。
+
+    "jsxFragmentFactory": "Fragment", 
+    // 指定用于 JSX 片段的工厂函数。这里设置为 `Fragment`，通常用于支持空标签 `<></>` 的 JSX 语法。
+    // 如果你使用 React，默认值为 `React.Fragment`，可以省略。
+
+    "sourceMap": true, 
+    // 生成 `.map` 文件，用于调试时将编译后的代码映射回原始 TypeScript 代码。
+    // 对于调试和开发工具来说非常有用。
+
+    "resolveJsonModule": true, 
+    // 允许从 TypeScript 文件中直接导入 JSON 文件。
+    // 开启后可以使用 `import data from './data.json'`。
+
+    "isolatedModules": true, 
+    // 强制每个文件作为独立的模块进行编译。通常配合 Babel 或其他工具使用。
+    // 必须启用此选项来支持后续的单文件编译器行为。
+
+    "esModuleInterop": true, 
+    // 启用 ES 模块与 CommonJS 模块的互操作性。
+    // 例如，可以用 `import fs from 'fs'` 替代 `import * as fs from 'fs'`。
+
+    "lib": ["esnext", "dom"], 
+    // 指定编译时包含的库文件。`esnext` 表示支持最新的 ES 特性，`dom` 表示支持 DOM API。
+
+    "skipLibCheck": true, 
+    // 跳过对声明文件（`.d.ts`）的类型检查。这可以加快编译速度，减少无关报错。
+
+    "baseUrl": ".", 
+    // 设置项目的基础路径，用于解析非相对模块的路径。
+    // 这里设置为当前目录（`.`）。
+
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./src/*"]
+    }, 
+    // 配置模块路径别名。`~/*` 表示当前项目根目录，`@/*` 指向 `src` 目录。
+    // 例如，`import '~/utils'` 等价于 `import './utils'`。
+
+    "types": ["node"], 
+    // 指定包含的类型定义文件。这里包含 `node`，表示加载 Node.js 类型定义。
+    // 例如，可以使用 Node.js 的全局变量和模块（如 `process`、`fs`）。
+     
+     "outDir": "./dist",  // 编译结果位置
+      
+     "removeComments": true  // 移除注释
+  },
+  "exclude": ["node_modules", "dist"],
+  // 指定要排除的文件或文件夹。这里排除了 `node_modules` 和 `dist` 文件夹。
+  // 通常是避免编译外部库和输出目录。
+    
+  "include": ["src/**/*"] // 仅包含 src 文件夹中的所有文件
+}
+```
+
+
+
+
+
+
+
 
 
 ## ts模块化
+
+
 
 ### 非模块（Non-modules）
 
@@ -8709,7 +9341,7 @@ declare module "*.svg"
 
 
 
-# jquery
+
 
 
 
