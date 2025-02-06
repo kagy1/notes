@@ -1705,3 +1705,13 @@ FOR UPDATE NOWAIT;
 
 选择使用`FOR UPDATE`还是`FOR UPDATE NOWAIT`取决于具体应用场景和对事务等待时间的容忍度。
 
+
+
+## 行列转换（列透视）
+
+### CASE WHEN
+
+
+
+
+

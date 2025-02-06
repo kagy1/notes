@@ -61,6 +61,49 @@ export default defineComponent({
 
 
 
+## Scoped
+
+### 作用
+
+当一个style标签拥有scoped属性时，它的CSS样式就只能作用于当前的组件，通过该属性，可以使得组件之间的样式不互相污染。
+
+### 原理
+
+1. 为组件实例生成一个唯一标识，给组件中的每个标签对应的dom元素添加一个标签属性，data-v-xxxx。这个属性是一个哈希值
+
+2. 给`<style scoped>`中的每个选择器的最后一个选择器添加一个属性选择器，`原选择器[data-v-xxxx]`
+
+   如：原选择器为.container #id div，则更改后选择器为.container #id div[data-v-xxxx]
+
+### 示例
+
+```vue
+<template>
+	<div class="example">hello world</div>
+</template>
+<style scoped>
+.example {
+	color: red;
+}
+</style>
+
+// 转译后
+<template>
+	<div class="example" data-v-49729759>hello world</div>
+</template>
+<style scoped>
+.example[data-v-49729759] {
+	color: red;
+}
+</style>
+```
+
+
+
+
+
+
+
 # class
 
 ## sfc
@@ -169,6 +212,7 @@ export default defineComponent({
         return () => (
             <div>
                 <div {...infos}>1111</div>
+                <div {...{ style: { width: '100px', height: '100px', backgroundColor: 'blue' } }}>
             </div>
         )
     }
@@ -196,6 +240,73 @@ export default defineComponent({
   readonly={options.disabled}
 />
 ```
+
+
+
+# 自定义属性
+
+## 作用
+
+在 Vue 中，`data-*` 自定义属性是一种在 HTML 元素上存储额外信息的方式，这些属性可以在 JavaScript 中方便地访问。
+
+## 示例
+
+```vue
+<div data-id="1" data-user="John" data-date="2023-05-20">
+  <!-- ... -->
+</div>
+```
+
+```javascript
+const div = document.querySelector('div');
+
+// 使用 dataset 属性访问
+console.log(div.dataset.id);    // 输出: "1"
+console.log(div.dataset.user);  // 输出: "John"
+console.log(div.dataset.date);  // 输出: "2023-05-20"
+
+// 使用 getAttribute 方法访问
+console.log(div.getAttribute('data-id'));    // 输出: "1"
+console.log(div.getAttribute('data-user'));  // 输出: "John"
+console.log(div.getAttribute('data-date'));  // 输出: "2023-05-20"
+```
+
+```css
+/* 选中具有 data-id 属性的元素 */
+[data-id] {
+  background-color: yellow;
+}
+
+/* 选中 data-user 属性值为 "John" 的元素 */
+[data-user="John"] {
+  color: blue;
+}
+
+/* 选中 data-date 属性值以 "2023" 开头的元素 */
+[data-date^="2023"] {
+  font-weight: bold;
+}
+```
+
+动态绑定属性
+
+```vue
+<template>
+  <div :data-id="id" :data-user="user" :data-date="date">
+    <!-- ... -->
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+
+const id = ref(1);
+const user = ref('John');
+const date = ref('2023-05-20');
+</script>
+```
+
+
 
 
 
@@ -333,7 +444,7 @@ export default defineComponent({
 
 
 
-### 事件修饰符(可用于 `v-on`)
+### 事件修饰符(可用于 `v-on`)（SFC）
 
 事件修饰符是Vue提供的特殊后缀,可以用点号 . 连接在事件名称之后。它们允许你以一种很方便的方式处理常见的事件行为,而无需在事件处理函数中手动编写事件处理逻辑。
 
@@ -982,6 +1093,72 @@ const emit = defineEmits<{
 
 
 
+## defineOptions
+
+背景说明：
+有 `<script setup>` 之前，如果要定义 props, emits 可以轻而易举地添加一个与 setup 平级的属性。
+但是用了` <script setup>` 后，就没法这么干了 setup 属性已经没有了，自然无法添加与其平级的属性。
+为了解决这一问题，引入了 `defineProps` 与 `defineEmits` 这两个宏。但这只解决了 props 与 emits 这两个属性。
+如果我们要定义组件的 name 或其他自定义的属性，还是得回到最原始的用法——再添加一个普通的 `<script>` 标签。这样就会存在两个`<script> `标签。让人无法接受
+
+所以在 Vue 3.3 中新引入了 defineOptions 宏。顾名思义，主要是用来定义 Options API 的选项。
+
+可以用 defineOptions 定义任意的选项， props, emits, expose, slots 除外（因为这些可以使用 defineXXX 来做到）
+
+```vue
+<template>
+  <div>
+    <h1>{{ title }}</h1>
+    <ChildComponent :message="message" @custom-event="handleEvent" />
+    <p>Count: {{ count }}</p>
+    <button @click="increment">Increment</button>
+  </div>
+</template>
+
+<script setup>
+import { ref, defineOptions } from 'vue'
+import ChildComponent from './ChildComponent.vue'
+
+const title = 'My Component'
+const message = 'Hello from parent!'
+const count = ref(0)
+
+const increment = () => {
+  count.value++
+}
+
+const handleEvent = (data) => {
+  console.log('Custom event received:', data)
+}
+
+defineOptions({
+  name: 'MyComponent',
+  inheritAttrs: false,
+  components: {
+    ChildComponent
+  },
+  directives: {
+    // 注册自定义指令
+    focus: {
+      mounted(el) {
+        el.focus()
+      }
+    }
+  },
+  emits: ['custom-event'],
+  expose: ['increment'],
+  serverPrefetch() {
+    // 服务端预取数据的逻辑
+    console.log('Server prefetch')
+  }
+})
+</script>
+```
+
+
+
+
+
 
 
 ## 插槽
@@ -1083,17 +1260,7 @@ const persons =reactive([
 
 
 
-## v-model
 
-### 修饰符
-
-1. lazy
-
-默认情况下v-model绑定input事件，加上lazy修饰符后切换为change事件。
-
-2. number
-
-3. trim
 
 
 
@@ -1261,9 +1428,32 @@ watch第一个参数可以是ref或者reactive，watch会自动解包
 </script>
 ```
 
+### 停止监听
+
+watch和watchEffect都会返回一个停止函数
+
+```vue
+<script setup>
+const stopWatch = watch(source, callback);
+// 停止监听
+stopWatch();
+    
+const stopEffect = watchEffect(() => {
+  // 监听逻辑
+});
+// 停止监听
+stopEffect();
+</script>
+```
 
 
 
+### 与watchEffect的区别
+
+1. 初始化执行时机。watchEffect在组件初始化时会立即执行一次，用来收集依赖，而watch则是惰性执行的，只有在被监听的数据发生变化时才会执行，如果设置了{ immediate:true }，则watch在页面首次加载时就会执行。
+2. 指定监听的数据。watch需要手动指定要监听的数据和回调函数，而watchEffect则不需要显式地指定要监听的数据，它会自动追踪函数内部使用的响应式数据。
+3. 获取数据变化前后的值。watch可以同时获取更改前后的值，而watchEffect则无法获取到更改前的值，它只能获取到变化后的值。
+4. `watchEffect`函数默认会深度监听其内部使用到的所有响应式数据的变化。不需要显式设置`deep`选项，`watchEffect`会自动进行深度监听。
 
 
 
@@ -1495,7 +1685,23 @@ export default defineComponent({
 })
 ```
 
+```tsx
+import { ElButton, ElInput, ElSwitch, ElTag } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
 
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        const r1 = ref('')
+        return () => (
+            <div>
+                <ElInput onUpdate:modelValue={(data) => r1.value = data} modelValue={r1.value}></ElInput>
+                {r1.value}
+            </div>
+        )
+    }
+})
+```
 
 不同组件内v-model
 
@@ -1545,6 +1751,36 @@ props: ['modelValue'],
 emits: ['update:modelValue']
 
 emits和props要在setup外定义
+
+### 封装v-model属性
+
+```tsx
+import { ElButton, ElInput, ElSwitch, ElTag } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+
+        // 封装 v-model 属性的逻辑
+        function share(refValue: any) {
+            return {
+                modelValue: refValue,
+                'onUpdate:modelValue': (newValue: any) => {
+                    refValue.value = newValue
+                }
+            };
+        }
+
+        const r1 = ref('')
+        return () => (
+            <div>
+                <ElInput {...share(r1)} placeholder="请输入内容" />
+                {r1.value}
+            </div>
+        )
+    }
+})
+```
 
 
 
@@ -1650,7 +1886,38 @@ export default defineComponent({
 })
 ```
 
+对组件触发的事件进行更细粒度的控制和验证
 
+```tsx
+import { ElButton } from 'element-plus'
+import { defineComponent, Fragment } from 'vue'
+
+export default defineComponent({
+    emits: {
+        update1: (payload: any) => {
+            if (typeof payload !== 'string') {
+                alert('update1 event expects a string payload')
+                return false
+            }
+            return true  
+        }
+    },
+    setup(props, { emit }) {
+        const handleClick = () => {
+            emit('update1', 1111)
+        }
+
+        return () => (
+            <div>
+                <ElButton onClick={handleClick}></ElButton>
+            </div>
+        )
+    }
+})
+```
+
+- 当验证函数返回 `true` 时，事件将正常触发，并且事件的参数会被传递给父组件。
+- 当验证函数返回 `false` 时，事件将不会被触发，即使在子组件中调用了 `emit` 函数，事件也不会传递给父组件。
 
 ## expose
 
@@ -1702,6 +1969,51 @@ export default defineComponent({
 })
 
 ```
+
+
+
+### expose传递vnode
+
+```tsx
+// 父
+import { defineComponent, ref, type VNodeRef } from "vue"
+import Child1 from './child1'
+import { ElInput } from "element-plus"
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const childRef = ref<VNodeRef | null>(null)
+
+        return () => (
+            <div>
+                <div><Child1 ref={childRef}></Child1></div>
+                <div>{childRef.value ? childRef.value.vNode : '组件尚未加载'}</div>
+            </div>
+        )
+    }
+})
+
+// 子
+import { ElButton } from 'element-plus'
+import { defineComponent, Fragment } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const vNode = (<div><div><ElButton onClick={() => { console.log("hello world"); }}>111111</ElButton></div></div>)
+
+        expose({
+            vNode
+        })
+        
+        return () => (
+            <div>
+            </div>
+        )
+    }
+})
+```
+
+
 
 
 
@@ -3012,612 +3324,6 @@ export default defineComponent({
 
 
 
-# vite
-
-## webpack
-
-一般的项目使用 Webpack 之后，启动花个几分钟都是很常见的事情，热更新也经常需要等待十秒以上。这主要是因为：
-
--   项目冷启动时必须递归打包整个项目的依赖树
--   JavaScript 语言本身的性能限制，导致构建性能遇到瓶颈，直接影响开发效率
-
-这样一来，代码改动后不能立马看到效果，自然开发体验也越来越差。而其中，最占用时间的就是代码打包和文件编译。
-
-
-
-## 模块标准
-
-### 无模块化标准阶段
-
-#### 1. 文件划分
-
-#### 2. 命名空间
-
-`命名空间`是模块化的另一种实现手段，它可以解决上述文件划分方式中`全局变量定义`所带来的一系列问题。下面是一个简单的例子:
-
-```ts
-// module-a.js
-window.moduleA = {
-  data: "moduleA",
-  method: function () {
-    console.log("execute A's method");
-  },
-};
-```
-
-```ts
-// module-b.js
-window.moduleB = {
-  data: "moduleB",
-  method: function () {
-    console.log("execute B's method");
-  },
-};
-```
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <script src="./module-a.js"></script>
-    <script src="./module-b.js"></script>
-    <script>
-      // 此时 window 上已经绑定了 moduleA 和 moduleB
-      console.log(moduleA.data);
-      moduleB.method();
-    </script>
-  </body>
-</html>
-```
-
-这样一来，每个变量都有自己专属的命名空间，我们可以清楚地知道某个变量到底属于哪个`模块`，同时也避免全局变量命名的问题。
-
-#### 3. IIFE(立即执行函数)
-
-不过，相比于`命名空间`的模块化手段，`IIFE`实现的模块化安全性要更高，对于模块作用域的区分更加彻底。你可以参考如下`IIFE 实现模块化`的例子:
-
-```ts
-// module-a.js
-(function () {
-  let data = "moduleA";
-
-  function method() {
-    console.log(data + "execute");
-  }
-
-  window.moduleA = {
-    method: method,
-  };
-})();
-```
-
-```ts
-// module-b.js
-(function () {
-  let data = "moduleB";
-
-  function method() {
-    console.log(data + "execute");
-  }
-
-  window.moduleB = {
-    method: method,
-  };
-})();
-```
-
-```html
-// index.html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <script src="./module-a.js"></script>
-    <script src="./module-b.js"></script>
-    <script>
-      // 此时 window 上已经绑定了 moduleA 和 moduleB
-      console.log(moduleA.data);
-      moduleB.method();
-    </script>
-  </body>
-</html>
-```
-
-我们知道，每个`IIFE` 即`立即执行函数`都会创建一个私有的作用域，在私有作用域中的变量外界是无法访问的，只有模块内部的方法才能访问。拿上述的`module-a`来说:
-
-```ts
-// module-a.js
-(function () {
-  let data = "moduleA";
-
-  function method() {
-    console.log(data + "execute");
-  }
-
-  window.moduleA = {
-    method: method,
-  };
-})();
-```
-
-对于其中的 `data`变量，我们只能在模块内部的 `method` 函数中通过闭包访问，而在其它模块中无法直接访问。这就是模块`私有成员`功能，避免模块私有成员被其他模块非法篡改，相比于`命名空间`的实现方式更加安全。
-
-但实际上，无论是`命名空间`还是`IIFE`，都是为了解决全局变量所带来的命名冲突及作用域不明确的问题，也就是在`文件划分方式`中所总结的`问题 1` 和`问题 2`，而并没有真正解决另外一个问题——**模块加载**。如果模块间存在依赖关系，那么 script 标签的加载顺序就需要受到严格的控制，一旦顺序不对，则很有可能产生运行时 Bug。
-
-
-
-#### CommonJS 规范
-
-```ts
-// module-a.js
-var data = "hello world";
-function getData() {
-  return data;
-}
-module.exports = {
-  getData,
-};
-
-// index.js
-const { getData } = require("./module-a.js");
-console.log(getData());
-```
-
-
-
-#### AMD规范
-
-
-
-#### ES6 Module
-
-`ES6 Module` 也被称作 `ES Module`(或 `ESM`)， 是由 ECMAScript 官方提出的模块化规范
-
-在现代浏览器中，如果在 HTML 中加入含有`type="module"`属性的 script 标签，那么浏览器会按照 ES Module 规范来进行依赖加载和模块解析
-
-下面是一个使用 ES Module 的简单例子:
-
-```ts
-// main.js
-import { methodA } from "./module-a.js";
-methodA();
-
-//module-a.js
-const methodA = () => {
-  console.log("a");
-};
-
-export { methodA };
-```
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="./main.js"></script>
-  </body>
-</html>
-```
-
-如果在 Node.js 环境中，你可以在`package.json`中声明`type: "module"`属性:
-
-```ts
-// package.json
-{
-  "type": "module"
-}
-```
-
-然后 Node.js 便会默认以 ES Module 规范去解析模块:
-
-```ts
-node main.js
-// 打印 a
-```
-
-
-
-
-
-## 样式方案
-
-1. `CSS 预处理器`：主流的包括`Sass/Scss`、`Less`和`Stylus`。这些方案各自定义了一套语法，让 CSS 也能使用嵌套规则，甚至能像编程语言一样定义变量、写条件判断和循环语句，大大增强了样式语言的灵活性，解决原生 CSS 的**开发体验问题**。
-2. `CSS Modules`：能将 CSS 类名处理成哈希值，这样就可以避免同名的情况下**样式污染**的问题。
-3. CSS 后处理器`PostCSS`，用来解析和处理 CSS 代码，可以实现的功能非常丰富，比如将 `px` 转换为 `rem`、根据目标浏览器情况自动加上类似于`--moz--`、`-o-`的属性前缀等等。
-4. `CSS in JS` 方案，主流的包括`emotion`、`styled-components`等等，顾名思义，这类方案可以实现直接在 JS 中写样式代码，基本包含`CSS 预处理器`和 `CSS Modules` 的各项优点，非常灵活，解决了开发体验和全局样式污染的问题。
-5. CSS 原子化框架，如`Tailwind CSS`、`Windi CSS`，通过类名来指定样式，大大简化了样式写法，提高了样式开发的效率，主要解决了原生 CSS **开发体验**的问题。
-
-### CSS 预处理器
-
-Vite 本身对 CSS 各种预处理器语言(`Sass/Scss`、`Less`和`Stylus`)做了内置支持。也就是说，即使你不经过任何的配置也可以直接使用各种 CSS 预处理器。
-
-### CSS Modules
-
-CSS Modules 在 Vite 也是一个开箱即用的能力，Vite 会对后缀带有`.module`的样式文件自动应用 CSS Modules。
-
-
-
-## 创建vue3项目
-
-```node.js
-npm create vue@latest
-
-npm init @vitejs/app  // 允许你创建各种类型的项目,不仅限于 Vue。
-```
-
-
-
-## 处理静态资源
-
-### 图片加载
-
-#### 使用场景
-
-1. 在 HTML 或者 JSX 中，通过 img 标签来加载图片，如:
-
-```html
-<img src="../../assets/a.png"></img>
-```
-
-2. 在 CSS 中通过 background 属性加载图片，如:
-
-```css
-background: url('../../assets/b.png') norepeat;
-```
-
-3. 在 JavaScript 中，通过脚本的方式动态指定图片的`src`属性，如:
-
-```ts
-document.getElementById('hero-img').src = '../../assets/c.png'
-```
-
-
-
-#### 在 Vite 中使用
-
-##### 配置别名
-
-```ts
-// vite.config.ts
-import path from 'path';
-
-{
-  resolve: {
-    // 别名配置
-    alias: {
-      '@assets': path.join(__dirname, 'src/assets')
-    }
-  }
-}
-```
-
-
-
-## Rollup
-
-Rollup 是一款基于 ES Module 模块规范实现的 JavaScript 打包工具
-
-
-
-### Tree Shaking
-
-可以分析出未使用到的模块并自动擦除
-
-
-
-
-
-## 配置文件
-
-项目中一般使用`vite.config.ts`作为配置文件
-
-### 别名配置
-
-```ts
-// vite.config.ts
-import path from 'path';
-
-{
-  resolve: {
-    // 别名配置
-    alias: {
-      '@assets': path.join(__dirname, 'src/assets'),
-      '~': resolve(process.cwd()),
-      '@/': `${resolve(__dirname, 'src')}/`
-    }
-  }
-}
-```
-
-
-
-
-
-## 环境变量
-
-### import.meta.env
-
-- import.meta.env.MODE	应用运行的模式
-- import.meta.env.BASE_URL    部署应用时的基本 URL。他由`base` 配置项决定。 
-- import.meta.env.PROD    应用是否运行在生产环境。
-- import.meta.env.DEV    应用是否运行在开发环境。
-- import.meta.env.SSR    应用是否运行在 server 上。
-
-
-
-### 自定义环境变量
-
-在项目的根目录下，新建一个` .env` 文件。 加载的环境变量也会通过 import.meta.env 以字符串形式暴露给客户端源码。 为了防止意外地将一些环境变量泄漏到客户端，Vite规定：只有以 VITE_ 为前缀的变量才会暴露给经过 vite 处理的代码。
-
-- `.env`内容
-
-```
-VITE_MY_KEY= 123
-```
-
-此时，我们再打印下`import.meta.env` 对象，就会出现`VITE_MY_KEY`变量
-
-```
-BASE_URL: "/"
-DEV: true
-MODE: "development"
-PROD: false
-SSR: false
-VITE_MY_KEY: "hello world"
-```
-
-
-
-vite内置的环境变量属性是有代码智能提示补全的，如果你想要自己自定义的环境变量也有智能提示补全，你可以在 src 目录下创建一个 env.d.ts 文件，接着按下面这样增加 ImportMetaEnv 的定义：
-
-```
-/// <reference types="vite/client" />
-
-interface ImportMetaEnv {
-  readonly VITE_MY_KEY: string
-  // 更多环境变量...
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv
-}
-```
-
-
-
-在真正项目的开发中，我们并不会直接去用`.env`文件，而是会新建`.env.development`文件和`.env.production`文件：
-
-- `.env.development`文件：开发环境下会读取文件里面定义的数据
-- `.env.production`文件：生产环境下会读取文件里面定义的数据
-
-```
-# .env.development
-VITE_TITLE=开发环境的标题
-# .env.production
-VITE_TITLE=生产环境的标题
-```
-
-然后我们可以使用 import.meta.env.VITE_TITLE，在不同的环境下渲染不同的值
-
-
-
-### 模式
-
-<span style="color:red">在 Vite 中，可以通过 `--mode` 参数来指定不同的运行模式</span>
-
-我们现在在项目的根目录下，新建一个` .env.test` 文件，对应test模式，内容如下
-
-```
-# .env.test
-VITE_TITLE=test
-```
-
-在` package.json`里 新增配置
-
-```
-{
-  "scripts": {
-    "dev": "vite --mode test",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "test:unit": "vitest",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
-  }
-}
-```
-
-
-
-
-
-## env文件
-
-```
-.env                # 所有情况下都会加载
-.env.[mode]         # 只在指定模式下加载
-
-.env                
-.env.development
-.env.production
-.env.test
-```
-
-
-
-- .env文件
-
-```
-# 所有环境都会加载
-# title
-VITE_GLOB_APP_TITLE = YingSide_DEMO
- 
-# 本地运行端口号
-VITE_PORT = 3000
- 
-# 启动时自动打开浏览器
-VITE_OPEN = true
-```
-
-
-
-- .env.development文件
-
-```
-# 只在开发环境加载
-VITE_USER_NODE_ENV = development
- 
-# 打包时是否删除 console
-VITE_DROP_CONSOLE = true
- 
-# 公共基础路径
-VITE_PUBLIC_PATH = /
- 
-# 开发环境接口地址
-VITE_API_URL = /api
- 
-# 开发环境跨域代理，可配置多个
-VITE_PROXY = [["/api","https://mock.mengxuegu.com/mock/6453b964af3bc37f99a23916"]]
-```
-
-
-
-- .env.production文件
-
-```
-# 只在生产环境加载
-VITE_USER_NODE_ENV = production
- 
-# 公共基础路径
-VITE_PUBLIC_PATH = /
- 
-# 是否启用 gzip 或 brotli 压缩打包，如果需要多个压缩规则，可以使用 “,” 分隔
-# Optional: gzip | brotli | none
-VITE_BUILD_COMPRESS = none
- 
-# 打包压缩后是否删除源文件
-VITE_BUILD_COMPRESS_DELETE_ORIGIN_FILE = false
- 
-# 打包时是否删除 console
-VITE_DROP_CONSOLE = true
- 
-# 是否启用图片压缩
-VITE_USE_IMAGEMIN = true
- 
-# 线上环境接口地址
-VITE_API_URL = "http://www.yanhongzhi.com"
-```
-
-
-
-- .env.test文件
-
-```
-# 测试环境
-VITE_USER_NODE_ENV = test
- 
-# 公共基础路径
-VITE_PUBLIC_PATH = /
- 
-# 是否启用 gzip 或 brotli 压缩打包，如果需要多个压缩规则，可以使用 “,” 分隔
-# Optional: gzip | brotli | none
-VITE_BUILD_COMPRESS = none
- 
-# 打包压缩后是否删除源文件
-VITE_BUILD_COMPRESS_DELETE_ORIGIN_FILE = false
- 
-# 打包时是否删除 console
-VITE_DROP_CONSOLE = true
- 
-# 测试环境接口地址
-VITE_API_URL = "http://www.yanhongzhi.com"
-```
-
-
-
-### 确定当前环境
-
-在`package.json`文件内
-
-通过 --mode 配置
-
-```
-"scripts": {
-    "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "build:dev": "vue-tsc && vite build --mode development",   
-    "build:test": "vue-tsc && vite build --mode test",
-    //....
-}
-```
-
-
-
-```
-"build": "vue-tsc && vite build"
-// vue-tsc 和 vite build 两个命令一起使用
-// vue-tsc 是 Vue 3 项目中的一个命令，用于执行 TypeScript 的类型检查
-// vite build 是 Vite 构建工具的构建命令，用于将项目代码打包和优化，生成可部署的生产版本
-// vite 命令是 Vite 构建工具提供的一个开发服务器命令，用于在开发过程中启动一个本地开发服务器，并实时加载和更新代码
-```
-
-
-
-## vite.config.js
-
-### 修改端口
-
-```
- server: {
-    port: 3000
- }
-```
-
-
-
-### 配置别名
-
-```
-resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-}
-```
-
-
-
-### 其他配置
-
-```
-server: {
-      hmr: true,   // 热模块替换
-      cors: true,  // 跨域资源共享
-      host: true,  // 允许通过 IP 访问开发服务器
-      port: viteEnv.VITE_BASE_PORT  // 允许通过 IP 访问开发服务器
-} 
-```
-
-
-
 # 标签
 
 在 JSX 中，以小写字母开头的标签会被视为原生 HTML 元素，而以大写字母开头的标签会被视为自定义组件
@@ -4867,7 +4573,7 @@ Promise 的编程模型依然充斥着大量的 `then` 方法，虽然解决了`
 
 `async` 用于声明一个异步函数。异步函数是一种特殊的函数，它总是返回一个 Promise。
 
-被async 声明的函数一定返回promise
+<span style="color:red">被async 声明的函数一定返回promise</span>
 
 `await` 只能在异步函数内部使用。它会暂停函数的执行，直到后面的 Promise 完成（resolved 或 rejected）。
 
@@ -4942,6 +4648,20 @@ async function method() {
 }
 
 method();  // 输出： 失败 123
+```
+
+等同于
+
+```javascript
+async function method() {
+    const n = await Promise.reject(123); // 抛出异常
+    console.log("success");
+}
+
+method()
+    .catch(err => {
+        console.log("failed", err); // 捕获异常
+    });
 ```
 
 
@@ -5714,23 +5434,105 @@ JS是一门单线程的语言，这是因为它在运行浏览器的渲染主线
 
 
 
-# vue优化
+# vue动画
 
-## 常见优化手段
+React本身没有提供任何动画相关API，需要使用第三方库react-transition group
 
-1. 使用key
+vue提供了一些内置组件和对应API完成动画，可以方便的实现过渡动画效果
 
-   对于通过循环生成的列表，应给每个列表项一个稳定且唯一的Key，有利于在列表变动时，尽量少的删除、新增、改动元素。
+## 简单示例
 
-2. 使用冻结的对象
+hello world显示隐藏
 
-   ```javascript
-   var obj = {a:1, b:2}
-   Object.freeze(obj)
-   Object.isFrozen(obj)  // true
-   ```
+```vue
+<template>
+    <div class="app">
+        <button @click="isShow = !isShow">Click me</button>
+        <transition>
+            <h2 v-if="isShow">hello world</h2>
+        </transition>
+    </div>
+</template>
 
-3. 
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const isShow = ref(false)
+</script>
+
+<style lang="scss" scoped>
+.v-enter-from {
+    opacity: 0;
+}
+
+.v-enter-to {
+    opacity: 1;
+}
+
+.v-enter-active {
+    transition: opacity 5s ease;
+}
+</style>
+```
+
+```vue
+<template>
+    <div class="app">
+        <button @click="isShow = !isShow">Click me</button>
+        <transition>
+            <h2 v-if="isShow">hello world</h2>
+        </transition>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const isShow = ref(false)
+</script>
+
+<style lang="scss" scoped>
+.app {
+    width: 150px;
+}
+
+.v-enter-from {
+    opacity: 0;
+    transform: rotate(-360deg);
+}
+
+.v-enter-to {
+    opacity: 1;
+    transform: rotate(360deg);
+}
+
+.v-enter-active {
+    transition: ALL 5s ease;
+}
+</style>
+```
+
+
+
+# 静态资源
+
+## svg
+
+SVG是一种用于描述二维矢量图形的XML（可扩展标记语言）标记语言。它与基于像素的图像格式（如JPEG、PNG）不同，SVG图形在放大或缩小的过程中不会失真，因为它是基于数学公式来描述图形的形状和位置的。这使得SVG在各种不同的屏幕分辨率和设备尺寸下都能提供高质量的图形显示。无论需要渲染多大内容，svg体积保持不变。
+
+
+
+### vite处理svg
+
+1. 创建svg组件
+2. 使用vite-plugin-svg-icons处理导入的svg资源（需要在vite.config.js中配置）
+3. 利用svg组件展示svg
+
+
+
+
+
+
 
 
 
@@ -5968,6 +5770,10 @@ export default defineComponent({
 
 
 
+# Scss
+
+
+
 
 
 # 实际案例
@@ -6061,4 +5867,76 @@ export default defineComponent({
 
 </html>
 ```
+
+
+
+# 组件封装
+
+## 示例
+
+### 示例1
+
+```javascript
+export const $clg = {
+    log: console.log("log")
+}
+// 等价于
+const result = console.log("log"); // 输出 "log"，result 为 undefined
+export const $clg = {
+    log: result // log 等于 undefined
+};
+```
+
+1. **`console.log("log")`** 是一个**立即执行的表达式**，在定义 `$clg` 时会立刻执行。
+   - 这会直接输出 `"log"` 到控制台。
+2. **`log`** 的值是 `console.log("log")` 的**返回值**，而 `console.log()` 的返回值是 `undefined`。
+   - 因此，`$clg.log` 的值是 `undefined`。
+
+**任何 JavaScript 对象的属性定义时，右侧的表达式都会被求值。**
+
+```javascript
+const obj = {
+    prop: 1 + 2 // 右侧表达式 1 + 2 立即求值，结果是 3
+};
+
+console.log(obj.prop); // 输出 3
+```
+
+```javascript
+const obj = {
+    prop: console.log("Hello") // 右侧表达式是 console.log("Hello")
+};
+
+// "Hello" 会立即被打印到控制台
+// obj.prop 的值是 undefined，因为 console.log() 返回 undefined
+```
+
+
+
+
+
+第二种
+
+```javascript
+export const $clg = {  // 方法简写语法
+    log() {
+        console.log("log");
+    }
+}
+
+// 等价于
+export const $clg = {
+    log: function() {
+        console.log("log");
+    }
+}
+
+export const $clg = {
+    log: () => console.log("log")
+};
+```
+
+这里定义了一个对象$clg，包含一个方法log
+
+`log` 是一个函数，只有在调用 `$clg.log()` 时，`console.log("log")` 才会执行并打印 `"log"`。
 
