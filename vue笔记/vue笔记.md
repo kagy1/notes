@@ -5144,6 +5144,10 @@ export default defineComponent({
 })
 ```
 
+响应式数据的修改会立即生效，Vue 会将对应的 DOM 更新任务加入到一个异步更新队列中，而不会同步更新 DOM。
+
+异步队列会在当前主线程执行完后，进入微任务队列，批量执行 DOM 更新。
+
 示例2
 
 ```tsx
@@ -5774,6 +5778,220 @@ export default defineComponent({
 
 
 
+# element plus
+
+## 注册
+
+### 全局注册图标
+
+```typescript
+import * as ElementPlusIconsVue from '@element-plus/icons-vue' // 引入图标
+// 全局注册所有图标
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component)
+}
+```
+
+
+
+## Form
+
+### el-radio
+
+label来作为value已经被废弃，建议都使用value
+
+name 属性：在 HTML 的原生 `<input type="radio">` 元素中，`name` 属性是用来将一组单选按钮关联在一起的。只有拥有相同 `name` 属性的单选按钮才会被归为一组
+
+```tsx
+import { ElButton, ElButtonGroup, ElCol, ElLink, ElRadio, ElRow } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
+
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const val = ref('')
+        return () => (
+            <div>
+                <div>
+                    <ElRadio v-model={val.value} label="1" name="num" onChange={(e) => { console.log(e) }}>1</ElRadio>
+                    <ElRadio v-model={val.value} label="2" name="num" onChange={(e) => { console.log(e) }}>2</ElRadio>
+                    <ElRadio v-model={val.value} label="3" name="num" onChange={(e) => { console.log(e) }}>3</ElRadio>
+                    <ElRadio v-model={val.value} label="4" name="num" onChange={(e) => { console.log(e) }}>4</ElRadio>
+                </div>
+                <div>
+                    {val.value}
+                </div>
+            </div>
+        )
+    }
+})
+```
+
+等同于
+
+```tsx
+import { ElButton, ElButtonGroup, ElCol, ElLink, ElRadio, ElRadioGroup, ElRow } from 'element-plus';
+import { defineComponent, ref } from 'vue';
+
+export default defineComponent({
+    setup() {
+        const val = ref(''); // 用于绑定选中值
+        return () => (
+            <div>
+                {/* 使用 ElRadioGroup 管理一组单选按钮 */}
+                <ElRadioGroup v-model={val.value} name="num" onChange={(e) => console.log(e)}>
+                    <ElRadio label="1">1</ElRadio>
+                    <ElRadio label="2">2</ElRadio>
+                    <ElRadio label="3">3</ElRadio>
+                    <ElRadio label="4">4</ElRadio>
+                </ElRadioGroup>
+                {/* 显示选中的值 */}
+                <div>{val.value}</div>
+            </div>
+        );
+    }
+});
+```
+
+
+
+### el-input
+
+通过ref获取焦点
+
+```tsx
+import { ElButton, ElInput, ElMessageBox } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const value = ref('')
+        const inputRef = ref<null | HTMLInputElement>(null)
+        return () => (
+            <div>
+                <div>
+                    <ElInput style={{ width: '300px' }} v-model={value.value}
+                        ref={inputRef}
+                        placeholder="请输入">
+                    </ElInput>
+                    <ElButton onClick={() => { inputRef.value?.focus() }}>获取焦点</ElButton>
+                </div>
+                <div>{value.value}</div>
+            </div >
+        )
+    }
+})
+```
+
+
+
+
+
+### Form
+
+#### 表单验证
+
+```tsx
+import { ElForm, ElFormItem, ElInput } from 'element-plus'
+import { defineComponent, ref } from 'vue'
+
+export default defineComponent({
+    setup() {
+        const initForm = ref({
+            username: '',
+            password: ''
+        })
+
+        const rules = ref({
+            username: [{ required: true, message: '请输入用户名', trigger: 'blur' },
+            { min: 3, max: 10, message: '用户名长度在3到10个字符之间', trigger: 'blur' }]
+        })
+
+        return () => (
+            <div>
+                <ElForm model={initForm.value} style="max-width: 600px" label-width="80px" labelPosition='left'
+                    rules={rules.value}
+                >
+                    <ElFormItem label="用户名" required prop={'username'}>
+                        <ElInput v-model={initForm.value.username}></ElInput>
+                    </ElFormItem>
+                    <ElFormItem label="密码" required>
+                        <ElInput v-model={initForm.value.password} type="password"></ElInput>
+                    </ElFormItem>
+                </ElForm>
+            </div>
+        )
+    }
+})
+```
+
+基本属性
+
+- **`required`**：是否必填。
+- **`message`**：校验失败时的提示信息。
+- `trigger`：触发校验的时机，可选值：
+  - `'blur'`：失去焦点时触发校验。
+  - `'change'`：值变化时触发校验。
+- **`type`**：指定校验的字段类型。
+- **`min` / `max`**：用于校验值的长度范围（字符串或数组）。
+- **`pattern`**：正则表达式，用于匹配校验。
+- **`validator`**：自定义校验函数，用于实现更复杂的校验逻辑。
+
+
+
+#### 表单提交时验证
+
+```typescript
+// 表单提交
+function submitForm() {
+    formRef.value?.validate((valid, fields) => {
+        if (valid) {
+            // 验证通过，处理提交逻辑
+            console.log('表单提交成功：', form.value)
+            alert('表单提交成功！')
+        } else {
+            // 验证不通过，打印错误字段
+            console.log('表单验证失败：', fields)
+            alert('表单验证失败，请检查输入！')
+        }
+    })
+}
+```
+
+
+
+
+
+#### 表单初始化数据
+
+```typescript
+const initForm = {
+    username: '',
+    password: '',
+    gender: 'male'
+}
+const form = ref({ ...initForm })
+
+function clearForm() {
+    form.value = { ...initForm };
+}
+
+// 或者
+function clearForm() {
+    Object.assign(form.value, initForm);
+}
+
+// 使用form的dom 上resetFields()方法
+function clearForm() {
+    formRef.value?.resetFields()
+}
+const formRef = ref<FormInstance>()
+```
+
+
+
+
+
 
 
 # 实际案例
@@ -5867,6 +6085,38 @@ export default defineComponent({
 
 </html>
 ```
+
+## 输入的数值用逗号隔开且每一项长度最多为3
+
+```tsx
+import { ElInput } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const value = ref('')
+        return () => (
+            <div>
+                <div>
+                    <ElInput v-model={value.value} onInput={(val) => {
+                        const arr = val.split(',')
+                        arr.forEach((item, index, arr) => {
+                            arr[index] = item.slice(0, 3)
+                        })
+                        val = arr.join(',')
+                        value.value = val
+                    }} placeholder="请输入"></ElInput>
+                </div>
+                <div>{value.value}</div>
+            </div >
+        )
+    }
+})
+```
+
+
+
+
 
 
 

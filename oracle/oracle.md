@@ -1715,3 +1715,56 @@ FOR UPDATE NOWAIT;
 
 
 
+## merge into
+
+有则更新，无则插入
+
+```sql
+MERGE INTO target_table target_alias
+USING source_table source_alias
+ON (join_condition)
+WHEN MATCHED THEN
+    UPDATE SET target_column1 = value1,
+               target_column2 = value2, ...
+WHEN NOT MATCHED THEN
+    INSERT (column1, column2, ...)
+    VALUES (value1, value2, ...);
+```
+
+```sql
+MERGE INTO employees target
+USING new_employees source
+ON (target.EMP_ID = source.EMP_ID)
+WHEN MATCHED THEN
+    UPDATE SET target.NAME = source.NAME,
+               target.DEPT = source.DEPT
+WHEN NOT MATCHED THEN
+    INSERT (EMP_ID, NAME, DEPT)
+    VALUES (source.EMP_ID, source.NAME, source.DEPT);
+```
+
+代码示例
+
+这个情况只有更新没有插入
+
+```sql
+<update id="airConditionFeeSwitch">
+    begin
+    merge into dictmanage.dict_bed_depart t1
+    using (select t2.ward_code, t2.fy_id, t2.fb_id
+    from dictmanage.dict_ward t2) t
+    on (t.ward_code = t1.bq_id)
+    when matched then
+    update set t1.fy_id = t.fy_id, t1.fb_id = t.fb_id;
+    update dictmanage.dict_bed_depart set ktkf_bz=#{dto.ktkf},gnkf_bz=#{dto.gnkf} where fy_id=#{dto.FY_ID} and
+    fb_id=#{dto.FB_ID};
+    update dictmanage.dict_bed_depart_fee set kf_bz = #{dto.gnkf}
+    where fylx = '2' and cwjl_id in (select cwjl_id from dictmanage.dict_bed_depart where fy_id = #{dto.FY_ID} and
+    fb_id = #{dto.FB_ID});
+    update dictmanage.dict_bed_depart_fee set kf_bz = #{dto.ktkf}
+    where fylx = '1' and cwjl_id in (select cwjl_id from dictmanage.dict_bed_depart where fy_id = #{dto.FY_ID} and
+    fb_id = #{dto.FB_ID});
+    end;
+</update>
+```
+

@@ -2,10 +2,6 @@
 
 
 
-
-
-
-
 ## 内部类
 
 类的五大成员：属性、方法、构造方法、代码块、内部类
@@ -662,6 +658,112 @@ public class test {
 
 
 
+## String
+
+### 方法
+
+#### 字符串长度
+
+1. length()
+
+   返回字符串中字符的个数。
+
+   ```java
+   String s = "Hello";
+   int len = s.length();  // len 为 5
+   ```
+
+2. charAt(int index)
+
+   返回指定索引处的字符（索引从 0 开始）。
+
+   ```java
+   char c = s.charAt(1);  // 返回 'e'
+   ```
+
+3. toCharArray()
+
+   将字符串转换为字符数组。
+
+   ```java
+   char[] chars = s.toCharArray();
+   // chars = ['H', 'e', 'l', 'l', 'o']
+   ```
+
+#### 字符串替换
+
+1. concat(String str)
+
+   连接两个字符串，相当于用 + 运算符。
+
+   ```java
+   String s1 = "Hello", s2 = "World";
+   String joined = s1.concat(" ").concat(s2);  // 结果 "Hello World"
+   ```
+
+2. **replace(char oldChar, char newChar)** 和 **replace(CharSequence target, CharSequence replacement)**
+
+   替换所有匹配的旧字符或字符序列为新字符或字符序列。
+
+   ```java
+   String original = "banana";
+   String replaced = original.replace('a', 'o');  // 输出 "bonono"
+   
+   String original = "I like Java. Java is powerful.";
+   String replaced = original.replace("Java", "Python");  // "I like Python. Python is powerful."。
+   ```
+
+   
+
+#### 大小写和空白处理
+
+1. toLowerCase() 和 toUpperCase()
+
+2. trim()
+
+   去除字符串首尾的空白字符。
+
+   ```java
+   String padded = "  hello  ";
+   System.out.println(padded.trim());  // "hello"
+   ```
+
+#### 其他常用方法
+
+1. isEmpty()
+
+   如果字符串长度为0，返回true
+
+   ```java
+   "".isEmpty();     // 返回 true
+   "abc".isEmpty();  // 返回 false
+   ```
+
+2. format(String format, Object... args)
+
+   按指定格式和参数生成格式化字符串。
+
+   ```java
+   String formatted = String.format("Hello, %s! You have %d new messages.", "Alice", 5);
+   // 结果 "Hello, Alice! You have 5 new messages."
+   ```
+
+3. join( 分隔符 ,  元素 ) (Java 8+)
+
+   用指定的分隔符将多个字符串连接成一个字符串。
+
+   ```java
+   String joined = String.join("-", "a", "b", "c");  // "a-b-c"
+   ```
+
+   
+
+
+
+
+
+
+
 
 
 ## 集合
@@ -928,6 +1030,22 @@ l2.add("d");    // 抛出 UnsupportedOperationException
 
 ```java
 List<String> mutableList = new ArrayList<>(Arrays.asList("apple", "banana", "orange"));
+```
+
+```java
+String[] array = {"apple", "banana", "orange"};
+List<String> list = Arrays.stream(array).collect(Collectors.toList());
+
+// 依然是可变长度的
+list.add("grape");
+System.out.println(list); // 输出：[apple, banana, orange, grape]
+```
+
+toList()不可变（java16引入）
+
+```java
+String[] arr = {"apple", "banana", "orange", "grape"};
+List<String> li = Arrays.stream(arr).toList();  // li不可变
 ```
 
 
