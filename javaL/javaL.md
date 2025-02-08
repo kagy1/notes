@@ -1286,5 +1286,135 @@ Set<String> a = Set.of("a", "b", "c");
 
 
 
-## idea调试
+## 接口
+
+Java接口是一系列方法的声明，是一些方法特征的集合，一个接口只有方法的特征没有方法的实现，因此这些方法可以在不同的地方被不同的类实现，而这些实现可以具有不同的行为（功能）。
+
+接口可以理解为一种特殊的类型，它可以包含**常量**（`public static final` 默认修饰）和**方法的定义**，包括**抽象方法**、**默认方法**（`default`）、**静态方法**（`static`）以及**私有方法**（`private`，Java 9 及之后支持）。
+
+接口是解决 Java 无法使用多继承的一种手段，因为一个类可以实现多个接口，而 Java 的类只能继承一个父类。但接口在实际中的主要作用是**制定标准**，为实现类提供一组必须实现的规范或行为。
+
+在 Java 8 之前，接口可以被理解为**100% 抽象类**，因为接口中的方法必须全部是抽象方法，且不能包含任何实现。然而，从 Java 8 开始，接口可以包含**默认方法**和**静态方法**，因此接口已不再是严格意义上的“100% 抽象类”。
+
+- 接口中的方法必须是公开的，因为接口的目的是对外提供功能。
+- 接口中的方法默认是抽象方法，必须由实现类实现（除非是 `default` 或 `static` 方法）
+- 接口本身无法创建对象，但它的实现类可以创建对象。
+
+**示例**
+
+```java
+public interface Flyable {
+    void fly();
+}
+
+public interface Swimmable {
+    void swim();
+}
+
+public class Bird implements Flyable, Swimmable {
+    @Override
+    public void fly() {
+        System.out.println("Bird is flying.");
+    }
+
+    @Override
+    public void swim() {
+        System.out.println("Bird is swimming.");
+    }
+}
+```
+
+接口定义
+
+```java
+// 定义一个接口
+public interface AdvancedInterface {
+
+    // 1. 常量（public static final 自动添加）
+    int MAX_COUNT = 100; // 等价于 public static final int MAX_COUNT = 100;
+
+    // 2. 抽象方法（必须由实现类实现）默认是 public abstract
+    void abstractMethod1();
+    // 等同于 public void abstractMethod1();
+    // 等同于 public abstract void abstractMethod1();
+    String abstractMethod2(String input);
+
+    // 3. 默认方法（default）：可以有方法体，供实现类直接使用或重写
+    default void defaultMethod() {
+        System.out.println("This is a default method.");
+    }
+
+    default void anotherDefaultMethod() {
+        System.out.println("Another default method.");
+    }
+
+    // 4. 静态方法（static）：直接通过接口名调用，不能被实现类重写
+    static void staticMethod() {
+        System.out.println("This is a static method.");
+    }
+
+    static void anotherStaticMethod() {
+        System.out.println("Another static method.");
+    }
+}
+```
+
+实现接口
+
+```java
+// 实现接口的类
+public class AdvancedInterfaceImpl implements AdvancedInterface {
+
+    // 必须实现抽象方法
+    @Override
+    public void abstractMethod1() {
+        System.out.println("Implementation of abstractMethod1.");
+    }
+
+    @Override
+    public String abstractMethod2(String input) {
+        return "Input received: " + input;
+    }
+
+    // 可以选择重写默认方法（这里重写了 defaultMethod）
+    @Override
+    public void defaultMethod() {
+        System.out.println("Overridden default method in AdvancedInterfaceImpl.");
+    }
+
+    // 默认方法 anotherDefaultMethod 没有重写，直接继承接口的实现
+}
+```
+
+
+
+## 工具类
+
+### `java.util.uuid`
+
+专门用于表示和生成 **通用唯一标识符 (UUID)** 的类。UUID 是一种 128 位的标识符，通常用于确保唯一性，如数据库主键、分布式系统中的对象标识符等。
+
+Java 的 `UUID.randomUUID()` 基于随机数。
+
+```java
+System.out.println(UUID.randomUUID().toString());
+// 1865dcaa-6349-48f2-8878-b86acb1b5ca2
+System.out.println(UUID.randomUUID().toString().replaceAll("-", ""));
+// 80c05a54cc9e49b2bf4cb439e4ae9833
+```
+
+
+| 方法                             | 描述                                            |
+| -------------------------------- | ----------------------------------------------- |
+| `randomUUID()`                   | 生成一个随机 UUID（版本 4）。                   |
+| `fromString(String name)`        | 将字符串解析为 UUID。                           |
+| `nameUUIDFromBytes(byte[] name)` | 根据字节数组生成一个基于名称的 UUID（版本 3）。 |
+| `getMostSignificantBits()`       | 获取 UUID 的高 64 位。                          |
+| `getLeastSignificantBits()`      | 获取 UUID 的低 64 位。                          |
+| `version()`                      | 获取 UUID 的版本号（1、3、4、5）。              |
+| `variant()`                      | 获取 UUID 的变体号（通常是 2）。                |
+| `toString()`                     | 将 UUID 转换为标准格式的字符串表示。            |
+| `equals(Object obj)`             | 比较两个 UUID 是否相等。                        |
+| `hashCode()`                     | 获取 UUID 的哈希值。                            |
+| `compareTo(UUID val)`            | 比较两个 UUID 的大小。                          |
 
