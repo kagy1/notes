@@ -1,5 +1,112 @@
 # JAVA
 
+## 面向对象
+
+### 构造方法
+
+在创建对象的时候给成员对象赋值
+
+有空参构造，带参构造
+
+格式
+
+1. 方法名与类名相同，大小写也要一样
+2. 没有返回值类型，void也没有
+3. 没有具体的返回值类型（不能用return带回结果）
+
+```java
+public class Student {
+    修饰符 类名() {
+        方法体;
+    }
+}
+```
+
+执行时机
+
+1. 创建对象的时候由虚拟机调用，不能手动调用构造方法
+2. 每创建一次对象就调用一次构造方法
+
+
+
+构造方法定义：
+
+- 如果没有定义构造方法，系统会给出一个默认的无参构造
+- 如果定义了构造方法，系统不再提供默认的构造方法
+
+
+
+### 静态方法
+
+在Java中，**静态方法**是使用 `static` 关键字修饰的方法。它属于类本身，而不是类的实例。静态方法可以在不创建类的对象的情况下直接调用，因此常用于工具类、工厂方法或全局逻辑的实现。
+
+特点：
+
+1. **属于类本身**
+   静态方法是类级别的，直接与类相关，而不是与某个实例相关。
+2. **不依赖于实例**
+   调用静态方法不需要创建对象，可以通过类名直接调用。
+3. **不能直接访问实例成员**
+   静态方法只能访问类变量（静态变量）和调用其他静态方法，无法直接访问实例变量或调用实例方法，除非通过对象引用。
+4. **生命周期**
+   静态方法随着类的加载而存在，直到类卸载。
+
+```java
+public class MathUtils {
+    // 定义一个静态方法
+    public static int add(int a, int b) {
+        return a + b;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // 直接通过类名调用静态方法
+        int result = MathUtils.add(5, 3);
+        System.out.println("结果是: " + result);
+    }
+}
+```
+
+**静态方法的限制**
+
+1. **不能使用 `this` 或 `super`**
+   静态方法与实例无关，因此无法访问当前实例的 `this` 引用或调用父类的方法。
+
+2. **不能直接访问实例变量或实例方法**
+   静态方法只能直接访问静态变量和调用静态方法。若要访问实例成员，需要显式传递对象引用。
+
+   ```java
+   public class Example {
+       private int instanceVar = 10;
+    
+       public static void printInstanceVar() {
+           // 以下代码会报错，因为 instanceVar 是实例变量
+           System.out.println(instanceVar);
+    
+           // 正确方式：通过对象引用访问实例变量
+           Example obj = new Example();
+           System.out.println(obj.instanceVar);
+       }
+   }
+   ```
+
+3. **不适合特定于实例的操作**
+   如果方法需要依赖于实例的状态（例如实例变量或方法），则不应将其定义为静态方法。
+
+**静态方法的常见用途**
+
+1. **工具类**
+   静态方法常用于实现通用逻辑，例如数学计算、字符串处理等（如 `Math`、`Arrays` 和 `Collections` 类）。
+2. **工厂方法**
+   静态方法可以用来创建对象，例如 `Integer.valueOf()` 和 `Collections.emptyList()`。
+3. **全局逻辑**
+   静态方法可以实现一些与实例无关的逻辑，例如配置加载器或应用程序入口点（`main` 方法）。
+
+
+
+
+
 
 
 ## 内部类
@@ -116,13 +223,31 @@ public class Outer {
 创建静态内部类对象的格式： 外部类名.内部类名 对象名 = new 外部类名.内部类名();
 
 ```java
-public class car {
-    String carName;
-    int carAge;
-    int carColor;
-    static class Engine {
-        String engineName;
-        int engineAge;
+public class Test {
+    private final String name;
+
+    public Test(String name){
+        this.name = name;
+    }
+
+    public static class Inner {
+        public void test(){
+            System.out.println("我是静态内部类！");
+        }
+    }
+}
+```
+
+创建对象
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        // 创建静态内部类的对象
+        Test.Inner inner = new Test.Inner();
+
+        // 调用静态内部类的方法
+        inner.test();
     }
 }
 ```

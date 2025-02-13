@@ -109,13 +109,35 @@ Spring技术对IoC思想进行了实现
 
 在容器中建立bean与bean之间的依赖关系的整个过程，称为依赖注入。
 
-**将一个类所需要的对象（依赖）从外部传递（注入）进来，而不是让类自己去创建这些对象**。
+<span style="color:red">**将一个类所需要的对象（依赖）从外部传递（注入）进来，而不是让类自己去创建这些对象**</span>。
 
 <span style="color:red">**DI 是 IoC 的一种具体实现方式**，但 IoC 不止可以用 DI 来实现。</span>
 
 充分解耦，使用IoC容器管理bean(IoC)，在IoC容器内将有依赖关系的bean进行关系绑定(DI)
 
 使用对象时不仅可以直接从IoC容器中获取，并且获取到的bean已经绑定了所有的依赖关系
+
+
+
+### AOP
+
+AOP（Aspect Oriented Programming）面向切面编程
+
+- OOP（Object Oriented Programming）面向对象编程
+
+作用：在不惊动原始设计的基础上为其进行功能增强
+
+ 无侵入式编程
+
+- 连接点：程序执行过程中的任意位置，粒度为执行方法，抛出异常，设置变量等
+- 切入点：匹配连接点的式子，切入点在连接点中
+- 通知
+- 通知类：定义通知的类
+- 切面：描述通知与切入点的对应关系
+
+
+
+
 
 
 
@@ -173,6 +195,87 @@ Spring技术对IoC思想进行了实现
       }
   }
   ```
+  
+
+
+
+#### bean实例化
+
+1. 构造方法
+
+2. 静态工厂
+
+3. 实例工厂 
+
+4. 使用FactoryBean实例化
+
+   实现FactoryBean接口
+
+
+
+### 注入bean
+
+**setter注入**
+
+- 在bean中定义引用类型属性并提供可访问的set方法
+
+- 配置中使用property标签将ref属性注入引用类型对象
+
+- 简单类型通过value注入
+
+  ```java
+  public class MyBean {
+      private int xxx;
+  
+      // Setter 方法
+      public void setXxx(int xxx) {
+          this.xxx = xxx;
+      }
+  
+      // Getter 方法（用于验证注入值）
+      public int getXxx() {
+          return xxx;
+      }
+  }
+  ```
+
+  ```xml
+  <beans xmlns="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+                             http://www.springframework.org/schema/beans/spring-beans.xsd">
+  
+      <!-- 定义 MyBean，并通过 property 注入值 -->
+      <bean id="myBean" class="com.example.MyBean">
+          <property name="xxx" value="10" />
+      </bean>
+  
+  </beans>
+  ```
+
+- 引用类型通过ref注入
+
+
+
+**构造器注入**
+
+**xml自动装配**
+
+使用`bean`标签内`autowire`属性
+
+
+
+**`@Autowired`**
+
+通过反射注入
+
+
+
+**springboot使用 `@Value` 注入配置属性**
+
+Spring Boot 提供了 `@Value` 注解，用于将配置文件（如 `application.properties` 或 `application.yml`）中的值注入到 Bean 的属性中。
+
+
 
 
 
@@ -203,6 +306,124 @@ Spring技术对IoC思想进行了实现
 ### `@RequestBody`
 
 是Spring框架内的一个注解，主要用于将**HTTP请求体**中的内容绑定到方法参数上，它通常和@PostMapping或其他需要接收请求体的HTTP方法注解一起使用，用于处理JSON、XML或其他格式的请求数据。
+
+
+
+### Bean
+
+#### `@Component`
+
+配置bean
+
+```java
+@Component
+@Component("bookDao")
+```
+
+如果没有为 `@Component` 提供参数，Spring 会默认使用类名（首字母小写）作为 Bean 的名称。
+
+springboot提供@Component注解的三个衍生注解
+
+- @Controller：表现层bean定义
+- @Service：业务层Bean定义
+- @Repository：数据层Bean定义
+
+
+
+#### `@Autowired`
+
+默认是根据**类型**来实现Bean的依赖注入
+
+告诉 Spring 去查找一个符合要求的 Bean，并将其注入到目标位置。
+
+```java
+@Autowired
+private MyService myService;
+```
+
+常用参数：
+
+1. required
+   - 说明：`required` 参数用来指定是否必须要注入该依赖。
+   - 默认值：true
+
+```java
+@Autowired(required = false)
+private Optional<MyService> myService;
+```
+
+如果有多个相同类型的bean，使用`@Qualifier`
+
+- 自动装配基于反射设计创建对象并暴力反射对应属性为私有属性初始化数据，因此无需提供setter方法
+- <span style="color:red">自动装配建议使用无参构造方法创建对象（默认）</span>，如果不提供对应构造方法，请提供唯一的构造方法
+
+
+
+#### @Qualifier
+
+在 Spring 中，`@Qualifier` 注解通常与 `@Autowired` 一起使用
+
+默认情况下，Spring 容器中的 Bean 是按类型进行注入的。如果存在多个同类型的 Bean，Spring 就会抛出异常（`NoUniqueBeanDefinitionException`），因为它无法确定要注入哪个 Bean。
+
+为了解决这种冲突，可以使用 `@Qualifier` 注解来指定具体的 Bean。
+
+```java
+@Component("beanA")
+public class MyServiceA implements MyService {
+    // 实现类 A
+}
+
+@Component("beanB")
+public class MyServiceB implements MyService {
+    // 实现类 B
+}
+
+@Autowired
+@Qualifier("beanA")
+private MyService myService; // 指定注入 beanA
+```
+
+
+
+#### `@Value`
+
+使用`@Value`实现简单类型注入
+
+```properties
+app.name=MyApplication
+app.version=1.0.0
+```
+
+```java
+@Component
+public class AppConfig {
+
+    @Value("${app.name}")
+    private String appName;
+
+    @Value("${app.version}")
+    private String appVersion;
+
+    public void printConfig() {
+        System.out.println("应用名称: " + appName);
+        System.out.println("应用版本: " + appVersion);
+    }
+}
+```
+
+
+
+#### `@Bean`
+
+使用`@Bean`管理第三方Bean
+
+
+
+
+
+
+
+
 
 
 
