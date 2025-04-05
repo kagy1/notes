@@ -10,6 +10,8 @@
 
 ## DDL
 
+DDL（data definition language）数据定义语言
+
 ### 创建表
 
 ```sql
@@ -176,6 +178,8 @@ alter table users drop column mobile;
 
 ## DML
 
+DML（data manipulation language）数据操纵语言
+
 ### 插入
 
 ```sql
@@ -207,7 +211,11 @@ delete from category where cid = 1;
 
 
 
+## DCL
 
+DCL（DataControlLanguage）数据库控制语言
+
+用来设置或更改数据库用户或角色权限的语句
 
 
 
@@ -218,7 +226,7 @@ delete from category where cid = 1;
 ```sql
 select * from Customers where state in('VA','GA','Fl')
 -- 等同于
-select * from Customers where state = 'VA' or 'GA' or 'FL'
+select * from Customers where state = 'VA' or state = 'GA' or state = 'FL'
 ```
 
 
@@ -347,20 +355,6 @@ SELECT MIN(salary) FROM employees; -- 查询员工表中的最低工资
 SELECT MIN(hire_date) FROM employees; -- 查询员工表中最早的入职日期
 ```
 
-**LISTAGG**
-
-将组内的多个字符串连接成一个字符串。Oracle 11g中引入
-
-语法: LISTAGG(column [, delimiter]) WITHIN GROUP (ORDER BY column)
-
-```sql
-SELECT department_id, LISTAGG(last_name, ', ') WITHIN GROUP (ORDER BY last_name) AS employees
-FROM employees
-GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗号连接成一个字符串
-```
-
-
-
 ### 数值函数
 
 1. ABS(n) - 返回 n 的绝对值。
@@ -399,20 +393,83 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
 ### 字符型函数
 
 1. LENGTH(char) - 返回字符串的长度
-2. SUBSTR(char, m [, n]) - 返回字符串的子串,从位置 m 开始,截取 n 个字符。如果省略 n,则返回从位置 m 到字符串末尾的子串。
+
+2. SUBSTR(char, m [, n]) - 返回字符串的子串,从位置 m 开始,截取 n 个字符。如果省略 n,则返回从位置 m 到字符串末尾的子串。从1开始计数。
+
+   ```sql
+   SELECT SUBSTR('hello world', 1, 5) AS part1, -- 从第 1 个字符开始，截取 5 个字符  hello	
+          SUBSTR('hello world', 7, 5) AS part2  -- 从第 7 个字符开始，截取 5 个字符  world
+   FROM dual;
+   ```
+
 3. INSTR(char, substr [, m [, n]]) - 在字符串 char 中查找子串 substr,返回子串的位置。可选参数 m 指定开始搜索的位置,n 指定第 n 次出现的位置。
+
+   ```sql
+   select instr('hello world',' ') from dual;  -- 6
+   ```
+
 4. CONCAT(char1, char2) - 连接两个字符串。
+
+   ```sql
+   select CONCAT('hello',' world') from dual;  -- hello world
+   ```
+
 5. UPPER(char) - 将字符串转换为大写。
+
 6. LOWER(char) - 将字符串转换为小写。
+
 7. INITCAP(char) - 将字符串中每个单词的首字母转换为大写,其余字母转换为小写。
+
+   ```sql
+   select INITCAP('hello world') from dual;  -- Hello World
+   ```
+
 8. LPAD(char, n [, padstr]) 和 RPAD(char, n [, padstr]) - 在字符串的左侧或右侧填充字符,使字符串的长度达到 n。如果省略 padstr,则使用空格填充。
+
 9. TRIM([leading | trailing | both] [trimstr] from char) - 从字符串的开头、结尾或两端删除指定的字符。如果省略 trimstr,则删除空格。
-10. REPLACE(char, search_string, replacement_string) - 将字符串中的 search_string 替换为 replacement_string。
-11. REGEXP_LIKE(char, pattern [, match_option]) - 检查字符串是否匹配正则表达式 pattern。
-12. REGEXP_SUBSTR(char, pattern [, position [, occurrence [, match_param]]]) - 返回字符串中匹配正则表达式 pattern 的子串。
-13. REGEXP_REPLACE(char, pattern [, replacement [, position [, occurrence [, match_param]]]]) - 将字符串中匹配正则表达式 pattern 的部分替换为 replacement。
-14. TRANSLATE(char, from_string, to_string) - 将字符串中的字符依次替换为 to_string 中对应位置的字符。
-15. LTRIM(char [, set]) 和 RTRIM(char [, set]) - 从字符串的开头或结尾删除 set 中指定的字符。如果省略 set,则删除空格。
+
+   ```sql
+   select trim('   hello world   ') from dual;  -- hello world
+   ```
+
+10. TRANSLATE(char, from_string, to_string) - 将字符串中的字符依次替换为 to_string 中对应位置的字符。
+
+11. LTRIM(char [, set]) 和 RTRIM(char [, set]) - 从字符串的开头或结尾删除 set 中指定的字符。如果省略 set,则删除空格。
+
+### 集合表达式
+
+1. **LISTAGG**
+
+   将组内的多个字符串连接成一个字符串。Oracle 11g中引入
+
+   语法: LISTAGG(column [, delimiter]) WITHIN GROUP (ORDER BY column)
+
+   ```sql
+   SELECT department_id, LISTAGG(last_name, ', ') WITHIN GROUP (ORDER BY last_name) AS employees
+   FROM employees
+   GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗号连接成一个字符串
+   ```
+
+2. GROUPING
+
+   判断列是否在 `GROUP BY` 中被分组。
+
+   `GROUPING(column)` 返回值：
+
+   - `0`：表示该列是普通的分组列（不是汇总行）。
+   - `1`：表示该列是汇总行的一部分（即 `ROLLUP` 或 `CUBE` 产生的数据）。
+
+3. ROLLUP
+
+   能够在分组的基础上自动生成**小计**和**总计**行
+
+   ```sql
+   SELECT 
+       CASE WHEN GROUPING(PAT_ID) = '1' THEN '合计' ELSE PAT_ID END,
+       SUM(ssje) 
+   FROM his.PAT_INPAT_ORDER_COST
+   GROUP BY ROLLUP (PAT_ID);
+   ```
 
 
 
@@ -432,7 +489,7 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
 
 7. LAST_VALUE(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 返回窗口框架中最后一行的 expr 值。
 
-8. SUM(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 计算窗口框架中 expr 的累计和。
+8. SUM(expression) OVER ([PARTITION BY column] [ORDER BY column])：计算窗口框架中 expr 的累计和。
 
    输出的行数与原始数据的行数相同
 
@@ -440,15 +497,56 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
 
 10. COUNT(expr) OVER (ORDER BY ... [ROWS|RANGE BETWEEN ...]) - 计算窗口框架中 expr 的累计计数。
 
+### 正则函数
+
+1. REPLACE(char, search_string, replacement_string) - 将字符串中的 search_string 替换为 replacement_string。
+
+2. REGEXP_LIKE(char, pattern [, match_option]) - 检查字符串是否匹配正则表达式 pattern。
+
+3. REGEXP_SUBSTR(char, pattern [, position [, occurrence [, match_param]]]) - 返回字符串中匹配正则表达式 pattern 的子串。
+
+   - char：要从中提取子字符串的输入字符串。
+   - pattern：正则表达式模式，用于匹配字符串中的部分内容。
+   - position：可选，表示从字符串的第几个字符开始搜索，默认为1
+   - occurrence：可选，表示匹配的第几次出现，默认是1
+
+   ```sql
+   SELECT REGEXP_SUBSTR('Item 123 costs $456', '\d+', 1, 1) AS result FROM dual;
+   ```
+
+4. REGEXP_REPLACE(char, pattern [, replacement [, position [, occurrence [, match_param]]]]) - 将字符串中匹配正则表达式 pattern 的部分替换为 replacement。
+
+
+
+
+
+### NULL相关函数
+
+1. NVL(expr1, expr2) - 如果 expr1 为 NULL,则返回 expr2;否则返回 expr1。
+
+2. NVL2：扩展版的 `NVL`，可以根据表达式是否为 `NULL` 返回不同的值。
+
+   ```sql
+   select nvl2(null,'has value','no value') from dual;  -- no value
+   ```
+
+3. NULLIF(expr1, expr2) - 如果 expr1 等于 expr2,则返回 NULL;否则返回 expr1。
+
+   ```sql
+   SELECT NULLIF(salary, bonus) AS result FROM employees;  -- 如果 salary 等于 bonus，返回 NULL，否则返回 salary。
+   ```
+
+4. COALESCE(expr1, expr2, ..., exprn) - 返回第一个非 NULL 的表达式。
+
+   ```sql
+   select coalesce(null,null,'hello world',null) from dual;  -- hello world
+   ```
+
 
 
 ### 其他函数
 
-1. NVL(expr1, expr2) - 如果 expr1 为 NULL,则返回 expr2;否则返回 expr1。
-
-2. COALESCE(expr1, expr2, ..., exprn) - 返回第一个非 NULL 的表达式。
-
-3. DECODE(expr, search1, result1 [, search2, result2 ] ... [, default]) - 将 expr 依次与 search 比较,返回匹配的 result。如果没有匹配,则返回 default。
+1. DECODE(expr, search1, result1 [, search2, result2 ] ... [, default]) - 将 expr 依次与 search 比较,返回匹配的 result。如果没有匹配,则返回 default。
 
    ```sql
    -- 根据 department_id 返回不同的部门名称
@@ -462,7 +560,7 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
    FROM employees;
    ```
 
-4. CASE WHEN condition1 THEN result1 [WHEN condition2 THEN result2] ... [ELSE default] END - 根据条件返回不同的结果。
+2. CASE - 根据条件返回不同的结果。
 
    ```sql
    -- 根据 salary 返回不同的工资等级
@@ -476,29 +574,82 @@ GROUP BY department_id;  -- 按部门分组,把每个部门的员工姓名用逗
    FROM employees;
    ```
 
-5. GREATEST(expr1, expr2, ..., exprn) - 返回表达式列表中的最大值。
+3. GREATEST(expr1, expr2, ..., exprn) - 返回表达式列表中的最大值。
 
    ```sql
    -- GREATEST 和 LEAST
    SELECT GREATEST(10, 20, 30) FROM DUAL; -- 返回 30
    ```
 
-6. LEAST(expr1, expr2, ..., exprn) - 返回表达式列表中的最小值。
+4. LEAST(expr1, expr2, ..., exprn) - 返回表达式列表中的最小值。
 
    ```sql
    SELECT LEAST('Apple', 'Banana', 'Cherry') FROM DUAL; -- 返回 'Apple'
    SELECT LEAST(SYSDATE, DATE '2023-12-31') FROM DUAL; -- 返回当前日期
    ```
 
-7. NULLIF(expr1, expr2) - 如果 expr1 等于 expr2,则返回 NULL;否则返回 expr1。
+5. TO_CHAR(date|number [, format]) - 将日期或数字转换为字符串。
 
-8. TO_CHAR(date|number [, format]) - 将日期或数字转换为字符串。
+   
 
-9. TO_DATE(char [, format]) - 将字符串转换为日期。
+6. TO_DATE(char [, format]) - 将字符串转换为日期。
 
-10. TO_NUMBER(char [, format]) - 将字符串转换为数字。
+7. TO_NUMBER(char [, format]) - 将字符串转换为数字。
 
-11. CAST(expr AS type) - 将表达式转换为指定的数据类型。
+8. CAST(expr AS type) - 将表达式转换为指定的数据类型。
+
+### CASE
+
+#### 简单CASE表达式
+
+```sql
+CASE expression
+    WHEN value1 THEN result1
+    WHEN value2 THEN result2
+    ...
+    ELSE default_result
+END
+```
+
+示例
+
+```sql
+select pat_id,
+       pat_name,
+       case XB_ID
+            when '1' then '男'
+            when '2' then '女'
+            else '未知'
+       end as 性别
+from his.PAT_INFO i;
+```
+
+#### 搜索CASE表达式
+
+```sql
+CASE
+    WHEN condition1 THEN result1
+    WHEN condition2 THEN result2
+    ...
+    ELSE default_result
+END
+```
+
+示例
+
+```sql
+SELECT pat_id,
+       pat_name,
+       CASE
+           WHEN CS_RQ > TO_DATE('2000', 'yyyy') THEN 'young'
+           WHEN CS_RQ <= TO_DATE('2000', 'yyyy') THEN 'old'
+       END AS age_group
+FROM his.PAT_INFO i;
+```
+
+
+
+
 
 
 
@@ -643,6 +794,16 @@ where not exists(
 
 
 ## 日期 & 时间
+
+### 日期常量
+
+在 Oracle 中，也可以使用日期常量 `DATE 'YYYY-MM-DD'`，这是 Oracle 提供的一种更简洁的写法。
+
+```sql
+select * from his.PAT_INFO i where i.CS_RQ > Date '2020-01-01';
+```
+
+
 
 ### 基本类型
 
@@ -997,8 +1158,19 @@ alter user zhangsan identified by "123456";
 ### 特点 ACID
 
 1. 原子性(**Atomicity**)：一个事务是不可再分割的整体，要么都执行要么都不执行
+
 2. 一致性(**Consistency**)：一个事务的执行不能破坏数据库数据的完整性和一致性
+
+   一个事务执行之前和执行之后，数据库数据必须保持一致状态。数据库的一致性状态必须有用户来负责，由并发控制机制实现。
+
+   就拿网上购物来说，你只有让商品出库，又让商品进入顾客的购物车才能构成一个完整的事务。
+
+   事务一致性的核心在于：**事务执行前后，数据库的数据状态必须符合业务规则**。
+
 3. 隔离性(**Isolation**)：一个事务不受其它事务的干扰，多个事务是互相隔离的
+
+   
+
 4. 持久性(**Durability**)：一个事务一旦提交了，则永久的持久化到本地
 
 
@@ -1039,6 +1211,221 @@ ROLLBACK TO SAVEPOINT save1;
 
 
 
+### 事务并发存在的问题
+
+#### 脏读
+
+脏读（Dirty Read）
+
+脏读指的是一个事务读取了另一个事务尚未提交的数据。如果该事务回滚了，已经读取的数据就变成了无效数据。这种情况会导致数据的不一致。
+
+- **事务 A** 修改了一条数据，但尚未提交。
+- **事务 B** 在事务 A 提交之前读取了这条数据。
+- 如果事务 A 随后回滚，则事务 B 读取到的数据是无效的，因为它读取的是未提交的临时数据。
+
+脏读的出现是因为事务隔离级别设置为 **READ UNCOMMITTED（读未提交）**。在这种隔离级别下，允许事务读取未提交的数据，从而导致脏读。
+
+Oracle 的事务隔离级别默认是 **READ COMMITTED**，在 READ COMMITTED 隔离级别下，事务只能读取已经 **提交的数据**，无法读取未提交的数据，从而避免了脏读的发生。
+
+
+
+#### 幻读
+
+幻读指的是在事务中多次执行相同的查询语句时，结果集的行数因另一个事务的插入或删除而发生变化。例如，第一次查询时结果中没有某些数据，但在同一个事务中再次查询时，其他事务新增的数据“幻影”般出现在结果中。
+
+- **事务 A** 查询满足某个条件的所有记录。
+- **事务 B** 插入了一些新记录，这些记录满足事务 A 的查询条件。
+- 当 **事务 A** 再次执行相同查询时，结果集中出现了事务 B 插入的新记录，这就是“幻读”。
+
+在某些场景下，业务逻辑要求事务在执行期间的查询结果保持一致。例如，银行系统中的一些操作可能需要确保一个时间点上的数据视图不会受到其他事务的影响。
+
+
+
+
+
+#### 不可重复读
+
+不可重复读是指在一个事务中，**多次读取同一条数据时，**由于其他事务对该数据进行了**修改或删除**并提交，导致当前事务的**两次读取结果不一致。**
+
+不可重复读通常发生在事务隔离级别较低（如 **READ COMMITTED**）的情况下，因为在这种隔离级别下，事务每次读取的都是最新的已提交数据。
+
+- **事务 A** 读取某条数据的当前值。
+- **事务 B** 修改了该数据并提交。
+- **事务 A** 再次读取同一条数据，发现数据的值发生了变化。
+
+
+
+#### 区别
+
+不可重复读：其他事务修改或删除了现有的记录，UPDATE` 或 `DELETE
+
+幻读：其他事务插入了新的记录，INSERT，涉及整个查询范围
+
+
+
+
+
+
+
+### MVVC 多版本并发控制
+
+Oracle 采用了一种基于 **多版本并发控制（MVCC, Multi-Version Concurrency Control）** 的机制来管理事务的并发。
+
+1. 读操作通常不加锁，而是读取数据的一个快照（一致性读视图），避免了读-写冲突
+2. 写操作默认使用排他锁(Exclusive Lock)，防止其他事务同时修改相同数据
+3. 对于事务冲突处理，Oracle主要依靠悲观锁策略，即先锁定再操作
+
+
+
+
+
+
+
+
+
+## 锁
+
+### 行级锁 & 表级锁
+
+**行级锁：**
+
+- 当事务对某一行执行 `UPDATE` 或 `DELETE` 操作时，会自动加上行级排他锁。
+- 其他事务无法修改或删除该行，但可以读取（除非使用 `SELECT ... FOR UPDATE`）。
+- 行级锁不会阻塞对同一个表中其他行的访问。
+
+
+
+**表级锁：**
+
+- 表级锁通常由显式语句触发，如 `LOCK TABLE`。
+
+
+
+### 乐观锁 & 悲观锁
+
+**乐观锁：**
+
+在操作数据时乐观，认为别的线程不会同时修改数据，所以不会上锁，但是在更新时判断一下此期间别的线程有没有更新过这个数据。
+
+乐观的认为数据在select出来到update并提交的这段时间，数据不会被更改。这里面有一种潜在的危险就是由于被选出的结果集并没有被锁定，因而存在被其他用户更改的可能。因此Oracle仍然建议是用悲观封锁，因为这样会更安全。
+
+- 如果同步资源没有被其他线程修改，直接更新内存中同步资源的值
+- 如果同步资源被其他线程修改了，那么根据需要执行不同的操作
+
+```sql
+-- 事务 A
+BEGIN;
+
+-- 查询当前数据和版本号
+SELECT salary, version 
+FROM employees 
+WHERE employee_id = 101;
+
+-- 假设查询结果为：salary = 5000, version = 1
+
+-- 修改数据，同时校验版本号
+UPDATE employees 
+SET salary = salary + 1000, version = version + 1 
+WHERE employee_id = 101 AND version = 1;
+
+-- 提交事务
+COMMIT;
+```
+
+```sql
+-- 如果事务 B 在事务 A 提交前尝试执行类似的 UPDATE
+UPDATE employees 
+SET salary = salary + 500, version = version + 1 
+WHERE employee_id = 101 AND version = 1;
+-- 那么事务 B 的更新会失败，因为事务 A 已经将 version 从 1 修改为 2，事务 B 的条件 version = 1 不成立。
+```
+
+
+
+
+
+**悲观锁：**
+
+在操作数据时悲观，每次拿数据的时候认为别的线程也会同时修改数据，所以每次在拿数据的时候都会上锁，这样别的现场想拿这个数据就会阻塞直到它拿到锁。
+
+- **在操作前加锁**：排他锁在事务开始时（如 `UPDATE` 或 `FOR UPDATE`）对行加锁，防止并发修改。
+- **等待机制**：如果一个事务持有排他锁，其他事务需要等待锁释放，才能继续对相同资源进行操作。
+- **冲突预防**：通过锁机制避免多个事务对同一资源的并发修改，确保数据一致性。
+
+
+
+
+
+
+
+### 共享锁 & 排他锁
+
+| 基本锁类型   | 简称                     | 能否再加锁 | 能否读数据 | 当前线程能否改数据 |
+| ------------ | ------------------------ | ---------- | ---------- | ------------------ |
+| 共享锁(读锁) | Share Locks，即 S 锁     | √          | √          | ×                  |
+| 排他锁(写锁) | Exclusive Locks，即 X 锁 | ×          | √          | √                  |
+
+1. 能否再加锁
+   (1) 如果 事务T 对 数据A 加上 '共享锁' 后，则其它事务只能对 A 再加 共享锁，不能加 排他锁
+   (2) 如果 事务T 对 数据A 加上 '排他锁' 后，则其它事务不能再对 A 加任任何类型的锁
+2. 能否读取和修改数据 
+   (1) 获得 '共享锁' 的事务只能读数据，不能修改数据 
+   (2) 获准 '排他锁' 的事务既能读数据，又能修改数据
+
+**共享锁**:
+
+多个线程可以共享资源，同时读取数据和资源，但是不允许出现写操作。多个线程可以同时持有读锁，提高并发性能，因为不会对数据修改。
+
+允许多个事务同时读取数据，但限制其他事务对该数据进行修改。
+
+**当前线程（事务）在持有共享锁（Share Lock）时也无法修改数据**。
+
+
+
+
+
+**排他锁**：
+
+只允许一个线程独占地对共享资源进行写操作，其他线程无法同时持有写锁或读锁。写锁的目的是保证在写操作期间没有其他线程对资源进行读或写操作，从而确保数据的一致性。
+
+当你在 `SELECT` 查询中使用 `FOR UPDATE` 时，数据库会对返回的**每一行**加上排他锁。排他锁会阻止其他事务对这些行进行修改（`UPDATE` 或 `DELETE`）。但是，**其他事务仍然可以读取这些行**（读取不会被阻止，因为读取使用的是共享锁或无锁机制）。
+
+- `UPDATE` 操作会自动对被修改的行加排他锁。
+
+  ```sql
+  UPDATE employees 
+  SET salary = salary + 1000
+  WHERE department_id = 10;
+  -- 在这里，department_id = 10 的所有行都会被加排他锁。
+  ```
+
+- `FOR UPDATE` 是一种显式加锁的机制，仅用于加排他锁，但不会修改数据。
+
+  ```sql
+  SELECT * 
+  FROM employees 
+  WHERE department_id = 10
+  FOR UPDATE;
+  ```
+
+当一个事务通过 `FOR UPDATE` 给某些行加了排他锁时：
+
+- 当前事务拥有行的排他权，可以对加锁的行进行读写操作（`SELECT`/`UPDATE`/`DELETE`）。
+
+  <span style="color:red">其他事务无法获取这些行的任何锁，也就无法对这些行进行修改或删除。</span>
+
+- 其他事务尝试修改时会被阻塞，如果另一个事务尝试修改加锁的行，数据库会尝试获取排他锁。由于排他锁是不可共享的，另一个事务会被阻塞，直到持锁事务释放锁（通过 `COMMIT` 或 `ROLLBACK`）。
+
+
+
+
+
+### 死锁
+
+
+
+
+
 
 
 
@@ -1047,18 +1434,63 @@ ROLLBACK TO SAVEPOINT save1;
 
 ## PLSQL
 
-在任何一个ORACLE 的PL/SQL块中至少需要一个BEGIN..END来表示这是一个完整的块。这些PL/SQL块包括DECLARE开头的自定义虚拟块,存储过程,函数,包等
+PL/SQL（Procedural Language/Structured Query Language）是 Oracle 为其数据库系统设计的一种过程化扩展语言。
+
+在任何一个ORACLE 的PL/SQL块中至少需要一个BEGIN..END来表示这是一个完整的块。
+
+这些PL/SQL块包括DECLARE开头的自定义虚拟块,存储过程,函数,包等.
 
 ### 格式
 
 ```sql
-declare
-  --声明变量
-          
-begin
-  --业务逻辑
+DECLARE
+   -- 声明部分：定义变量、游标、常量等
+   variable_name data_type [NOT NULL] := initial_value;
+BEGIN
+   -- 执行部分：实现主要的业务逻辑
+   -- SQL 语句和 PL/SQL 逻辑
+   NULL; -- 空操作
+EXCEPTION
+   -- 异常处理部分：捕获和处理错误
+   WHEN exception_name THEN
+      -- 错误处理逻辑
+END;
+```
 
-end;
+```sql
+DECLARE
+   v_name VARCHAR2(50); -- 声明变量
+   v_age NUMBER := 30;  -- 声明变量并赋初值
+   c_max_attempt CONSTANT NUMBER := 5; -- 声明常量
+BEGIN
+   v_name := 'John';
+   DBMS_OUTPUT.PUT_LINE('Name: ' || v_name || ', Age: ' || v_age);
+END;
+```
+
+```sql
+DECLARE
+    name  VARCHAR2(20);
+    patID VARCHAR2(20);
+    CSRQ  DATE;
+BEGIN
+    SELECT pat_name, pat_id, CS_RQ
+    INTO name, patID, CSRQ
+    FROM his.PAT_INFO
+    WHERE PAT_ID = '77003810';
+
+    -- 格式化输出日期
+    DBMS_OUTPUT.PUT_LINE(name);
+    DBMS_OUTPUT.PUT_LINE(patID);
+    DBMS_OUTPUT.PUT_LINE(TO_CHAR(CSRQ, 'YYYY-MM-DD HH24:MI:SS'));
+EXCEPTION
+    WHEN no_data_found THEN
+        DBMS_OUTPUT.PUT_LINE('No data found.');
+    WHEN too_many_rows THEN
+        DBMS_OUTPUT.PUT_LINE('Too many rows.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error occurred.');
+END;
 ```
 
 
@@ -1096,11 +1528,9 @@ end;
 
 ```
 
+### 循环
 
-
-
-
-### while循环
+#### while循环
 
 ```sql
 while 条件 loop
@@ -1120,7 +1550,7 @@ end;
 
 
 
-### for循环
+#### for循环
 
 ```sql
 for 变量  in [reverse] 起始值..结束值 loop
@@ -1149,7 +1579,7 @@ end;
 
 
 
-### loop循环
+#### loop循环
 
 ```sql
 loop
@@ -1172,7 +1602,7 @@ end;
 
 
 
-### 意外
+### 异常
 
 ```sql
 declare
@@ -1283,16 +1713,216 @@ WHERE condition;
 
 
 
+### 属性类型
+
+- 引用形：表名.列名%type
+- 记录形：表名%rowtype  存储整行数据
+
+```sql
+DECLARE
+    name  his.pat_info.PAT_NAME%type;
+    patID his.pat_info.PAT_ID%type;
+    CSRQ  his.pat_info.cs_rq%type;
+BEGIN
+    SELECT pat_name, pat_id, CS_RQ
+    INTO name, patID, CSRQ
+    FROM his.PAT_INFO
+    WHERE PAT_ID = '77003810';
+
+    -- 格式化输出日期
+    DBMS_OUTPUT.PUT_LINE(name);
+    DBMS_OUTPUT.PUT_LINE(patID);
+    DBMS_OUTPUT.PUT_LINE(TO_CHAR(CSRQ, 'YYYY-MM-DD HH24:MI:SS'));
+END;
+```
+
+```sql
+DECLARE
+    v_info his.pat_info%rowtype; -- 定义一个变量存储整行数据
+BEGIN
+    SELECT *
+    INTO v_info
+    FROM his.PAT_INFO
+    WHERE PAT_ID = '77003810';
+
+    -- 从 v_info 中提取字段值
+    DBMS_OUTPUT.PUT_LINE('Name: ' || v_info.pat_name);
+    DBMS_OUTPUT.PUT_LINE('Patient ID: ' || v_info.pat_id);
+    DBMS_OUTPUT.PUT_LINE('Birth Date: ' || TO_CHAR(v_info.CS_RQ, 'YYYY-MM-DD HH24:MI:SS'));
+END;
+```
+
+
+
+
+
+## 存储函数
+
+Oracle 存储函数（Stored Function）是一种在数据库中定义并存储的程序，可以通过调用它来执行特定的任务并返回一个值。存储函数与存储过程类似，但存储函数的主要特点是**必须返回一个值**，并且这个值可以直接在 SQL 语句中使用，比如 SELECT、INSERT、UPDATE 或 DELETE。
+
+### 特点
+
+1. **必须有返回值**：存储函数通过 `RETURN` 语句返回一个具体的值。
+2. **参数作用**：可以通过输入参数（`IN` 参数）接收外部传入值。
+3. **可在 SQL 语句中调用**：函数返回的值可以直接嵌入 SQL 语句中使用。
+4. **存储在数据库中**：函数存储在数据库的 `USER_OBJECTS` 或 `USER_PROCEDURES` 表中，可以反复调用。
+5. 与存储过程的区别：
+   - 存储函数必须返回值，而存储过程可以选择不返回值。
+   - 存储函数通常用于返回单个值，用于查询或计算；存储过程则更关注执行复杂逻辑。
+6. varchar2无法指定长度：在存储过程或存储函数的**参数**或**返回值**声明中，`VARCHAR2` 是不能指定长度的。
+7. 声明变量不使用declare：在 PL/SQL 中，`DECLARE` 是用于匿名块（`BEGIN ... END`）或 PL/SQL 块（例如 `DECLARE ... BEGIN ... END`）中声明变量的部分。但在存储函数或存储过程的定义中，变量直接声明在 `IS` 或 `AS` 部分内，而不需要使用 `DECLARE` 关键字。
+
+### 语法
+
+```sql
+CREATE [OR REPLACE] FUNCTION function_name
+  (parameter_name [IN] datatype, ...) -- 参数列表（可选）
+RETURN return_datatype                -- 返回值的数据类型
+IS | AS
+  -- 声明部分
+  variable_name datatype;
+BEGIN
+  -- 执行部分
+  -- 通过 RETURN 语句返回值
+  RETURN value;
+EXCEPTION
+  -- 异常处理部分（可选）
+  WHEN exception_name THEN
+    -- 异常处理逻辑
+END function_name;  -- function_name可省略
+/
+```
+
+```sql
+drop function function_name;  -- 删除函数
+```
+
+
+
+### 示例
+
+两数相加
+
+```sql
+create or replace function calculate_test
+    (num1 in number, num2 in number)
+return number
+is
+    result number;
+begin
+    result := num1 + num2;
+    return result;
+end;
+
+
+declare
+    total number;
+begin
+    total := calculate_test(10,20);
+    DBMS_OUTPUT.put_line(total);
+end;
+```
+
+字符串拼接
+
+```sql
+CREATE OR REPLACE FUNCTION contact_test
+    (v1 IN VARCHAR2, v2 IN VARCHAR2)
+RETURN VARCHAR2
+IS
+  result VARCHAR2(100); -- 定义一个足够大的长度
+BEGIN
+    result := v1 || v2; -- 字符串拼接
+    RETURN result;
+END;
+
+
+begin
+    DBMS_OUTPUT.put_line(contact_test('hello', 'world'));
+end;
+```
+
+查询姓名
+
+```sql
+CREATE OR REPLACE FUNCTION pat_name_find
+    (pat_idIn IN VARCHAR2)
+RETURN VARCHAR2
+IS
+    pat_name VARCHAR2(20); -- 定义变量
+BEGIN
+    -- 查询患者姓名
+    SELECT pat_name
+    INTO pat_name
+    FROM his.pat_info i
+    WHERE i.PAT_ID = pat_idIn;
+    -- 返回查询结果
+    RETURN pat_name;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN '未找到记录';
+    WHEN TOO_MANY_ROWS THEN
+        RETURN '多条记录';
+END;
+```
+
+查询密码
+
+```sql
+CREATE OR REPLACE FUNCTION find_password(no IN VARCHAR2)
+   RETURN VARCHAR2
+IS
+   pwd   VARCHAR2(20);   -- 用于存储密码
+BEGIN
+   -- 优先根据 KEYNO 查找密码
+   BEGIN
+      SELECT pwd
+        INTO pwd
+        FROM DICTMANAGE.dict_empe
+       WHERE KEYNO = no;
+      RETURN pwd; -- 如果找到，直接返回密码
+   EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+         NULL; -- 如果未找到，继续执行后续逻辑
+   END;
+
+   -- 如果 KEYNO 不存在，根据 XM 模糊查询
+   BEGIN
+      SELECT pwd
+        INTO pwd
+        FROM DICTMANAGE.dict_empe
+       WHERE XM LIKE '%' || no || '%';
+      RETURN pwd; -- 如果找到，直接返回密码
+   EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+         RETURN 'NO_DATA_FOUND'; -- 如果没有找到结果，返回特定字符串
+      WHEN TOO_MANY_ROWS THEN
+         RETURN 'TOO_MANY_ROWS'; -- 如果返回多行，返回特定字符串
+   END;
+
+EXCEPTION
+   WHEN OTHERS THEN
+      RETURN 'UNKNOWN_ERROR'; -- 捕获其他未处理的异常
+END;
+/
+```
+
 
 
 ## 存储过程
+
+Oracle 存储过程是一段存储在 Oracle 数据库中的程序代码，用于完成特定的任务或一系列操作。它是一种数据库对象，使用 PL/SQL（Procedural Language/Structured Query Language） 编写，封装了 SQL 语句和逻辑操作。
+
+
+
+### 基本语法
 
 ```sql
 CREATE [OR REPLACE] PROCEDURE procedure_name
 	-- 输入参数（IN）、输出参数（OUT）还是既是输入又是输出参数（IN OUT）。如果省略,默认为 IN。
 	-- [DEFAULT default_value]：参数的默认值,如果调用存储过程时没有传入该参数的值,就使用默认值。
     [(parameter_name [IN | OUT | IN OUT] data_type [DEFAULT default_value])]
-IS
+IS|AS
     -- 声明部分
     -- 在此声明局部变量、游标等
 BEGIN
@@ -1301,17 +1931,95 @@ BEGIN
     -- 可以包含 SQL 语句和 PL/SQL 控制结构
     
     -- 异常处理部分（可选）
-    EXCEPTION
-        WHEN exception_name THEN
-            -- 处理特定异常的代码
-        WHEN OTHERS THEN
-            -- 处理其他异常的代码
-END procedure_name;
+EXCEPTION
+    WHEN exception_name THEN
+        -- 处理特定异常的代码
+    WHEN OTHERS THEN
+        -- 处理其他异常的代码
+END procedure_name;  -- procedure_name可省略
+```
+
+**不带返回值的存储过程**：
+
+- 可以直接用 `CALL` 调用。
+- 也可以通过 `BEGIN ... END` 块调用。
+
+**带 `OUT` 参数的存储过程**：
+
+- 必须通过 PL/SQL 块调用，且使用变量接收 `OUT` 参数的值。
+- 不能直接用 `CALL` 获取 `OUT` 参数的结果。需要绑定变量再使用`CALL`
+
+- <span style="color:red">使用带有 `OUT` 参数的存储过程时，**需要将接收 `OUT` 参数的变量作为调用时的参数传入**</span>
+
+### 定义参数
+
+- IN 传入参数（可省略）
+- OUT 传出参数
+- IN OUT 传入传出参数
+
+### 与函数的区别
+
+| 特性     | 存储过程                                | 函数                               |
+| -------- | --------------------------------------- | ---------------------------------- |
+| 返回值   | 不返回值，但可以通过 `OUT` 参数返回结果 | 必须返回一个值（用 `RETURN` 语句） |
+| 调用方式 | 通过 `EXEC` 或 `CALL` 调用              | 可以在 SQL 语句中调用              |
+| 主要用途 | 执行一系列操作（如插入、更新等）        | 计算并返回单一值                   |
+| 使用场景 | 复杂的业务逻辑                          | 简单计算，比如求和或平方根         |
+
+### 示例
+
+示例1，不带返回值
+
+```sql
+CREATE OR REPLACE PROCEDURE greet_user (p_name IN VARCHAR2)
+AS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Hello, ' || p_name || '!');
+END greet_user;
+```
+
+调用
+
+```sql
+CALL say_hello('Alice');  -- 方式1
+
+BEGIN
+    say_hello('Alice');  -- 方式2
+END;
+```
+
+示例2，带OUT参数
+
+```sql
+CREATE OR REPLACE PROCEDURE calculate_square (
+    p_input    NUMBER,
+    p_output OUT NUMBER
+)
+IS
+BEGIN
+    p_output := p_input * p_input;
+END calculate_square;
+```
+
+必须在PL/SQL块中调用
+
+```sql
+DECLARE
+    input_val NUMBER := 5;
+    output_val NUMBER;
+BEGIN
+    calculate_square(input_val, output_val);
+    DBMS_OUTPUT.PUT_LINE('Square: ' || output_val);
+END;
 ```
 
 
 
-### 示例
+
+
+
+
+膳食系统
 
 ```sql
 create or replace procedure p_ssjk_receive
@@ -1443,7 +2151,7 @@ end;
 end p_ssjk_receive;
 ```
 
-### 调用
+调用
 
 ```sql
 declare
@@ -1558,6 +2266,250 @@ drop synonym syno_emp_update;
 
 
 
+```sql
+CREATE OR REPLACE PUBLIC SYNONYM PKG_INPAT4EMR FOR HIS.PKG_INPAT4EMR;
+
+GRANT EXECUTE ON PKG_INPAT4EMR TO PUBLIC;
+```
+
+
+
+## 触发器
+
+触发器（Trigger）是 Oracle 数据库中的一种存储在数据库中的 PL/SQL 程序块，它会在某些特定的事件发生时自动触发执行。
+
+### 分类
+
+根据触发时机分类
+
+- BEFORE 触发器：在执行 SQL 语句之前触发。
+
+- AFTER 触发器：在执行 SQL 语句之后触发。
+
+根据触发事件分类
+
+- DML 触发器：响应 INSERT、UPDATE、DELETE 操作。
+- DDL 触发器：响应 CREATE、ALTER、DROP 等操作。
+- 数据库触发器：响应数据库级别的事件（如用户登录、断开连接等）。
+
+根据作用对象分类
+
+- 行级触发器（FOR EACH ROW）：针对表中每一行数据的变更执行一次触发器逻辑。
+
+  它会在表的每一行被修改时执行，而不是只执行一次。
+
+- 语句级触发器：针对整个 SQL 语句执行一次。<span style="color:red">无法直接访问 :NEW 和 :OLD 伪记录，因为它不针对具体的行。</span>
+
+### 语法
+
+```sql
+CREATE [OR REPLACE] TRIGGER trigger_name
+{BEFORE | AFTER}
+{INSERT | UPDATE | DELETE} 
+[OF column_name] -- 针对特定列（可选）
+ON table_name
+[FOR EACH ROW] -- 行级触发器
+[WHEN (condition)] -- 条件触发（可选）
+BEGIN
+    -- 触发器逻辑
+    -- 可包含 PL/SQL 块
+END;
+/
+```
+
+- `trigger_name`：触发器的名称。
+- `BEFORE | AFTER `：指定触发器在 SQL 操作之前还是之后执行。
+- `INSERT | UPDATE | DELETE`：指定触发的操作类型。
+- `ON table_name`：触发器作用的表。
+- `[FOR EACH ROW]`：定义是否为行级触发器。如果省略，则为语句级触发器。
+- `[WHEN (condition)]`：为触发器添加条件限制，仅当条件满足时触发。
+
+```sql
+-- 禁用触发器
+ALTER TRIGGER trigger_name DISABLE;
+
+-- 启用触发器
+ALTER TRIGGER trigger_name ENABLE;
+
+-- 删除触发器
+DROP TRIGGER trigger_name;
+```
+
+
+
+### 伪记录 :old :new
+
+| 触发语句 | :old                 | :new                 |
+| -------- | -------------------- | -------------------- |
+| insert   | 所有字段都是空(null) | 将要插入的数据       |
+| update   | 更新以前改行的值     | 更新后的值           |
+| delete   | 删除以前该行的值     | 所有字段都为空(null) |
+
+
+
+### 示例
+
+```sql
+create trigger WARD_INSERT_UPDATE
+    after insert or update or delete
+    on DICT_WARD
+    for each row
+declare
+  l_yymc varchar2(50);
+begin
+  case  -- 也可以换成 if elseif
+    when inserting then
+      select yymc into l_yymc from dictmanage.dict_hospinfo where yydm=:new.fy_id and fbdm=:new.fb_id;
+      insert into comm.ward_dict a
+        (a.ward_code,a.ward_name,a.hospital_code,a.hospital_name,a.available,a.py)
+      values
+        (:new.ward_code,:new.ward_name,:new.fy_id,l_yymc,decode(:new.del_flag,'0','Y','N'),:new.pym);
+    when updating then
+      select yymc into l_yymc from dictmanage.dict_hospinfo where yydm=:new.fy_id and fbdm=:new.fb_id;
+      update comm.ward_dict b
+         set b.ward_name = :new.ward_name,
+         b.available = decode(:new.del_flag,'0','Y','N'),
+         b.hospital_code=:new.fy_id,b.hospital_name=l_yymc,
+         b.py = :new.pym
+      where b.ward_code = :new.ward_code ;
+    when deleting  then
+      delete comm.ward_dict c where c.ward_code = :old.ward_code;
+  end case;
+end;
+/
+```
+
+
+
+### 前置触发器
+
+#### 常见用途
+
+1. **数据校验**：
+   - 检查插入或更新的数据是否合法，满足业务规则。
+   - 如果不合法，可以通过抛出错误阻止操作。
+2. **默认值填充**：
+   - 在插入或更新时，为某些字段设置默认值。
+3. **自动计算或转换**：
+   - 根据业务规则，自动计算或修改某些列的值。
+4. **权限检查**：
+   - 检查当前用户是否有权限执行某些操作。
+5. **数据完整性**：
+   - 确保插入或更新的数据符合特定的完整性约束（除了数据库的外键、唯一性约束之外的业务逻辑）。
+
+#### 示例
+
+在插入员工数据时，如果没有提供 `hire_date`（入职日期），自动填充为当前日期。
+
+```sql
+CREATE OR REPLACE TRIGGER trg_set_hire_date
+BEFORE INSERT ON employees
+FOR EACH ROW
+BEGIN
+   -- 如果未指定入职日期，设置为当前日期
+   IF :NEW.hire_date IS NULL THEN
+      :NEW.hire_date := SYSDATE;
+   END IF;
+END;
+```
+
+在更新或插入员工工资时，确保工资不能低于 3000。如果不满足，抛出错误。
+
+```sql
+CREATE OR REPLACE TRIGGER trg_validate_salary
+BEFORE INSERT OR UPDATE ON employees
+FOR EACH ROW
+BEGIN
+   -- 检查工资是否小于 3000
+   IF :NEW.salary < 3000 THEN
+      RAISE_APPLICATION_ERROR(-20001, 'Salary must be at least 3000!');
+   END IF;
+END;
+```
+
+在插入或更新订单表时，根据订单数量和单价自动计算总金额。
+
+```sql
+CREATE OR REPLACE TRIGGER trg_calculate_total
+BEFORE INSERT OR UPDATE ON orders
+FOR EACH ROW
+BEGIN
+   -- 计算总金额
+   :NEW.total_amount := :NEW.quantity * :NEW.unit_price;
+END;
+```
+
+在插入或更新客户表时，将客户姓名转换为首字母大写格式。
+
+```sql
+CREATE OR REPLACE TRIGGER trg_format_name
+BEFORE INSERT OR UPDATE ON customers
+FOR EACH ROW
+BEGIN
+   -- 将客户姓名转换为首字母大写格式
+   :NEW.customer_name := INITCAP(:NEW.customer_name);
+END;
+```
+
+
+
+
+
+## 序列
+
+在oracle中，序列是用于产生一系列唯一数字的数据库对象。序列其实就是一个序列号生成器，可以为表中的行自动生成序列号。
+
+主要的用途是生成主键的值，并且定义序列的用户必须具有CREATE SEQUENCE权限。
+
+ **查看当前用户下的序列**
+
+```sql
+select * from user_sequences;
+```
+
+**创建序列**
+
+```sql
+create sequence 序列名;
+```
+
+```sql
+create sequence 序列名称
+start with n        --起始值，从n开始，默认为1
+increment by n      --设置步长为n，默认为1
+minvalue n          --设置最小值为n，默认为1
+maxvalue n          --设置最大值为n，可以不设置，不设置应写为 nomaxvalue ,也就是无穷大
+cycle               --达到最大值后循环或不循环，即当增长到最大值后，再从最小值重新开始。不循环应写为 nocycle ,
+cache n             --是否设置缓存，n默认为20
+```
+
+**从序列中取值**
+
+```sql
+select 序列名.nextval from dual;
+```
+
+**获取当前序列值**
+
+刚创建完序列后，必须先执行至少一次 nextval（序列取值操作） 后才能查询当前值，否则会报错。
+
+```sql
+select 序列名.currval from dual;
+```
+
+**修改序列**
+
+```sql
+alter sequence 序列名
+start with n       --修改起始值，若已经使用了，则无法修改
+increment by n     --increment值必须小于maxvalue与minvalue的差
+cache n            --cache值必须小于cycle值（即循环一次有几个数）
+```
+
+
+
+
+
 ## 游标
 
 ### 语法
@@ -1606,11 +2558,78 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('收费项目:'||v_sfxm_mc||', 医嘱ID:'||v_dyzyyzjl_id||', 住院流水号:'||v_zylsh);
   END LOOP;
 
-  CLOSE c_order_cost;
+  CLOSE c_order_cost;  -- 关闭游标
 END;
 ```
 
+```sql
+DECLARE
+    -- 定义游标
+    CURSOR c_pat_info IS
+        SELECT pat_name, PAT_ID, CJSJ
+        FROM his.pat_info
+        WHERE pat_name LIKE '李%';
+
+    -- 使用 ROWTYPE 定义变量
+    v_pat_info c_pat_info%ROWTYPE;
+BEGIN
+    OPEN c_pat_info;
+
+    LOOP
+        -- 将游标数据 FETCH 到 ROWTYPE 变量中
+        FETCH c_pat_info INTO v_pat_info;
+
+        -- 当游标没有更多数据时退出循环
+        EXIT WHEN c_pat_info%NOTFOUND;
+
+        -- 输出每一行的数据
+        DBMS_OUTPUT.PUT_LINE('Name: ' || v_pat_info.pat_name);
+        DBMS_OUTPUT.PUT_LINE('Patient ID: ' || v_pat_info.PAT_ID);
+        DBMS_OUTPUT.PUT_LINE('Created Time: ' || TO_CHAR(v_pat_info.CJSJ, 'YYYY-MM-DD HH24:MI:SS'));
+    END LOOP;
+
+    -- 关闭游标
+    CLOSE c_pat_info;
+END;
+```
+
+```sql
+DECLARE
+    -- 定义游标
+    CURSOR c_pat_inpat_order_cost IS
+        SELECT *
+        FROM his.PAT_INPAT_ORDER_COST c
+        WHERE TRUNC(SQ_RQ) = TO_DATE('2024-12-20', 'YYYY-MM-DD');
+    -- 使用游标行类型定义变量
+    v_pat_inpat_order_cost c_pat_inpat_order_cost%ROWTYPE;
+BEGIN
+    -- 打开游标
+    OPEN c_pat_inpat_order_cost;
+    LOOP
+        -- 获取游标数据
+        FETCH c_pat_inpat_order_cost INTO v_pat_inpat_order_cost;
+        -- 当游标没有更多数据时退出
+        EXIT WHEN c_pat_inpat_order_cost%NOTFOUND;
+        -- 判断条件并输出
+        IF v_pat_inpat_order_cost.SFXM_MC = '鼻导管吸氧' THEN
+            DBMS_OUTPUT.PUT_LINE(v_pat_inpat_order_cost.SFXM_MC);
+        END IF;
+    END LOOP;
+    -- 关闭游标
+    CLOSE c_pat_inpat_order_cost;
+END;
+```
+
+
+
 ### for循环使用游标
+
+如果使用 `FOR` 循环来遍历游标，**就不需要显式地 `OPEN` 或 `CLOSE` 游标**。`FOR` 循环会自动完成以下操作：
+
+1. 打开游标。
+2. 获取每一行数据。
+3. 检查是否到达游标末尾。
+4. 关闭游标。
 
 ```sql
 declare
@@ -1620,6 +2639,24 @@ begin
         dbms_output.put_line(v.SFXM_MC);
     end loop;
 end;
+```
+
+```sql
+DECLARE
+    -- 定义游标
+    CURSOR c_pat_inpat_order_cost IS 
+        SELECT * 
+        FROM his.PAT_INPAT_ORDER_COST c 
+        WHERE TRUNC(SQ_RQ) = TO_DATE('2024-12-20', 'YYYY-MM-DD');
+BEGIN
+    -- 使用 FOR 循环自动遍历游标
+    FOR v_pat_inpat_order_cost IN c_pat_inpat_order_cost LOOP
+        -- 判断条件并输出
+        IF v_pat_inpat_order_cost.SFXM_MC = '鼻导管吸氧' THEN
+            DBMS_OUTPUT.PUT_LINE(v_pat_inpat_order_cost.SFXM_MC);
+        END IF;
+    END LOOP;
+END;
 ```
 
 
@@ -1664,6 +2701,16 @@ drop index INX_CATEGORY_CNAME;
 
 
 
+
+
+
+
+## 唯一标识符
+
+
+
+
+
 ## for update & for update nowait
 
 ### for update
@@ -1671,6 +2718,7 @@ drop index INX_CATEGORY_CNAME;
 - `FOR UPDATE`子句用于锁定`SELECT`语句检索到的行，以便于进行更新操作。
 - 当使用`FOR UPDATE`时，如果所选行已经被其他事务锁定，当前事务将会等待，直到其他事务释放锁定。
 - 这样可以防止其他事务同时修改这些行，从而保证数据的一致性。
+- 在查询数据时同时对查询结果中的记录加上<span style="color:red;font-weight:bolder;">排他锁</span>，防止其他事务修改或删除这些记录。
 
 基本语法
 
@@ -1698,8 +2746,6 @@ FOR UPDATE NOWAIT;
 
 ### 使用场景
 
-### 使用场景
-
 - 使用`FOR UPDATE`适合那些可以等待其他事务释放锁定的场景，这样可以逐一处理数据行，确保数据的一致性。
 - `FOR UPDATE NOWAIT`适合那些需要立即知道是否可以锁定所需行的场景，如果无法立即获得锁定，则可以迅速做出响应或调整逻辑。
 
@@ -1710,6 +2756,46 @@ FOR UPDATE NOWAIT;
 ## 行列转换（列透视）
 
 ### CASE WHEN
+
+```sql
+SELECT
+    SUM(CASE WHEN SFXM_MC = '鼻导管吸氧' THEN SFXM_JE ELSE 0 END) AS 鼻导管吸氧,
+    SUM(CASE WHEN SFXM_MC = '一般专项护理' THEN SFXM_JE ELSE 0 END) AS 一般专项护理,
+    SUM(CASE WHEN SFXM_MC = '言语训练' THEN SFXM_JE ELSE 0 END) AS 言语训练
+FROM
+    his.PAT_INPAT_ORDER_COST c
+WHERE
+    TRUNC(c.SQ_RQ) = TO_DATE('2024-12-20', 'YYYY-MM-DD');
+```
+
+
+
+## ROLLUP分组汇总
+
+```sql
+SELECT 
+    CASE WHEN GROUPING(PAT_ID) = '1' THEN '合计' ELSE PAT_ID END,
+    SUM(ssje) 
+FROM his.PAT_INPAT_ORDER_COST
+GROUP BY ROLLUP (PAT_ID);
+```
+
+**`GROUP BY ROLLUP(PAT_ID)`**：
+
+- 这是一个分组扩展操作，用于生成分组汇总数据。
+- 它会按 `PAT_ID` 进行分组，同时会自动生成一行“总计”数据（即所有 `PAT_ID` 的汇总）。
+
+**`GROUPING(PAT_ID)`**：
+
+- 这是一个分析函数，用于判断某一行是否是由 `ROLLUP` 生成的汇总行。
+- 如果是汇总行，`GROUPING(PAT_ID)` 返回 `1`；否则返回 `0`。
+- `CASE WHEN GROUPING(PAT_ID) = '1' THEN '合计' ELSE PAT_ID END` 的作用是：
+  - 如果当前行是汇总行，显示“合计”。
+  - 如果当前行是普通明细行，显示具体的 `PAT_ID`。
+
+**`SUM(ssje)`**：
+
+- 按 `PAT_ID` 分组求和，同时计算所有分组的总和（即汇总行）。
 
 
 

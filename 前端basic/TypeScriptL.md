@@ -791,6 +791,26 @@ type A = Exclude<string | number | boolean, string>
 
 
 
+### PropType
+
+PropType 仅用于定义组件的 props 类型
+
+```typescript
+props: {
+    myProp: {
+        type: Object as PropType<MyType>,
+        required: true,
+    }
+}
+    
+props: {
+    items: {
+        type: Array as PropType<MyType[]>,
+        required: true,
+    }
+}
+```
+
 
 
 

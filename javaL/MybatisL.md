@@ -1,3 +1,13 @@
+# JDBC
+
+Java DataBase Connectivity（Java语言连接数据库）
+
+
+
+
+
+
+
 # Mybatis
 
 MyBatis 是一个优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的 JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML 或注解来配置和映射原生信息，将接口和 Java 的 POJOs（Plain Old Java Objects）映射成数据库中的记录。
@@ -316,6 +326,8 @@ ${}主要用于动态生成SQL语句,可以在SQL语句中插入一个不做任�
 
 **parameterType**
 
+`parameterType` 通常是不需要写的
+
 用于指定传递给 SQL 语句的参数的类型
 
 ```java
@@ -364,6 +376,9 @@ List<User> selectUsersByIds(Integer[] ids);
 </resultMap>
 ```
 
+- **`<id>`** 是用来标记主键字段的映射。**`column="user_id"`**: 数据库中表的列名为 `user_id`。**`property="id"`**: Java 类中属性的名称是 `id`。MyBatis 会将查询结果中 `user_id` 列的值映射到 `User` 类的 `id` 属性上。
+- **`<result>`** 用于映射非主键字段。数据库中 `user_name` 列对应 Java 类中的 `name` 属性。
+
 使用resultMap
 
 ```xml
@@ -404,7 +419,11 @@ List<User> selectUsersByIds(Integer[] ids);
 
 #### 动态SQL标签
 
-`<if>`
+**`<if>`**
+
+`test` 属性用于定义条件，条件为 `true` 时，MyBatis 会将 `<if>` 标签内的内容拼接到最终的 SQL 中；否则会忽略。
+
+`test` 属性的值是一个 OGNL 表达式（Object-Graph Navigation Language），可以用来对参数进行判断。
 
 ```xml
 <select id="selectAll6" parameterType="java.util.List" resultType="map">
@@ -449,10 +468,6 @@ MyBatis 的 `<where>` 标签可以自动处理 `AND` 的问题。如果 `<where>
 
 
 
-
-
-
-
 `<choose>`、`<when> `和 `<otherwise>`：用于实现类似`if-else`的条件逻辑
 
 - `<choose>`：类似 `switch`。
@@ -479,12 +494,18 @@ MyBatis 的 `<where>` 标签可以自动处理 `AND` 的问题。如果 `<where>
   </select>
   ```
 
+
+
 `<foreach>`：用于动态生成 SQL 的部分，特别适合处理集合（如数组、列表等）类型的参数
 
   **常见属性：**
 
   - **`collection`**：指定要遍历的集合名称（如 `list` 或 `map` 的键）。
-  - **`item`**：当前遍历的元素。
+    - 如果参数是一个 `List` 或 `数组`，如果你没有使用 `@Param` 注解，`collection="list"` 或 `collection="array"` 是默认值。
+    - 如果你使用了 `@Param` 注解，MyBatis 会使用你指定的名称作为参数绑定的名称，而不再使用默认的 `list` 或 `array`。
+    - 如果参数是一个 `Map`，`collection` 就是 Map 的键名。
+    - 如果参数是对象，`collection` 是对象中集合属性的名称。
+  - **`item`**：当前遍历的元素。和后续使用的 `#{}` 占位符中的变量名（如 `#{id}`）一致
   - **`index`**：当前元素的索引。
   - **`separator`**：分隔符，用于分隔生成的 SQL 片段。
   - **`open`**：拼接 SQL 的开头部分。
@@ -515,11 +536,44 @@ MyBatis 的 `<where>` 标签可以自动处理 `AND` 的问题。如果 `<where>
 
 
 
+```java
+@Test
+public void test2() {
+    List<String> pat_ids = new ArrayList<>(List.of("77003810","77004949"));
+    List<Map<String,Object>> result = testMapper.selectUersByPatIds(pat_ids);
+    System.out.println(result);
+}
+```
+
+```java
+List<Map<String, Object>> selectUersByPatIds(@Param("pat_ids") List<String> pat_ids);
+```
+
+```xml
+<select id="selectUersByPatIds" resultType="map">
+    select * from his.pat_info i
+    <where>
+        <if test="pat_ids != null and pat_ids.size > 0">
+            i.pat_id in
+            <foreach collection="pat_ids" item="pat_id" open="(" separator="," close=")">
+                #{pat_id}
+            </foreach>
+        </if>
+    </where>
+</select>
+```
+
+
+
+
+
 ## 注解开发
 
 一般不建议使用
 
 `@Select`、`@Insert`、`@Update`、`@Delete`
+
+写在mapper接口内
 
 ```java
 @Select("select * from his.pat_inpat_order_cost where pat_id = #{pat_id}")
@@ -533,6 +587,22 @@ public User selectById (int id)
 ## Example
 
 mybatis的的配置文件可以使用mybatis-generator工具生成，它就可以帮我们生成example类。
+
+用于封装复杂的查询条件
+
+
+
+### Criteria
+
+`Criteria` 是 `Example` 类中的一个内部类，表示单组查询条件。它封装了类似于 SQL 的 `WHERE` 子句中的条件逻辑，比如 `=`, `<`, `>`, `LIKE`, `IN`, 等常用操作。通过 `Criteria`，你可以灵活地添加多种条件组合。
+
+`Criteria` 是一个构建器模式，通过链式调用的方式逐步添加条件。
+
+
+
+
+
+
 
 
 
@@ -588,4 +658,72 @@ public class User {
     private String tempField;
 }
 ```
+
+
+
+
+
+## 分页查询
+
+```java
+@GetMapping("/page")
+public R<Page> page(int page, int pageSize, String name) {
+    log.info("page ={}, pageSize ={}, name ={}", page, pageSize, name);
+    // 构造分页构造器
+    Page pageInfo = new Page(page, pageSize);
+    // 构造查询条件
+    LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
+    // 添加过滤条件
+    queryWrapper.like((name != null && !name.trim().equals("")), Employee::getName, name);
+    // 添加排序条件
+    queryWrapper.orderByDesc(Employee::getUpdateTime);
+    // 执行查询
+    employeeService.page(pageInfo, queryWrapper);
+    return R.success(pageInfo);
+}
+```
+
+
+
+
+
+## MetaObjectHandler
+
+用于实现数据库操作时的字段自动填充功能。
+
+它可以帮助开发者在插入或更新记录时，自动填充特定字段，比如创建时间、更新时间、创建人等通用字段，从而减少重复代码。
+
+### 主要特点
+
+1. 自动填充：无需在每次插入或更新操作中手动设置字段值
+2. 集中管理：将字段填充逻辑集中在一处，便于维护
+3. 可定制性：可以根据业务需求自定义填充逻辑
+
+### 使用步骤
+
+1. 创建自定义类实现MetaObjectHandler接口
+2. 重写insertFill和updateFill方法
+3. 在实体类的字段上添加@TableField注解并设置fill属性
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

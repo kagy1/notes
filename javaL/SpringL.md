@@ -287,6 +287,12 @@ Spring Boot 提供了 `@Value` 注解，用于将配置文件（如 `application
 
 **类级注解**：`@Configuration` 标注在类上，表明这个类可以包含一个或多个 `@Bean` 方法，并且 Spring 容器可以使用该类作为配置类来生成 bean 定义和自动装配。
 
+**基本作用**：
+
+1. **声明配置类**：明确告诉Spring这个类不是普通的组件，而是一个配置源
+2. **支持@Bean方法定义**：配置类中可以使用@Bean注解定义Bean实例，用于取代bean.xml配置文件注册bean对象。
+3. **启用CGLIB代理**：默认情况下，Spring会用CGLIB创建配置类的子类代理
+
 ### `@Bean`
 
 **方法级注解**：用在方法上，声明这个方法返回一个 Spring 管理的 bean。该方法的返回值会被注册到 Spring IoC 容器中。
@@ -299,6 +305,30 @@ Spring Boot 提供了 `@Value` 注解，用于将配置文件（如 `application
 
 实际上结合了两个注解的功能：`@Controller` 和 `@ResponseBody`。
 
+#### `@ResponseBody`
+
+用于指示方法的返回值应该直接写入 HTTP 响应体（response body），而不是被视为视图名称（如 JSP 等）并由视图解析器解析。
+
+当在类级别上添加 `@ResponseBody` 注解时，它会对该控制器类中的所有处理方法生效，而不需要在每个方法上单独添加。
+
+如果开发的是纯 API 应用而不使用视图，几乎所有的请求处理方法都需要添加 `@ResponseBody` 注解。
+
+包含在@RestController中
+
+```java
+@Controller
+public class UserController {
+
+    @GetMapping("/user/{id}")
+    @ResponseBody
+    public User getUser(@PathVariable Long id) {
+        // 假设从服务层获取用户
+        User user = userService.findById(id);
+        return user; // 直接返回User对象，会被转换为JSON或XML
+    }
+}
+```
+
 
 
 
@@ -306,6 +336,74 @@ Spring Boot 提供了 `@Value` 注解，用于将配置文件（如 `application
 ### `@RequestBody`
 
 是Spring框架内的一个注解，主要用于将**HTTP请求体**中的内容绑定到方法参数上，它通常和@PostMapping或其他需要接收请求体的HTTP方法注解一起使用，用于处理JSON、XML或其他格式的请求数据。
+
+```java
+@PostMapping("/users")
+public User createUser(@RequestBody User user) {
+    // 从HTTP请求体中提取JSON/XML并转换为User对象
+    // 例如: {"name":"John","email":"john@example.com"}
+}
+```
+
+
+
+
+
+### `@PathVariable`
+
+`@PathVariable` 用于从 URL 路径中提取变量值。
+
+```java
+@GetMapping("/user/{id}")
+public User getUser(@PathVariable Long id) {
+    // 从URL路径中提取id值
+    // 例如: /user/123 会将id赋值为123
+}
+```
+
+
+
+### 全局异常处理
+
+#### `@ControllerAdvice`
+
+工作原理
+
+- 被 `@ControllerAdvice` 注解的类会被 Spring 自动检测和注册
+- 该类中的 `@ExceptionHandler` 方法将对所有控制器生效
+- 可以通过属性限制其应用范围（特定包、特定控制器类型等）
+
+
+
+#### `@ExceptionHandler`
+
+`@ExceptionHandler` 用于定义异常处理方法，可以捕获并处理特定类型的异常。
+
+1. 当控制器方法抛出异常时，Spring MVC 会寻找能处理该异常的 `@ExceptionHandler` 方法
+2. 查找顺序：当前控制器 → 全局异常处理器（`@ControllerAdvice`）
+3. 如果找到匹配的处理器，就使用它来处理异常并返回响应
+
+
+
+```java
+/**
+ * 全局异常处理
+ */
+@ControllerAdvice(annotations = {RestController.class, Controller.class})
+@ResponseBody
+@Slf4j
+public class GlobalExceptionHandler {
+    // 指定这个方法专门处理SQLIntegrityConstraintViolationException异常
+    // 这种异常通常在数据库操作违反完整性约束时抛出（如唯一键冲突、外键约束等）。
+    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+    public R<String> exceptionHandler(SQLIntegrityConstraintViolationException ex) {
+        log.error(ex.getMessage());
+        return R.error("失败了");
+    }
+}
+```
+
+
 
 
 
@@ -446,9 +544,321 @@ public class AppConfig {
 
 
 
+## SpringMVC
+
+### 拦截器
+
+拦截器(Interceptor)是一种动态拦截方法调用的机制，在SpringMVC中动态拦截控制器方法的执行
+
+- 作用
+  - 在指定的方法调用前后执行预先设定的代码
+  - 阻止原始方法的执行
+
+ 在拦截器当中，开发人员可以在应用程序中做一些**通用性**的操作，比如通过拦截器来拦截前端发来的请求，判断Session中是否有登录用户的信息,进行拦截。
 
 
-## Restful
+
+#### Spring使用
+
+1. 定义拦截器类，实现`HandlerInterceptor`接口
+
+2. 加上`@Component`注解
+
+3. 重写 preHandle，postHandle，afterCompletion 三个方法
+
+   ```java
+   @Component
+   public class ProjectInterceptor implements HandlerInterceptor {
+       @Override
+       public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+           System.out.println("preHandle");
+           return true;
+       }
+   
+       @Override
+       public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+           System.out.println("postHandle");
+       }
+   
+       @Override
+       public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+           System.out.println("afterCompletion");
+       }
+   }
+   ```
+
+   
+
+4. 定义辅助类，继承`WebMvcConfigurationSupport`类，或者实现`WebMvcConfigurer`接口。加上`@configuration`。（也可以写在config配置类里）
+
+5. 注入拦截器对象，重写`addInterceptors`方法
+
+   ```java
+   @Configuration
+   public class TestSupport extends WebMvcConfigurationSupport {
+       @Autowired
+       private ProjectInterceptor projectInterceptor;
+   
+       @Override
+       protected void addInterceptors(InterceptorRegistry registry) {
+           registry.addInterceptor(projectInterceptor).addPathPatterns("/test/**");
+       }
+   }
+   ```
+
+   结果
+
+   ```java
+   preHandle
+   name: LZT
+   postHandle
+   afterCompletion
+   ```
+
+   
+
+6. 拦截路径也可以配置在config类，使用`WebMvcConfiguration`
+
+
+
+#### yml配置
+
+不能直接通过 `application.yml` 文件来完成，因为拦截器是代码逻辑的一部分，路径的注册需要通过代码显式调用 `InterceptorRegistry` 来完成。
+
+不过，你可以将路径相关的配置（比如拦截的路径和排除的路径）写入 `application.yml` 文件，然后在代码中读取这些配置。
+
+
+
+1. 在 `application.yml` 中配置拦截路径
+
+你可以在 `application.yml` 中定义一个自定义配置，来表示拦截的路径和排除的路径。例如：
+
+```yaml
+custom:
+  interceptor:
+    include-paths:
+      - "/test/**"      # 配置需要拦截的路径
+      - "/admin/**"
+    exclude-paths:
+      - "/test/login"   # 配置不需要拦截的路径
+      - "/test/register"
+```
+
+2. 创建配置类读取 `yml` 配置
+
+使用 Spring 的 `@ConfigurationProperties` 注解读取 `application.yml` 中的自定义配置。
+
+自定义配置类
+
+```java
+@Component
+@ConfigurationProperties(prefix = "custom.interceptor") // 绑定到配置前缀 custom.interceptor
+public class InterceptorConfigProperties {
+
+    private List<String> includePaths; // 拦截路径
+    private List<String> excludePaths; // 排除路径
+
+    public List<String> getIncludePaths() {
+        return includePaths;
+    }
+
+    public void setIncludePaths(List<String> includePaths) {
+        this.includePaths = includePaths;
+    }
+
+    public List<String> getExcludePaths() {
+        return excludePaths;
+    }
+
+    public void setExcludePaths(List<String> excludePaths) {
+        this.excludePaths = excludePaths;
+    }
+}
+```
+
+3. 在拦截器配置类中使用 `InterceptorConfigProperties`
+
+通过注入 `InterceptorConfigProperties`，将 `application.yml` 中的路径配置应用到拦截器中。
+
+配置类：
+
+```java
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private ProjectInterceptor projectInterceptor;
+
+    @Autowired
+    private InterceptorConfigProperties interceptorConfigProperties;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 从配置中获取路径
+        registry.addInterceptor(projectInterceptor)
+                .addPathPatterns(interceptorConfigProperties.getIncludePaths()) // 使用 yml 中的 include-paths
+                .excludePathPatterns(interceptorConfigProperties.getExcludePaths()); // 使用 yml 中的 exclude-paths
+    }
+}
+```
+
+------
+
+4. 运行结果
+
+假设 `application.yml` 中配置如下：
+
+```yaml
+custom:
+  interceptor:
+    include-paths:
+      - "/test/**"
+      - "/admin/**"
+    exclude-paths:
+      - "/test/login"
+      - "/test/register"
+```
+
+5. 总结
+
+虽然不能直接在 `application.yml` 中配置拦截器，但可以通过以下方式实现路径的可配置化：
+
+1. 在 `application.yml` 中定义自定义路径配置。
+2. 创建一个类读取 `yml` 的配置（使用 `@ConfigurationProperties`）。
+3. 在拦截器配置类中，动态使用这些路径配置。
+
+
+
+
+
+**preHandle**
+
+在处理器（Controller 的方法）执行之前进行拦截和处理
+
+**目标方法执行前执行**。返回true：继续执行后续操作；返回false：中断后续操作。
+
+当拦截器中出现对原始处理器的拦截，后面的拦截器均终止运行。
+
+```java
+@Override
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception
+```
+
+参数
+
+- request：请求对象
+- response：响应对象
+- handler：被调用的处理器对象，本质上是一个方法对象，对反射技术中的Method对象进行了再包装
+
+**postHandle**
+
+ **目标方法执行后执行**。
+
+**afterCompletion**
+
+**视图渲染完毕后执行，最后执行**
+
+参数
+
+- ex：如果处理器执行过程中出现异常情况，可以针对异常情况单独处理。
+
+
+
+
+
+**addInterceptors**
+
+addInterceptors方法可以添加多个参数
+
+```java
+@Override
+protected void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(projectInterceptor).addPathPatterns("/test/**", "/test");
+}
+```
+
+
+
+**运行顺序**
+
+- preHandle：与配置顺序相同，必定运行
+- postHandle：与配置顺序相反，可能不运行
+- afterCompletion：与配制顺序相反，可能不运行
+
+如果配置了多个拦截器，并且在其中一个拦截器的 `preHandle` 方法中返回了 `false`。
+
+1. 后续的拦截器的 preHandle 不会执行
+2. 所有拦截器的 postHandle 不会执行
+3. `afterCompletion` 仍然会执行，包括为 true 的 `preHandle` 的拦截器，但未执行的拦截器不会调用其 `afterCompletion` 方法
+
+
+
+#### 拦截器路径配置
+
+`/*`：一级路径
+
+`/**`：拦截所有请求
+
+`/test/*`：拦截/test下的一级路径
+
+`/test/**`：拦截/test下的任意级路径
+
+
+
+### 过滤器 Filter
+
+Spring 框架中的过滤器（Filter）是基于 Java Servlet 的过滤器规范实现的，可以用于拦截和处理 HTTP 请求和响应。它们在整个请求-响应生命周期中起着重要作用，通常用于实现认证、授权、日志记录、请求修改等功能。
+
+#### 注解实现
+
+首先先写一个过滤器Filter，在类的上方使用 @WebFilter 注解来创建Filter即可
+
+```java
+@WebFilter(filterName = "loginCheckFilter", urlPatterns = "/*")
+@Slf4j
+public class LoginCheckFilter implements Filter {
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+        log.info("拦截到请求：{}", request.getRequestURI());
+        filterChain.doFilter(request, response);
+    }
+}
+
+```
+
+在启动类上开启servlet组件扫描(`@ServletComponentScan`)
+
+```java
+@Slf4j
+@SpringBootApplication
+@ServletComponentScan
+public class ReggieTestLApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ReggieTestLApplication.class, args);
+    }
+
+}
+```
+
+
+
+
+
+
+
+### 拦截器和过滤器的区别
+
+1. 过滤器先执行，它是Servert规范的一部分更接近于底层。它会在Servlet请求之前和响应之后进行处理。
+
+   拦截器后执行，它是SpringMVC的一部分更接近业务层，会在Controller请求之前和处理完毕之后进行处理
+
+
+
+
+### Restful
 
 示例
 
@@ -490,4 +900,445 @@ public class TestController {
 }
 
 ```
+
+
+
+### 静态资源
+
+#### 默认路径
+
+只要将静态资源放在类路径下: /static, /public, /resources, /META-INF/resources 就可以被直接访问-对应文件（**这是 Spring Boot 的默认设置好的** ）。
+
+#### 修改路径
+
+1. 编写配置类，继承WebMvcConfigurationSupport类，重写addResourceHandlers方法
+
+   ```java
+   @Slf4j
+   @Configuration
+   public class WebMvcConfig extends WebMvcConfigurationSupport {
+       /**
+        * 设置静态资源映射
+        * @param registry
+        */
+       @Override
+       protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+           log.info("开始进行静态资源映射...");
+           registry.addResourceHandler("/backend/**").addResourceLocations("classpath:/backend/");
+           registry.addResourceHandler("/front/**").addResourceLocations("classpath:/front/");
+       }
+   }
+   ```
+
+2. 配置yaml文件
+
+   **spring.mvc.static-path-pattern**
+
+   该配置用来定义**静态资源的访问路径模式**，即客户端通过什么 URL 路径来访问静态资源。
+
+   默认值是 `/**`，表示所有静态资源都通过根路径（`/`）访问。
+
+   例子：如果静态资源是 `classpath:/static/index.html`，则可以通过 `http://localhost:8080/index.html` 访问。
+
+   ```yaml
+   spring:
+     mvc:
+     	## 客户端访问 /backend/index.html，会去查找静态资源文件。
+   	## 如果文件在 classpath:/static/index.html 中，Spring 会根据路径映射规则，找到并返回静态资源。
+       static-path-pattern: /backend/**
+   ```
+
+   **spring.web.resources.static-locations**
+
+   该配置用来定义静态资源的物理存储位置，即 Spring Boot 会从哪里加载静态资源文件。
+
+   默认值为
+
+   ```yaml
+   spring:
+     web:
+       resources:
+         static-locations: 
+           - classpath:/META-INF/resources/
+           - classpath:/resources/
+           - classpath:/static/
+           - classpath:/public/
+   ```
+
+   Spring Boot 会按顺序从这些默认路径中查找静态资源文件。
+
+   
+
+
+
+### WebMvcConfigurationSupport
+
+`WebMvcConfigurationSupport` 是 `Spring Framework` 中的一个核心配置类，它为 Spring MVC 应用程序提供核心配置支持。这个类是 Spring MVC 配置的基础，提供了许多默认的配置选项。
+
+#### **主要功能**
+
+1. **提供Spring MVC的基础配置**：它创建并配置了Spring MVC所需的各种组件。
+2. **作为@EnableWebMvc注解的内部实现**：当你在配置类上使用@EnableWebMvc注解时，实际上是引入了WebMvcConfigurationSupport作为配置基础。
+3. **提供可扩展的配置点**：通过各种protected方法，允许子类覆盖默认行为。
+
+#### **使用**
+
+1. 通过@EnableWebMvc使用
+
+   ```java
+   @Configuration
+   @EnableWebMvc
+   public class WebConfig {
+       // 配置内容
+   }
+   ```
+
+2. 直接继承WebMvcConfigurationSupport
+
+   ```java
+   @Configuration
+   public class WebConfig extends WebMvcConfigurationSupport {
+       // 覆盖需要自定义的方法
+   }
+   ```
+
+#### **常见的可覆盖方法**
+
+1. **configureContentNegotiation**：配置内容协商策略
+2. **configureMessageConverters**：添加或修改消息转换器
+3. **extendMessageConverters**：扩展和定制HTTP消息转换器
+4. **addFormatters**：添加类型转换器
+5. **addResourceHandlers**：配置静态资源处理
+6. **configureDefaultServletHandling**：配置默认Servlet处理
+7. **addCorsMappings**：配置跨域请求处理
+8. **configurePathMatch**：配置路径匹配
+9. **addArgumentResolvers**：添加自定义参数解析器
+10. **addReturnValueHandlers**：添加自定义返回值处理器
+11. **configureHandlerExceptionResolvers**：配置异常处理器
+
+
+
+##### extendMessageConverters
+
+与configureMessageConverters的区别：
+
+- `configureMessageConverters`：完全替换默认的消息转换器列表。如果此方法添加了任何转换器，Spring将不会注册默认的转换器。
+- `extendMessageConverters`：在默认转换器已经配置之后被调用，允许您修改已存在的配置而不是完全替换它。
+
+##### 消息转换器的双向作用
+
+HttpMessageConverter接口在Spring MVC中负责两个方向的转换：
+
+1. **请求体解析**：将HTTP请求体转换为Java对象（反序列化）
+   - 用于`@RequestBody`注解标记的方法参数
+   - 用于处理HTTP POST、PUT、PATCH等带有请求体的请求
+2. **响应体生成**：将Java对象转换为HTTP响应体（序列化）
+   - 用于`@ResponseBody`注解标记的方法返回值
+   - 用于`@RestController`控制器中的所有方法返回值
+
+
+
+
+
+
+
+# 数据序列化文件
+
+## properties属性文件
+
+### 特点
+
+1. 只能是键值对
+2. 键不能重复
+3. 文件后缀一般是`.properties`结尾
+
+
+
+- Properties是一个map集合，但是我们一般不会当做集合使用
+
+- 核心作用：properties是用来代表属性文件的，通过properties可以读写属性文件里的内容
+
+
+
+### 读取数据
+
+在 Java 中，可以使用 `java.util.Properties` 类来读取和操作 `.properties` 文件。
+
+```java
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+public class PropertiesExample {
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream("config.properties")) {
+            // 加载 .properties 文件
+            properties.load(fis);
+
+            // 获取键对应的值
+            String dbUrl = properties.getProperty("db.url");
+            String dbUsername = properties.getProperty("db.username");
+            String dbPassword = properties.getProperty("db.password");
+
+            // 输出读取的值
+            System.out.println("Database URL: " + dbUrl);
+            System.out.println("Database Username: " + dbUsername);
+            System.out.println("Database Password: " + dbPassword);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
+
+
+## XML
+
+可扩展标记语言（EXtensible Markup Language）
+
+### 特点
+
+- 只能有一个根标签
+
+- xml中的标签名可以自己定义（可扩展），但必须要正确的嵌套
+- XML中的标签可以有属性
+
+### 基本结构
+
+**XML 声明**（可选）：
+
+- 声明文件的版本、编码方式等信息。
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  ```
+
+**根元素**
+
+- 每个 XML 文件必须有且只有一个根元素，所有其他内容都必须包含在根元素中。
+
+**属性**
+
+- 元素可以包含属性，用于描述元素的附加信息。
+
+  ```xml
+  <person id="123" gender="male">
+      <name>John</name>
+  </person>
+  ```
+
+
+
+### 示例
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<company>
+    <employee id="1">
+        <name>John Doe</name>
+        <position>Software Engineer</position>
+        <salary>5000</salary>
+    </employee>
+    <employee id="2">
+        <name>Jane Smith</name>
+        <position>Data Scientist</position>
+        <salary>7000</salary>
+    </employee>
+</company>
+```
+
+
+
+### 特殊符号
+
+| **符号** | **描述**          | **转义实体** |
+| -------- | ----------------- | ------------ |
+| `<`      | 小于号            | `&lt;`       |
+| `>`      | 大于号            | `&gt;`       |
+| `&`      | 和号（Ampersand） | `&amp;`      |
+| `'`      | 单引号            | `&apos;`     |
+| `"`      | 双引号            | `&quot;` |
+
+
+
+### CDATA
+
+CDATA 块以 `<![CDATA[` 内容 `]]>` 结束。
+
+```xml
+<![CDATA[
+这里是 CDATA 块中的内容，可以包含 <、>、& 等特殊符号。
+]]>
+```
+
+
+
+### 解析XML
+
+用IO流解析XML难度大
+
+可以用开源框架，如`DOM4j`
+
+
+
+### 约束文档
+
+1. DTD文档
+2. scheme文档
+
+
+
+# 日志
+
+可以将系统执行的信息，方便的记录到指定的位置
+
+可以随时以开关的形式控制日志的启停
+
+- 日志框架：`JUL(java.util.loggiing)`、`Log4j`、`Logback`
+
+- 日志接口：设计日志框架的一套标准，日志框架需要实现这些接口
+
+  `Commons Logging(JCL)`：`JUL(java.util.loggiing)`
+
+  `SLF4J`：`Log4j`、`Logback`
+
+
+
+## Logback
+
+Logback是基于`slf4j`日志规范实现的框架
+
+### 组成
+
+**logback-core**（必须）
+
+- Logback 的核心模块。
+- 提供了基本的日志功能，是其他模块的基础。
+
+**logback-classic**（必须）
+
+- 是 Logback 的完整实现，兼容 SLF4J。
+- 提供了对 SLF4J API（日志接口） 的支持，使 Logback 能无缝集成到任何使用 SLF4J 的应用中。
+
+**logback-access**
+
+- 提供对 Servlet 容器（如 Tomcat 和 Jetty）的日志支持。
+- 主要用于记录 HTTP 请求和响应日志。
+
+**SLF4J API**
+
+
+
+### 配置文件
+
+logback.xml
+
+
+
+#### 变量
+
+`<property>` 是 **Logback** 提供的一个配置标签，用来定义全局变量或者属性，这些属性可以在整个 Logback 配置文件中通过 `${}` 占位符的形式引用。
+
+```xml
+<property name="webRoot" value="./files"/>
+
+<File>${webRoot}/api-view.log</File>
+```
+
+
+
+
+
+### 示例
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class LogbackExample {
+    // 用于定义一个 日志记录器（Logger）对象
+    private static final Logger logger = LoggerFactory.getLogger(LogbackExample.class);
+
+    public static void main(String[] args) {
+        logger.trace("This is a TRACE message");  // TRACE（最详细的日志级别）
+        logger.debug("This is a DEBUG message");  // DEBUG 用于记录调试信息
+        logger.info("This is an INFO message");  // INFO 用于记录重要的运行时信息，表示程序的正常操作。
+        logger.warn("This is a WARN message");  // WARN 用于记录潜在的问题或异常情况
+        logger.error("This is an ERROR message");  // ERROR 用于记录严重错误，这些错误通常会影响系统的正常运行。
+    }
+}
+```
+
+**Logger 是什么？**
+
+- **`Logger`** 是日志框架中的核心组件，负责记录和输出日志信息。
+- 每个 `Logger` 通常与程序中的一个类绑定（通常是当前类），用于记录该类的日志信息。
+- 通过 `Logger` 对象，可以调用各种方法（如 `trace`、`debug`、`info`、`warn` 和 `error`），记录日志信息。
+
+
+
+### 日志级别
+
+日志信息的类型，日志都会分级别 低----高
+
+- trace 追踪，指名程序运行轨迹
+- debug 调试，实际应用中一般将其作为最低级别，而trace则很少使用
+- info 输出重要的运行信息，数据连接，网络连接，IO操作等等
+- warn 警告信息，可能会发生问题，使用较多
+
+
+
+```xml
+<root level="info">
+	<appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+</root>
+```
+
+- 只有日志级别大于或等于核心配置文件配置的日志级别，才会被记录。
+
+
+
+### SpringBoot集成
+
+Spring Boot 默认集成了 Logback，无需额外配置即可使用。它通过 spring-boot-starter-logging 依赖自动引入 Logback 作为日志实现，并通过 spring-boot-starter 提供了开箱即用的日志功能。启动 Spring Boot 应用时，Logback 会默认加载并记录日志。
+
+```
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+</dependency>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

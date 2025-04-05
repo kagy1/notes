@@ -878,6 +878,49 @@ v-if是惰性的，当条件为false时，其判断的内容完全不会被渲�
 
 
 
+## v-for
+
+通过对象循环生成ElCheckbox并绑定值
+
+```vue
+<template>
+    <div class="person">
+        <div :style="{ border: '1px solid black', borderRadius: '5px', padding: '10px', margin: '10px' }">
+            <ElCheckbox v-for="(value, key) in switch1" :key="key" v-model="switch1[key]">
+                {{ switchTitiles[key] }}
+            </ElCheckbox>
+        </div>
+    </div>
+</template>
+
+<script lang="ts" setup name="Person">
+import { ElCheckbox } from 'element-plus';
+import { ref } from 'vue';
+
+const switch1 = ref({
+    r1: true,
+    r2: true,
+    r3: true,
+    r4: true,
+    r5: true
+});
+
+const switchTitiles = ref({
+    r1: '开关1',
+    r2: '开关2',
+    r3: '开关3',
+    r4: '开关4',
+    r5: '开关5'
+});
+</script>
+```
+
+
+
+
+
+
+
 ## reactive
 
 reactive重新分配一个对象，会失去响应式（可以使用Object.assign()）整体替换
@@ -1631,7 +1674,46 @@ export default defineComponent({
 })
 ```
 
+通过对象
 
+```tsx
+import { ElCheckbox } from 'element-plus';
+import { defineComponent, Fragment, ref } from 'vue'
+
+export default defineComponent({
+    setup(props, { slots, expose, emit, attrs }) {
+        const switch1 = ref({
+            r1: true,
+            r2: true,
+            r3: true,
+            r4: true,
+            r5: true
+        });
+        const switchTitiles = {
+            r1: '开关1',
+            r2: '开关2',
+            r3: '开关3',
+            r4: '开关4',
+            r5: '开关5'
+        };
+
+        return () => (
+            <div>
+                {
+                    Object.keys(switch1.value).map(key => {
+                        const typeKey = key as keyof typeof switch1.value;
+                        return (
+                            <ElCheckbox v-model={switch1.value[typeKey]}>
+                                {switchTitiles[typeKey]}
+                            </ElCheckbox>
+                        )
+                    })
+                }
+            </div>
+        )
+    }
+})
+```
 
 ##  v-model
 

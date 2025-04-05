@@ -4528,6 +4528,40 @@ for(let key in obj){
 
 
 
+```javascript
+const person = {
+    name: 'John',
+    age: 30,
+    address: {
+        street: '123 Main St',
+        city: 'Anytown',
+        state: 'CA'
+    }
+};
+
+function deepTraverse(obj, parentKey = '') {
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            const fullKey = parentKey ? `${parentKey}.${key}` : key;
+
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+                // 如果值是对象，则递归遍历
+                deepTraverse(obj[key], fullKey);
+            } else {
+                // 如果值是基本类型，则输出
+                console.log(`${fullKey} -- ${obj[key]}`);
+            }
+        }
+    }
+}
+
+deepTraverse(person);
+```
+
+
+
+
+
 #### for...of
 
 在JavaScript中可迭代对象被认为是可以在for...of循环中使用的对象。
@@ -4946,6 +4980,26 @@ function rand(m: number, n: number) {
     return Math.ceil(Math.random() * (n - m + 1)) + m - 1;
 }
 ```
+
+
+
+## arguments
+
+```javascript
+function showArgs() {
+    console.log("参数个数:", arguments.length);
+    console.log("第一个参数:", arguments[0]);
+    console.log("所有参数:", Array.from(arguments));
+}
+
+showArgs("hello", 123, true);
+// 输出:
+// 参数个数: 3
+// 第一个参数: hello
+// 所有参数: ["hello", 123, true]
+```
+
+
 
 
 
