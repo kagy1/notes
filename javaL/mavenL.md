@@ -26,3 +26,15 @@ maven中每个项目都相当于是一个对象，对象和对象之间是有关
 
 ## maven生命周期
 
+
+
+
+
+## Pom
+
+### scope
+
+#### `<scope>test</scope>`
+
+仅在测试阶段可用，测试类放在**src/test/java**下
+

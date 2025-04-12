@@ -863,6 +863,8 @@ export default defineComponent({
 
 v-if是惰性的，当条件为false时，其判断的内容完全不会被渲染
 
+`v-if` 指令会真正地销毁和重建 DOM 元素。 这样可以确保在切换模板时，表格组件会被重新初始化。
+
 ```vue
 <template>
     <div v-if="cj > 90"> 优秀</div>
@@ -1646,6 +1648,69 @@ export default defineComponent({
 
 <div>v1:{v1.value ? 'true' : 'false'}</div>
 ```
+
+
+
+## 条件选择多个组件
+
+```tsx
+export default defineComponent({
+  setup(props, { slots, expose, emit, attrs }) {
+    const selectComponents = {
+      "a": <div>A</div>,
+      "b": <div>B</div>,
+      "c": <div>C</div>
+    }
+    const v = ref("a" as "a" | "b" | "c")
+
+    return () => (
+      <div>
+        <div>
+          <ElRadioGroup v-model={v.value}>
+            <ElRadio value="a">选项 A</ElRadio>
+            <ElRadio value="b">选项 B</ElRadio>
+            <ElRadio value="c">选项 C</ElRadio>
+          </ElRadioGroup>
+        </div>
+        <div>{selectComponents[v.value]}</div>
+      </div>
+    )
+  }
+})
+```
+
+```tsx
+import { ElCheckbox, ElRadio, ElRadioGroup } from 'element-plus'
+import { defineComponent, Fragment, ref } from 'vue'
+
+export default defineComponent({
+  setup(props, { slots, expose, emit, attrs }) {
+    const selectComponents = {
+      "a": <div>A</div>,
+      "b": <div>B</div>,
+      "c": <div>C</div>
+    }
+    const v = ref("a")
+
+    return () => (
+      <div>
+        <div>
+          <ElRadioGroup v-model={v.value}>
+            <ElRadio value="a">选项 A</ElRadio>
+            <ElRadio value="b">选项 B</ElRadio>
+            <ElRadio value="c">选项 C</ElRadio>
+          </ElRadioGroup>
+        </div>
+        <div>{selectComponents[v.value as keyof typeof selectComponents]}</div>
+      </div>
+    )
+  }
+})
+```
+
+
+
+
 
 
 

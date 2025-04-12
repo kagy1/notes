@@ -50,7 +50,9 @@ git branch -m old-branch new-branch
 
 `git branch --track <branch-name> <remote/branch>`：创建一个本地分支，并跟踪指定的远程分支。
 
-`git branch --set-upstream-to=<remote/branch-name>`： **将一个已经存在的本地分支** 设置为跟踪指定的远程分支。
+`git branch -u <remote/branch-name>`： **将一个已经存在的本地分支** 设置为跟踪指定的远程分支。
+
+<span style="color:red;font-weight:bolder">-u 是`--set-upstream-to=`的简写</span>
 
 
 
@@ -79,7 +81,7 @@ git init
 git add .
 git commite -m "init"
 git remote add origin https://gitee.com/kagy/reggie-test.git
-git push -u origin "master"
+git push -u origin "master"   -- -u 是 --set-upstream 的简写
 
 git branch -m main -- 重命名分支
 ```

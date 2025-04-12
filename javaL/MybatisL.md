@@ -707,11 +707,58 @@ public R<Page> page(int page, int pageSize, String name) {
 
 
 
+```java
+@Component
+@Slf4j
+public class MyMetaObjectHandler implements MetaObjectHandler {
+    /**
+     * 插入时自动填充公共字段
+     *
+     * @param metaObject
+     */
+    @Override
+    public void insertFill(MetaObject metaObject) {
+        log.info("公共字段自动填充 INSERT");
+        log.info(metaObject.toString());
+        metaObject.setValue("createTime", LocalDateTime.now());
+        metaObject.setValue("updateTime", LocalDateTime.now());
+        // @@ 暂时写死
+        metaObject.setValue("createUser", new Long(1));
+        metaObject.setValue("updateUser", new Long(1));
+    }
+
+    /**
+     * 更新时自动填充公共字段
+     *
+     * @param metaObject
+     */
+    @Override
+    public void updateFill(MetaObject metaObject) {
+        log.info("公共字段自动填充 UPDATE");
+        log.info(metaObject.toString());
+        metaObject.setValue("updateTime", LocalDateTime.now());
+        // @@ 暂时写死
+        metaObject.setValue("updateUser", new Long(1));
+    }
+}
+```
 
 
 
 
 
+
+
+## 配置
+
+```yaml
+mybatis-plus:
+  mapper-locations: classpath:mappers/*xml  # 指定 Mapper 映射文件（即 .xml 文件）的路径。
+  type-aliases-package: com.kagy.reggietestl.mybatis.entity  # 指定实体类所在的包路径。
+  configuration:
+    map-underscore-to-camel-case: true  # 开启驼峰命名规则，自动将数据库字段转为驼峰命名。
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开启 MyBatis 日志输出。
+```
 
 
 

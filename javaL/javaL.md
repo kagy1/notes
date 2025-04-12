@@ -899,6 +899,385 @@ class MyRun implements Runnable {
 
 
 
+### 类
+
+#### Thread
+
+##### 常用方法
+
+###### 线程标识相关方法
+
+`getId()`：获取线程的唯一标识符。
+
+```java
+Thread t = new Thread();
+long id = t.getId();
+System.out.println("线程ID: " + id);
+```
+
+`getName()/setName()`：获取或设置线程名称。
+
+```java
+Thread t = new Thread();
+t.setName("MyCustomThread");
+System.out.println("线程名称: " + t.getName());
+```
+
+`currentThread()`
+
+静态方法，获取当前正在执行的线程引用。
+
+```java
+Thread current = Thread.currentThread();
+System.out.println("当前线程: " + current.getName());
+```
+
+###### 线程控制方法
+
+`start()`
+
+启动线程，使线程进入就绪状态。
+
+```java
+Thread t = new Thread(() -> {
+    System.out.println("线程开始运行");
+});
+t.start(); // 正确的启动方式
+```
+
+`run()`
+
+包含线程执行的代码，通常由JVM调用，不应直接调用。
+
+```java
+Thread t = new Thread(() -> {
+    System.out.println("这是线程的任务");
+});
+// t.run(); // 错误用法，这只是普通方法调用
+t.start(); // 正确用法
+```
+
+`sleep(long millis)`
+
+使当前线程暂停执行指定的毫秒数。
+
+```java
+try {
+    System.out.println("线程将休眠2秒");
+    Thread.sleep(2000); // 休眠2秒
+    System.out.println("线程继续执行");
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+`join()`
+
+等待该线程终止。
+
+```java
+Thread t = new Thread(() -> {
+    try {
+        Thread.sleep(3000);
+        System.out.println("子线程执行完毕");
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+});
+t.start();
+
+try {
+    System.out.println("等待子线程完成");
+    t.join(); // 主线程等待t线程结束
+    System.out.println("主线程继续执行");
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+`join(long millis)`
+
+等待该线程终止的时间最长为指定的毫秒数。
+
+```java
+Thread t = new Thread(() -> {
+    /* 耗时任务 */
+});
+t.start();
+
+try {
+    t.join(1000); // 最多等待1秒
+    // 无论线程t是否结束，1秒后都会继续执行
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+`yield()`
+
+提示线程调度器当前线程愿意让出CPU使用权。
+
+```java
+Thread.yield(); // 当前线程让步，但不保证让步成功
+```
+
+`interrupt()`
+
+中断线程。
+
+```java
+Thread t = new Thread(() -> {
+    try {
+        for (int i = 0; i < 10; i++) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.out.println("线程被中断，退出");
+                return;
+            }
+            System.out.println("计数: " + i);
+            Thread.sleep(1000);
+        }
+    } catch (InterruptedException e) {
+        System.out.println("线程在sleep时被中断");
+    }
+});
+t.start();
+
+// 3秒后中断线程
+try {
+    Thread.sleep(3000);
+    t.interrupt();
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+`isInterrupted()`
+
+检测线程是否已被中断。
+
+```java
+Thread t = new Thread(() -> {
+    while (!Thread.currentThread().isInterrupted()) {
+        // 执行任务直到被中断
+    }
+    System.out.println("线程检测到中断信号，结束执行");
+});
+```
+
+`interrupted()`
+
+静态方法，检测当前线程是否被中断，并清除中断状态。
+
+```java
+if (Thread.interrupted()) {
+    System.out.println("线程被中断，中断状态被清除");
+}
+```
+
+线程状态和属性方法
+
+`isAlive()`
+
+判断线程是否还在运行。
+
+```java
+Thread t = new Thread(() -> {
+    try {
+        Thread.sleep(2000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+});
+t.start();
+
+System.out.println("线程启动后是否存活: " + t.isAlive());
+try {
+    Thread.sleep(3000);
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+System.out.println("线程执行后是否存活: " + t.isAlive());
+```
+
+`getState()`
+
+获取线程状态。
+
+```java
+Thread t = new Thread();
+System.out.println("新建线程状态: " + t.getState()); // NEW
+t.start();
+System.out.println("启动后状态: " + t.getState()); // 可能是RUNNABLE
+```
+
+`getPriority()/setPriority(int)`
+
+获取或设置线程优先级。
+
+```java
+Thread t = new Thread();
+t.setPriority(Thread.MAX_PRIORITY); // 设置为最高优先级(10)
+System.out.println("线程优先级: " + t.getPriority());
+```
+
+`isDaemon()/setDaemon(boolean)`
+
+检查线程是否为守护线程或将线程设置为守护线程。
+
+```java
+Thread t = new Thread();
+t.setDaemon(true); // 设置为守护线程，必须在start()前调用
+System.out.println("是否为守护线程: " + t.isDaemon());
+```
+
+`getThreadGroup()`
+
+获取线程所属的线程组。
+
+```java
+Thread t = new Thread();
+ThreadGroup group = t.getThreadGroup();
+System.out.println("线程组: " + group.getName());
+```
+
+`getContextClassLoader()/setContextClassLoader()`
+
+获取或设置线程上下文类加载器。
+
+```java
+Thread t = Thread.currentThread();
+ClassLoader cl = t.getContextClassLoader();
+System.out.println("上下文类加载器: " + cl);
+```
+
+###### 线程堆栈相关方法
+
+`getStackTrace()`
+
+获取线程的堆栈跟踪信息。
+
+```java
+Thread t = Thread.currentThread();
+StackTraceElement[] stackTrace = t.getStackTrace();
+for (StackTraceElement element : stackTrace) {
+    System.out.println(element);
+}
+```
+
+`dumpStack()`
+
+打印当前线程的堆栈跟踪信息到标准错误流。
+
+```java
+Thread.dumpStack(); // 打印当前线程的堆栈跟踪
+```
+
+##### 类方法
+
+`currentThread()`
+
+```java
+Thread currentThread = Thread.currentThread();
+System.out.println("当前线程名称: " + currentThread.getName());
+System.out.println("当前线程ID: " + currentThread.getId());
+```
+
+
+
+#### ThreadLocal
+
+ThreadLocal并不是一个Thread，而是Thread的局部变量。当使用ThreadLocal维护变量时，ThreadLocal为每个使用该变量的线程提供独立的变量副本，所以每一个线程都可以独立地改变自己的副本，而不会影响其他线程所对应的副本。
+
+`ThreadLocal` 是 Java 中用于创建**线程局部变量**的类，位于 `java.lang` 包中。它为每个线程提供独立的变量副本，线程之间的变量互不干扰。这在需要线程隔离的数据存储时非常有用，比如避免多线程环境中共享变量带来的数据一致性问题。
+
+##### 基本概念
+
+当我们使用普通的成员变量时，多个线程共享这些变量，可能会导致线程安全问题。而通过 `ThreadLocal`，每个线程都能拥有自己的变量副本，避免了线程之间的干扰。
+
+- **核心原理**：`ThreadLocal` 为每个线程提供一个独立的变量副本。这些变量副本实际上存储在每个线程自己的 `ThreadLocalMap` 中。
+- **作用场景**：当每个线程需要独立的变量，且线程之间的变量不需要共享时，适合使用 `ThreadLocal`。
+
+##### 使用方法
+
+创建一个 `ThreadLocal` 实例时，可以通过 `set()` 方法设置当前线程的值，通过 `get()` 方法获取当前线程的值。
+
+```java
+public class ThreadLocalExample {
+    // 创建一个 ThreadLocal 对象
+    private static ThreadLocal<Integer> threadLocal = new ThreadLocal<>();
+
+    public static void main(String[] args) {
+        Thread thread1 = new Thread(() -> {
+            threadLocal.set(1);
+            System.out.println("Thread 1: " + threadLocal.get());  // Thread 1: 1
+        });
+
+        Thread thread2 = new Thread(() -> {
+            threadLocal.set(2);
+            System.out.println("Thread 2: " + threadLocal.get());  // Thread 2: 2
+        });
+
+        thread1.start();
+        thread2.start();
+    }
+}
+```
+
+使用 `initialValue()` 提供初始值
+
+```java
+public class ThreadLocalInitialValueExample {
+    private static ThreadLocal<Integer> threadLocal = ThreadLocal.withInitial(() -> 0);
+
+    public static void main(String[] args) {
+        Thread thread1 = new Thread(() -> {
+            System.out.println("Thread 1 initial value: " + threadLocal.get());  // Thread 1 initial value: 0
+            threadLocal.set(100);
+            System.out.println("Thread 1 updated value: " + threadLocal.get());  // Thread 1 updated value: 100
+        });
+
+        thread1.start();
+    }
+}
+```
+
+##### 常用方法
+
+`get()`
+
+获取当前线程关联的变量值。
+
+```java
+ThreadLocal<String> threadLocal = new ThreadLocal<>();
+System.out.println(threadLocal.get()); // 输出 null
+
+ThreadLocal<String> threadLocalWithInitial = ThreadLocal.withInitial(() -> "Default Value");
+System.out.println(threadLocalWithInitial.get()); // 输出 "Default Value"
+```
+
+`set(T value)`
+
+为当前线程设置线程局部变量的值。
+
+`remove()`
+
+移除当前线程的值，防止内存泄漏。
+
+```java
+ThreadLocal<String> threadLocal = new ThreadLocal<>();
+threadLocal.set("ThreadLocal Value");
+System.out.println(threadLocal.get()); // 输出 "ThreadLocal Value"
+
+threadLocal.remove();
+System.out.println(threadLocal.get()); // 输出 null
+```
+
+
+
+
+
+
+
 ## Lambda
 
 Lambda是jdk8中的一个语法糖，可以简化匿名内部类的书写。让我们不用关注是什么对象，而是更关注我们对数据进行了什么操作。
@@ -1657,6 +2036,8 @@ public class StringPoolTest {
 
 在 Java 中，`String` 是一个特殊的对象类型，字符串字面量（如 `"hello"`）会被存储在**字符串常量池（String Pool）**中。
 
+**Java 7及以后**：字符串常量池在**堆内存**中
+
 ```java
 String s1 = "hello world";
 String s2 = "hello world";
@@ -1696,6 +2077,19 @@ System.out.println(a == b);  // true
 ```
 
 
+
+
+
+String a = new String("hello") 
+
+1. String a = new String("hello");会创建两个对象:
+在字符串常量池中创建字符串字面量"hello"（如果之前不存在）
+在堆内存中创建一个新的String对象，它内部引用了常量池中的"hello"
+2. 变量a存储在栈内存中，它引用的是堆内存中的String对象，而不是常量池中的字面量
+
+String a = "hello"
+
+1. 如果直接使用String a = "hello"; 变量a会直接引用常量池中的字面量，不会在堆内存中创建额外对象
 
 
 
@@ -4113,6 +4507,16 @@ public class SpringDigestUtilsExample {
 ```
 
 
+
+### UUID
+
+```java
+String FileName = UUID.randomUUID().toString();
+```
+
+
+
+### BeanUtils
 
 
 

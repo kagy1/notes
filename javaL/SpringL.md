@@ -275,6 +275,19 @@ AOP（Aspect Oriented Programming）面向切面编程
 
 Spring Boot 提供了 `@Value` 注解，用于将配置文件（如 `application.properties` 或 `application.yml`）中的值注入到 Bean 的属性中。
 
+```yaml
+appTest:
+  name: LZT
+  age: 25
+```
+
+```java
+@Value("${appTest.age}")
+private int age;
+```
+
+
+
 
 
 
@@ -345,11 +358,89 @@ public User createUser(@RequestBody User user) {
 }
 ```
 
+**没有 `@RequestBody` 的情况**：
+
+- 如果不使用 `@RequestBody`，Spring 会尝试从查询参数、路径变量或表单数据中查找参数值
+- 对于复杂对象，Spring 会尝试通过属性名匹配查询参数或表单字段
+- 请求体中的 JSON 数据将被忽略
+
+### @RequestParam
+
+数据位于URL查询字符串或表单中
+
+后端需要从请求中精准提取这些参数，而@RequestParam** 的核心作用就是：
+
+- **绑定请求参数到方法参数**（解决参数名不一致问题）。
+- **提供默认值**（避免参数缺失导致的错误）。
+- **强制参数必传**（确保接口安全性）。
+
+**示例**
+
+@RequestParam("id") 表示将URL中的 id 参数赋值给 userId。
+
+```java
+@GetMapping("/user")
+public User getUser(@RequestParam("id") Long userId) {
+    // 前端传?id=123 → userId=123
+    return userService.findById(userId);
+}
+```
+
+设置默认值
+
+```java
+@GetMapping("/articles")
+public Page<Article> listArticles(
+    @RequestParam(value = "page", defaultValue = "1") Integer page,
+    @RequestParam(value = "size", defaultValue = "10") Integer size
+) {
+    // 若前端未传page/size，默认第1页、每页10条
+    return articleService.page(page, size);
+}
+```
+
+完整属性设置写法
+
+```java
+@GetMapping("/user")
+public User getUser(
+    @RequestParam(name = "id", required = false, defaultValue = "0") Long userId) {
+    // 前端传?id=123 → userId=123
+    // 或不传id → userId=0
+    return userService.findById(userId);
+}
+```
+
+加与不加@RequestParam的实际区别
+
+```java
+// 前端传?id=123 → id=123
+@GetMapping("/user")
+public User getUser(@RequestParam Long id) {
+    return userService.findById(id);
+}
+
+@GetMapping("/user")
+public User getUser(Long id) {
+    return userService.findById(id);
+}
+```
+
+1. 参数必要性 GET /user
+   - 加@RequestParam：默认情况下参数是必需的。如果请求中没有提供`id`参数，会返回400错误
+   - 不加@RequestParam：参数是可选的。如果请求中没有提供`id`参数，`id`将为null
+
+2. Spring的处理方式
+   - 加@RequestParam：明确告诉Spring这是一个请求参数，Spring会进行专门的处理
+   - 不加@RequestParam：Spring会尝试从多个来源解析参数(查询参数、表单数据等)
+
 
 
 
 
 ### `@PathVariable`
+
+路径变量
 
 `@PathVariable` 用于从 URL 路径中提取变量值。
 
@@ -360,6 +451,21 @@ public User getUser(@PathVariable Long id) {
     // 例如: /user/123 会将id赋值为123
 }
 ```
+
+参数变量
+
+`/page?page=1&pageSize=10`
+
+```java
+@GetMapping("/page")
+public R<Page> page(int page, int pageSize) {
+    // /category/page?page=1&pageSize=10
+}
+```
+
+
+
+
 
 
 
@@ -517,7 +623,9 @@ public class AppConfig {
 
 
 
+### 添加大佛
 
+在项目的`src/main/resources`目录下创建`banner.txt`文件
 
 
 
@@ -1035,6 +1143,161 @@ HttpMessageConverter接口在Spring MVC中负责两个方向的转换：
 2. **响应体生成**：将Java对象转换为HTTP响应体（序列化）
    - 用于`@ResponseBody`注解标记的方法返回值
    - 用于`@RestController`控制器中的所有方法返回值
+
+
+
+## 文件上传下载
+
+**对form表单要求**
+
+- post方式提交
+- 采用multipart格式上传文件，`enctype="multipart/form-data"`
+
+
+
+Spring框架在spring-web包中对文件上传进行了封装，大大简化服务端代码，只需要在Controller的方法中声明一个`MultipartFile`类型的参数即可接收上传的文件
+
+```java
+@RestController
+@RequestMapping("/common")
+@Slf4j
+public class CommonController {
+
+    @Value("${reggie.path}")
+    private String basePath;
+
+    /**
+     * 文件上传
+     *
+     * @param file
+     * @return
+     */
+    @PostMapping("/upload")
+    public R<String> upload(MultipartFile file) {
+        // file是一个临时文件，需要转存到指定位置，否则本次请求结束后文件将被删除
+        log.info("upload file: {}", file.toString());
+        // 原始文件吗
+        String originalFilename = file.getOriginalFilename();
+        String suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
+        // 使用UUID重新生成文件名，防止文件名称重复造成文件覆盖
+        String FileName = UUID.randomUUID().toString() + suffix;
+        // 创建一个目录对象
+        File dir = new File(basePath);
+        if (!dir.exists()) {
+            log.info("目录{}不存在，创建目录", basePath);
+            // 目录不存在，创建目录
+            dir.mkdirs();
+        }
+
+        try {
+            // 将文件转存到指定位置
+            file.transferTo(new File(basePath + FileName));
+            log.info("文件上传路径:{}", basePath + FileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.success(FileName);
+    }
+
+    /**
+     * 文件下载
+     *
+     * @param name
+     * @param response
+     */
+    @GetMapping("/download")
+    public void download(String name, HttpServletResponse response) {
+
+        try {
+            // 输入流，通过输入流读取文件内容
+            FileInputStream fileInputStream = new FileInputStream(new File(basePath + name));
+            // 输出流，通过输出流将文件写回浏览器，在浏览器展示图片
+            ServletOutputStream outputStream = response.getOutputStream();
+
+            response.setContentType("image/jpeg");
+
+            int len = 0;  // 用于记录每次读取的字节数
+            byte[] bytes = new byte[1024];  // 创建缓冲区，一次读取1KB数据
+            
+            // 循环读取文件内容并写入响应
+       	    // fileInputStream.read(bytes)从文件读取数据到缓冲区，返回实际读取的字节数
+            // 当返回-1时表示已到达文件末尾
+            while ((len = fileInputStream.read(bytes)) != -1) {
+                // 将缓冲区中的数据写入输出流，从索引0开始，写入len个字节
+                outputStream.write(bytes, 0, len);
+                // 刷新输出流，确保数据立即发送到客户端
+                outputStream.flush();
+            }
+            // 关闭资源
+            outputStream.close();
+            fileInputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+}
+```
+
+
+
+
+
+
+
+## Springboot
+
+### 系统属性
+
+**用户相关**：
+
+- `${user.dir}` - 用户当前工作目录
+- `${user.home}` - 用户主目录
+- `${user.name}` - 当前用户的系统名称
+
+**Java环境**：
+
+- `${java.io.tmpdir}` - 系统临时目录
+- `${java.home}` - Java安装目录
+- `${java.version}` - Java版本
+
+**操作系统**：
+
+- `${os.name}` - 操作系统名称
+- `${os.arch}` - 操作系统架构
+- `${os.version}` - 操作系统版本
+- `${file.separator}` - 文件分隔符（Windows是\，Unix是/）
+- `${path.separator}` - 路径分隔符（Windows是;，Unix是:）
+- `${line.separator}` - 行分隔符
+
+**使用**
+
+在java文件中
+
+```java
+// 获取用户当前工作目录
+String userDir = System.getProperty("user.dir");
+
+// 获取用户主目录
+String userHome = System.getProperty("user.home");
+
+// 获取当前用户名
+String userName = System.getProperty("user.name");
+```
+
+配置文件中
+
+```yaml
+# application.yml
+reggie:
+  upload:
+    base-dir: ${user.dir}
+    sub-path: /src/main/resources/imgs/
+```
+
+
 
 
 

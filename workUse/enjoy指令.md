@@ -194,6 +194,105 @@ xxxxx
 
 
 
+## H
+
+### #http_post_rs(~)
+
+```enjoy
+### 构建建档接口的请求JSON参数
+#bodyget_rs(json_param)
+{
+  "patientInfo": {
+  "RZ_FLAG": "1",
+  "JZKH": "", 
+  "PAT_NAME": "#@toJsonStr(name)", 
+  "CS_RQ":"#@toJsonStr(csrq)", 
+  "XB_ID": "#@toJsonStr(sex)", 
+  "HY_ID": "", 
+  "PAT_XZID": "1000", 
+  "GJ_ID": "",
+  "XX_ID": "", 
+  "MZ_ID": "#@toJsonStr(mzid)", 
+  "PROVINCE_ID": "", 
+  "CITY_ID": "", 
+  "AREA_ID": "", 
+  "TOWN_ID": "", 
+  "JT_DZ": "#@toJsonStr(address)", 
+  "ZJLX_ID": "01", 
+  "ZJ_HM": "#@toJsonStr(zjid)", 
+  "ZY_ID": "", 
+  "JT_DH": "#@toJsonStr(tel)", 
+  "GZ_DW": "", 
+  "PSN_NO": "", 
+  "YBKH": "", 
+  "INSUPLC_ADMDVS": "", 
+  "LXR": "#@toJsonStr(lxr)", 
+  "GX_ID": "#@toJsonStr(lxr)", 
+  "LXR_SFZH": "", 
+  "LXR_DH": "", 
+  "RZR": "TJ", 
+  "LXR_DZ": "", 
+  "BIRTHPLACE": "", 
+  "BIRTHPLACE_CODE": "", 
+  "BIRTHPLACE_PROVINCE": "",
+  "BIRTH_PLACE_PROVINCE_CODE": "", 
+  "BIRTHPLACE_CITY": "",
+  "BIRTH_PLACE_CITY_CODE": "", 
+  "BIRTHPLACE_COUNTY": "",
+  "BIRTH_PLACE_COUNTY_CODE": "", 
+  "HOME_ADDRESS_CODE": "", 
+  "HOME_ADDRESS": "", 
+  "CURRENT_ADDRESS_CODE": "", 
+  "CURRENT_ADDRESS": "", 
+  "CURRENT_ADDRESS_DETAILS": "", 
+  "CURRENT_ADDRESS_PROVINCE": "", 
+  "CURRENT_ADDRESS_PROVINCE_CODE": "", 
+  "CURRENT_ADDRESS_CITY": "", 
+  "CURRENT_ADDRESS_CITY_CODE": "", 
+  "CURRENT_ADDRESS_COUNTY": "", 
+  "CURRENT_ADDRESS_COUNTY_CODE": "", 
+  "CURRENT_ADDRESS_TOWN": "", 
+  "CURRENT_ADDRESS_TOWN_CODE": "", 
+  "BUSINESS_ADDRESS": "", 
+  "BUSINESS_ADDRESS_CODE": "", 
+  "BUSI_ADDRESS_PROVINCE": "", 
+  "BUSI_ADDRESS_PROVINCE_CODE": "", 
+  "BUSI_ADDRESS_CITY": "", 
+  "BUSI_ADDRESS_CITY_CODE": "", 
+  "BUSI_ADDRESS_COUNTY": "", 
+  "BUSI_ADDRESS_COUNTY_CODE": "", 
+  "BUSI_ADDRESS_TOWN": "", 
+  "BUSI_ADDRESS_TOWN_CODE": "", 
+  "CONTACT_ADDRESS": "", 
+  "CONTACT_ADDRESS_CODE": "", 
+  "CONTACT_ADDRESS_PROVINCE": "", 
+  "CONTACT_ADDRESS_PROVINCE_CODE": "", 
+  "CONTACT_ADDRESS_CITY": "", 
+  "CONTACT_ADDRESS_CITY_CODE": "", 
+  "CONTACT_ADDRESS_COUNTY": "", 
+  "CONTACT_ADDRESS_COUNTY_CODE": "", 
+  "CONTACT_ADDRESS_TOWN": "", 
+  "CONTACT_ADDRESS_TOWN_CODE": "", 
+  "NATIVE_PLACE": "", 
+  "NATIVE_PLACE_PROVINCE": "", 
+  "NATIVE_PLACE_PROVINCE_CODE": "", 
+  "NATIVE_PLACE_CITY": "",
+  "NATIVE_PLACE_CITY_CODE": "", 
+  "NATIVE_PLACE_COUNTY": "", 
+  "NATIVE_PLACE_COUNTY_CODE": "" 
+  }
+}
+#end
+#http_post_rs("http://192.168.10.51:8088/ld/common/dict/PatientInfo?method=createPatientInfo")
+###把参数转发出去
+#(str(json_param))
+#end
+```
+
+
+
+
+
 ## L
 
 ### #@list_record(~)
