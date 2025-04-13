@@ -20,7 +20,39 @@
 
    安装之后输入 `javac`、`java -version` 验证是否安装成功，如下图所示，就是安装成功了
 
-   
+
+#### java环境变量
+
+**alternatives系统**
+
+```bash
+sudo update-alternatives --install /usr/bin/java java /root/kagy/jdk1.8.0_171/bin/java 180
+sudo update-alternatives --install /usr/bin/javac javac /root/kagy/jdk1.8.0_171/bin/javac 180
+sudo update-alternatives --install /usr/bin/jar jar /root/kagy/jdk1.8.0_171/bin/jar 180
+```
+
+注册您手动安装的JDK 1.8到alternatives系统
+
+设置优先级为180（您可以根据需要调整这个数字，通常比系统默认JDK高一些）
+
+切换命令
+
+```bash
+sudo update-alternatives --config java
+```
+
+
+`/etc/environment`
+`/etc/profile`
+
+```bash
+JAVA_HOME="/root/kagy/jdk1.8.0_171"
+PATH="$PATH:$JAVA_HOME/bin"
+```
+
+
+
+
 
 ## 目录结构
 
@@ -264,6 +296,7 @@ tar [选项] [归档文件名] [文件或目录]
 | `-J`        | 使用 `xz` 压缩或解压缩归档文件（文件扩展名通常为 `.tar.xz`）。 |
 | `-t`        | 列出归档文件中的内容（list）。                               |
 | `--exclude` | 排除指定的文件或目录。                                       |
+| `-C`        | 指定解压或打包的目标目录。                                   |
 
 创建 `.tar.gz` 文件
 
@@ -290,11 +323,19 @@ tar -zxvf example.tar.gz -C output/
 
 `-C /user/local`: 指定解压后文件的目标目录为 `/user/local`（绝对路径）。
 
+将文件解压到 **`当前目录的 user/local` 子目录下**
+
 ```bash
 tar -zxvf jdk-8u171-linux-x64.tar.gz -C user/local
 ```
 
-将文件解压到 **`当前目录的 user/local` 子目录下**
+解压到当前目录下
+
+```bash
+tar -zxvf jdk-8u171-linux-x64.tar.gz
+```
+
+
 
 
 
@@ -486,6 +527,18 @@ rm -rf /root/test/.*  # 删除隐藏文件
 rm -rf /
 rm -rf /*
 ```
+
+
+
+```bash
+rm -r jdk1.8.0_171  # 删除当前目录下文件夹  每个文件会弹出确认
+rm -rf jdk1.8.0_171  # 忽略警告并删除
+rm -r folder1 folder2 folder3  # 删除多个文件夹
+```
+
+
+
+
 
 
 
