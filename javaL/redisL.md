@@ -347,6 +347,35 @@ Spring Data Redis 是 Spring 提供的一个 Redis 数据访问框架，整合�
 
 支持Redis哨兵和Redis集群
 
+|             API             |   返回值类型    |         说明          |
+| :-------------------------: | :-------------: | :-------------------: |
+| redisTemplate.opsForValue() | ValueOperations |  操作String类型数据   |
+| redisTemplate.opsForHash()  | HashOperations  |   操作Hash类型数据    |
+| redisTemplate.opsForList()  | ListOperations  |   操作List类型数据    |
+|  redisTemplate.opsForSet()  |  SetOperations  |    操作Set类型数据    |
+| redisTemplate.opsForZSet()  | ZSetOperations  | 操作SortedSet类型数据 |
+|        redisTemplate        |                 |       通用命令        |
+
+
+
+#### 配置
+
+```yaml
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      lettuce:
+        pool:
+          max-active: 8  # 最大连接
+          max-idle: 8  # 最大空闲连接
+          min-idle: 0  # 最小空闲连接
+          max-wait: 100  # 最大等待时间(毫秒)
+```
+
+
+
 
 
 #### RedisTemplate
