@@ -52,6 +52,207 @@ PATH="$PATH:$JAVA_HOME/bin"
 
 
 
+### 启动jar包
+
+后台运行
+
+```bash
+java -jar ReggieTestL-0.0.1-SNAPSHOT.jar &
+```
+
+终止程序
+
+```bash
+ps aux | grep ReggieTestL
+kill <PID>
+```
+
+
+
+
+
+### mysql
+
+#### 检查是否安装
+
+```bash
+rpm -qa | grep mysql
+
+## 卸载mariadb，mariadb是mysql数据库的分支，mariadb和mysql一起安装会有冲突，所以需要卸载掉
+rpm -qa | grep mariadb
+rpm -e --nodeps 文件名
+```
+
+#### 常用命令
+
+```bash
+#开机自启
+systemctl enable mysqld
+#启动
+sudo systemctl start mysqld
+#查看状态
+systemctl status mysqld
+#重启
+systemctl restart mysqld
+#关闭
+systemctl stop mysqld
+#关闭开机自启
+systemctl disable mysqld
+```
+
+
+
+
+
+#### 降低密码复杂度
+
+```bash
+SET GLOBAL validate_password.policy = LOW;
+SET GLOBAL validate_password.length = 6;
+```
+
+#### 为root创建远程访问权限
+
+```mysql
+CREATE USER 'root'@'%' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+```
+
+
+
+
+
+### nginx
+
+#### 源码编译安装 Nginx
+
+解压
+
+```bash
+tar -zxvf nginx-1.26.3.tar.gz
+cd nginx-1.26.3
+```
+
+安装依赖项
+
+```bash
+sudo yum install -y gcc gcc-c++ make pcre pcre-devel zlib zlib-devel openssl openssl-devel
+```
+
+配置编译参数
+
+```bash
+./configure \
+--prefix=/usr/local/nginx \
+--with-http_ssl_module \
+--with-http_gzip_static_module \
+--with-http_stub_status_module
+```
+
+编译与安装
+
+```bash
+make
+sudo make install
+```
+
+切换到安装目录并启动
+
+```bash
+cd /usr/local/nginx/sbin
+sudo ./nginx
+```
+
+查看是否启动成功
+
+```bash
+ps aux | grep nginx
+```
+
+
+
+
+
+### redis
+
+```bash
+sudo wget http://download.redis.io/releases/redis-6.2.6.tar.gz
+sudo tar -xzf redis-6.2.6.tar.gz
+```
+
+```bash
+cd redis-6.2.6
+sudo make
+sudo make install
+```
+
+
+
+```bash
+sudo mkdir /etc/redis
+sudo cp redis.conf /etc/redis/
+```
+
+编辑 `/etc/redis/redis.conf`：
+
+```bash
+sudo vi /etc/redis/redis.conf
+```
+
+修改以下内容
+
+```bash
+bind 0.0.0.0           # 允许远程连接（仅在需要时）
+protected-mode no      # 如果 bind 设置为 0.0.0.0，需关闭保护模式
+daemonize yes          # 让 Redis 以后台进程方式运行
+pidfile /var/run/redis.pid
+logfile /var/log/redis.log
+dir /var/lib/redis
+```
+
+创建运行目录和日志目录
+
+```bash
+sudo mkdir -p /var/lib/redis
+sudo touch /var/log/redis.log
+sudo chown -R root:root /var/lib/redis /var/log/redis.log
+```
+
+
+
+创建 Systemd 服务文件
+
+```bash
+sudo vi /etc/systemd/system/redis.service
+```
+
+添加以下内容
+
+```bash
+[Unit]
+Description=Redis In-Memory Data Store
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+ExecStop=/usr/local/bin/redis-cli shutdown
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+```
+
+
+
+
+
+
+
+
+
 
 
 ## 目录结构
@@ -103,6 +304,54 @@ su [-] 用户名
 在其他命令前带上sudo，可为这一条命令临时赋予root权限
 
 并不是所有用户都有权利使用sudo，需要为普通用户配置sudo认证
+
+
+
+## centos防火墙 firewalld
+
+在 **CentOS 8** 中，默认使用的是 **`firewalld`**（动态防火墙管理器）
+
+### 查看防火墙状态
+
+```bash
+sudo firewall-cmd --state
+```
+
+### 查看当前开放的端口
+
+```bash
+sudo firewall-cmd --list-ports
+```
+
+### 查看当前所有已开放的服务
+
+```bash
+sudo firewall-cmd --list-all
+```
+
+### 开放端口（如 MySQL 3306）
+
+```bash
+sudo firewall-cmd --permanent --add-port=3306/tcp
+sudo firewall-cmd --reload
+```
+
+### 关闭端口
+
+```bash
+sudo firewall-cmd --permanent --remove-port=3306/tcp
+sudo firewall-cmd --reload
+```
+
+| 操作             | 命令                                                   |
+| ---------------- | ------------------------------------------------------ |
+| 查看状态         | `sudo firewall-cmd --state`                            |
+| 查看所有规则     | `sudo firewall-cmd --list-all`                         |
+| 查看开放端口     | `sudo firewall-cmd --list-ports`                       |
+| 检查端口是否开放 | `sudo firewall-cmd --query-port=3306/tcp`              |
+| 开放端口         | `sudo firewall-cmd --permanent --add-port=3306/tcp`    |
+| 关闭端口         | `sudo firewall-cmd --permanent --remove-port=3306/tcp` |
+| 重载防火墙规则   | `sudo firewall-cmd --reload`                           |
 
 
 
@@ -203,6 +452,12 @@ ls /  # 查看根目录下信息
 ls -al
 ls -lh
 ```
+
+```bash
+ll  # ls -l的别名
+```
+
+
 
 
 
@@ -493,6 +748,11 @@ mv my_folder /home/user/Documents/  # 移动目录
 ```
 
 
+```bash
+mv nginx-1.26.3 ..  # 移动当前目录的 nginx-1.26.3 到上一层
+```
+
+
 
 #### rm
 
@@ -642,6 +902,32 @@ find / -name "*minec*"  -- 从根目录开始查找,匹配文件名包含 minec�
 
 
 
+### ps
+
+**process status** 的缩写，用于显示当前系统的进程信息。
+
+a：显示所有用户进程
+
+u：以用户为中心的格式显示
+
+x：显示没有控制终端的进程
+
+```bash
+ps aux
+```
+
+**列出系统中所有正在运行的进程，包括后台进程，并显示详细信息（如 CPU 占用、内存、所属用户等）**。
+
+```bash
+ps aux | grep ReggieTestL
+```
+
+```bash
+ps fe
+```
+
+
+
 
 
 
@@ -748,6 +1034,54 @@ echo $(date)
 ### tail
 
 可以查看文件的尾部内容，追踪文件的最新更改
+
+
+
+### vim & vi
+
+通常使用 `vim` 替代 `vi`，因为功能更强大。很多 Linux 系统中 `vi` 实际上是指向 `vim` 的软链接。
+
+#### Vim/Vi 的三种模式
+
+1. **普通模式**（Normal mode）：默认进入的模式，用于移动光标、复制粘贴等。
+2. **插入模式**（Insert mode）：用于输入文本，按 `i`、`a` 等进入。
+3. **命令模式**（Command-line mode）：执行保存、退出、搜索等命令，按 `:` 进入。
+
+
+
+#### 命令模式
+
+| 指令          | 说明                       |
+| ------------- | -------------------------- |
+| `:w`          | 保存                       |
+| `:q`          | 退出                       |
+| `:wq` 或 `ZZ` | 保存并退出                 |
+| `:x`          | 保存并退出（相当于 `:wq`） |
+| `:q!`         | 强制退出不保存             |
+| `:w filename` | 另存为 `filename`          |
+
+
+
+#### 示例
+
+创建hello.txt
+
+```bash
+cd /你想保存的位置
+vim hello.txt
+i  # 进入插入模式
+hello world
+Esc  # 退出插入模式
+:wq
+```
+
+查看hello.txt
+
+```bash
+cat hello.txt
+```
+
+
 
 
 

@@ -745,14 +745,79 @@ class OuterClass3Test {
 
 ### 匿名内部类
 
-本质上就是隐藏了名字的内部类
+<span style="color:blue">匿名内部类就是一个“没有名字”的类，它在创建对象时临时定义，并且立刻实例化。</span>
 
 匿名内部类是 Java 编程语言中一种特殊的类，它没有显式地定义类名，而是在创建对象时通过传递实现了某个接口或继承了某个类的代码块来定义类。通常，我们使用它来简化代码、减少类的数量和更高效地编写事件处理程序等。
 
+<span style="color:blue">当你 **只需要使用一次某个类的子类**（比如重写一个方法），**又不想新建一个类文件时**，就可以使用匿名内部类。</span>
+
 - **不能通过外部类类名访问，因为匿名内部类没有名字**。
+
 - **必须实现或继承**：<span style="color:red">匿名内部类必须继承一个类或者实现一个接口。</span>
+
 - **直接创建对象**：匿名内部类会在定义的同时直接实例化对象。
+
 - **只能有一个实例**：因为没有类名，无法重复实例化。
+
+- **可以重写多个方法**
+
+  ```java
+  abstract class Animal {
+      abstract void eat();
+      abstract void sleep();
+  }
+  
+  public class Main {
+      public static void main(String[] args) {
+          Animal animal = new Animal() {
+              @Override
+              void eat() {
+                  System.out.println("吃饭！");
+              }
+  
+              @Override
+              void sleep() {
+                  System.out.println("睡觉！");
+              }
+          };
+  
+          animal.eat();
+          animal.sleep();
+      }
+  }
+  ```
+
+- 可以在匿名内部类里定义**实例变量**，但不能定义**构造方法**，也不能起类名
+
+  ```java
+  abstract class Animal {
+      abstract void speak();
+  }
+  
+  public class Main {
+      public static void main(String[] args) {
+          Animal animal = new Animal() {
+              int age = 3; // ✅ 可以定义变量
+  
+              @Override
+              void speak() {
+                  System.out.println("这只动物 " + age + " 岁了");
+              }
+          };
+  
+          animal.speak(); // 输出：这只动物 3 岁了
+      }
+  }
+  ```
+
+  
+
+| 特点               | 解释                                   |
+| ------------------ | -------------------------------------- |
+| 是一个类           | 本质上就是一个类，但没有名字           |
+| 在定义时就实例化   | 你不能创建多个对象，因为没有类名可引用 |
+| 常用于接口或抽象类 | 直接实现接口或重写抽象类方法，简洁方便 |
+| 只能用一次         | 匿名内部类没有类名，不能重复使用       |
 
 ```java
 new 类名或接口名() {
@@ -793,6 +858,101 @@ public class Demo1Test {
 }
 ```
 
+#### 原理
+
+**编译之后**，Java 编译器会自动为匿名内部类**生成一个真正的类名**
+
+```java
+Animal1 animal = new Animal1() {
+    public void eat() { ... }
+};
+```
+
+```java
+class Demo1Test$1 extends Animal1 {
+    public void eat() { ... }
+}
+```
+
+```java
+Animal1 animal = new Demo1Test$1(); // 你没写这个类名，是编译器起的
+```
+
+
+
+#### 示例
+
+```java
+Dog dog = new Dog() {
+    @Override
+    void bark() {
+        System.out.println("我是匿名子类的狗！");
+    }
+};
+```
+
+```java
+class MyDog extends Dog {
+    @Override
+    void bark() {
+        System.out.println("我是匿名子类的狗！");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Dog dog = new MyDog(); // 用子类创建对象
+        dog.bark(); // 输出：我是匿名子类的狗！
+    }
+}
+```
+
+
+
+
+
+
+
+### `@FunctionalInterface`
+
+`@FunctionalInterface` 是 Java 8 引入的一个**注解**，用于标记一个接口是 **函数式接口（Functional Interface）**。
+
+```java
+@FunctionalInterface
+public interface MyFunction {
+    void execute();
+}
+```
+
+使用 Lambda 表达式调用
+
+```java
+MyFunction func = () -> System.out.println("Hello Functional Interface!");
+func.execute();
+```
+
+**编译器会强制检查接口是否符合函数式接口的规范（即只能有一个抽象方法）**，如果不符合就会报错。
+
+**函数式接口** 是指 **只包含一个抽象方法** 的接口。
+
+特征：
+
+- **只能有一个抽象方法**
+- 可以有多个默认方法（`default`）或静态方法（`static`）
+- 可以有多个默认方法或静态方法（但只能有一个抽象方法）
+- 可以被 **Lambda 表达式** 或 **方法引用** 替代使用
+
+```java
+Runnable r1 = new Runnable() {
+    public void run() {
+        System.out.println("Hello from anonymous inner class");
+    }
+};
+
+// 简化
+Runnable r2 = () -> System.out.println("Hello from lambda");
+```
+
 
 
 
@@ -815,6 +975,8 @@ public class Demo1Test {
 2. 重写 `Thread` 类的 `run()` 方法，将线程的任务逻辑写在 `run()` 方法中。
 3. 创建该类的实例。
 4. 调用 `start()` 方法启动线程。
+
+##### 普通写法
 
 ```java
 public class ThreadDemo {
@@ -842,6 +1004,63 @@ class myTrhead extends Thread {
 
 ```
 
+##### 匿名内部类写法
+
+```java
+// 等同于
+public class ThreadDemo3 {
+    public static void main(String[] args) {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 10000; i++) {
+                    System.out.println(getName() + "hello world");
+                }
+            }
+        };
+
+        Thread t2 = new Thread() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 10000; i++) {
+                    System.out.println(getName() + "hello world");
+                }
+            }
+        };
+
+        t.start();
+        t2.start();
+    }
+}
+```
+
+##### lambda写法
+
+```java
+public class ThreadDemo3 {
+    public static void main(String[] args) {
+        Thread t = new Thread(() -> {
+            for (int i = 0; i < 10000; i++) {
+                System.out.println(Thread.currentThread().getName() + " hello world");
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 10000; i++) {
+                System.out.println(Thread.currentThread().getName() + " hello world");
+            }
+        });
+
+        t.start();
+        t2.start();
+    }
+}
+```
+
+
+
+
+
 **优点**
 
 1. **简单直接**：通过继承 `Thread` 类，可以直接调用 `start()` 方法启动线程，代码较为直观。
@@ -851,6 +1070,32 @@ class myTrhead extends Thread {
 
 1. **单继承限制**：Java 是单继承语言，继承了 `Thread` 类后就无法再继承其他类，限制了类的扩展性。
 2. **线程与任务耦合**：继承 `Thread` 类后，线程的任务逻辑与线程本身耦合在一起，难以分离任务逻辑和线程控制。
+
+
+
+##### start方法
+
+```
+t.start()
+   ↓
+JVM 创建新线程
+   ↓
+新线程内部自动调用 t.run()
+   ↓
+t.run() 检查是否有 target
+   ↓
+有的话执行 target.run()（你传入的 Runnable 实现）
+```
+
+##### run方法
+
+`t.run()` 只是普通方法调用。
+
+它会在**当前线程**（比如 main 线程）中执行，不会创建新线程。
+
+所以它不会实现并发或多线程的效果。
+
+
 
 
 
@@ -889,13 +1134,172 @@ class MyRun implements Runnable {
 }
 ```
 
+```java
+public class ThreadDemo3 {
+    public static void main(String[] args) {
+        Thread t1 = new Thread(new Runnable() {
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    System.out.println("Thread 1: " + i);
+                }
+            }
+        });
+
+        t1.start(); // ✅ 正确启动新线程
+    }
+}
+```
+
+```bash
+public class ThreadDemo3 {
+    public static void main(String[] args) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    System.out.println(Thread.currentThread().getName() + ":" + i);
+                }
+            }
+        };
+
+        Thread thread = new Thread(runnable); // 创建线程对象
+        thread.start(); // 启动新线程，run() 会在子线程中执行
+    }
+}
+```
+
+```java
+public class ThreadDemo3 {
+    public static void main(String[] args) {
+        Runnable task = () -> {
+            for (int i = 0; i < 10; i++) {
+                System.out.println(Thread.currentThread().getName() + " → " + i);
+            }
+        };
+
+        Thread t1 = new Thread(task, "CustomThread-1");
+        t1.start();
+    }
+}
+```
+
+```java
+Runnable runnable = () -> System.out.println("Run in thread");
+Thread t1 = new Thread(runnable);
+```
+
+
+
+**传入 `Runnable` 但又重写了 `run()` 会怎样？**
+
+```java
+Thread t = new Thread(() -> System.out.println("Runnable running")) {
+    @Override
+    public void run() {
+        System.out.println("Thread.run() running");
+    }
+};
+
+t.start(); // 会打印哪个？
+```
+
+会打印 `Thread.run() running`
+
+因为你重写了 `Thread` 的 `run()` 方法，`target.run()` 就不会被调用了。
+
 
 
 #### Callable接口和Future接口
 
 可以获取到多线程的结果
 
+##### 使用`FutureTask`
 
+FutureTask 实现了 Runnable 和 Future
+
+```java
+public class ThreadDemo3 {
+    public static void main(String[] args) {
+        Callable<Integer> callable = () -> {
+            int result = 100;
+            Thread.sleep(5000);
+            return result;
+        };
+        FutureTask<Integer> task = new FutureTask<>(callable);
+        Thread thread = new Thread(task);
+        thread.start();
+        try {
+            int i = task.get();
+            System.out.println("Result: " + i);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
+### 查看杀死进程
+
+#### windows
+
+tasklist 查看进程
+
+taskkill 杀死进程
+
+```bash
+tasklist | findstr java
+taskkill /F /PID 28060
+```
+
+
+
+#### Linux
+
+`ps fe`、`ps aux`
+
+
+
+### 守护线程
+
+ java进程需要等待所有线程，有一种特殊的线程叫做守护线程，**只要其他非守护线程运行结束了，即使守护线程的代码没有执行完，也会强制结束。**
+
+```java
+public class ThreadDemo3 {
+    public static void main(String[] args) throws InterruptedException {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    TimeUnit.SECONDS.sleep(100000);
+                    System.out.println("Hello World");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("Hello World");
+            }
+        });
+        t.setDaemon(true);  // 设置t为守护线程，其他非守护线程结束t自己结束
+        t.start();
+
+        Thread.sleep(1000);
+        System.out.println("结束");
+    }
+}
+```
+
+
+
+### 线程状态
+
+| 状态名          | 含义                                                       |
+| --------------- | ---------------------------------------------------------- |
+| `NEW`           | 新创建，还没启动（调用了 `new Thread()` 但还没 `start()`） |
+| `RUNNABLE`      | 可运行状态，正在运行或准备运行（由 JVM 管理调度）          |
+| `BLOCKED`       | 阻塞状态，等待别的线程释放 **同步锁（synchronized）**      |
+| `WAITING`       | 无限期等待（例如 `Object.wait()`、`Thread.join()`）        |
+| `TIMED_WAITING` | 有限时间等待（例如 `Thread.sleep(x)`、`join(x)`）          |
+| `TERMINATED`    | 线程执行完毕或异常终止                                     |
 
 
 
@@ -961,6 +1365,8 @@ t.start(); // 正确用法
 
 使当前线程暂停执行指定的毫秒数。
 
+让线程从`running`状态进入`timed waiting`状态
+
 ```java
 try {
     System.out.println("线程将休眠2秒");
@@ -973,7 +1379,9 @@ try {
 
 `join()`
 
-等待该线程终止。
+等待该线程终止。阻塞当前线程
+
+<span style="color:blue">`join()` 是主线程**主动阻塞自己**去等别人，而不是控制别人何时运行。</span>
 
 ```java
 Thread t = new Thread(() -> {
@@ -995,9 +1403,71 @@ try {
 }
 ```
 
+为什么需要join
+
+```java
+public class ThreadDemo3 {
+    static int r = 0;
+
+    public static void main(String[] args) throws InterruptedException {
+        test1();
+    }
+
+    public static void test1() throws InterruptedException {
+        System.out.println("开始");
+        Thread t = new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(2);
+                r = 100;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        t.start();
+        System.out.println("r结果：" + r);
+    }
+}
+```
+
+因为主线程和线程t是并行执行的，t线程需要2秒才赋值r=10
+
+而主线程一开始就要打印r的结果
+
+```java
+public class ThreadDemo3 {
+    static int r = 0;
+
+    public static void main(String[] args) throws InterruptedException {
+        test1();
+    }
+
+    public static void test1() throws InterruptedException {
+        System.out.println("开始");
+        Thread t = new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(2);
+                r = 100;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        t.start();
+        t.join();  // 等待t线程执行完毕
+        System.out.println("r结果：" + r);
+
+    }
+}
+```
+
+
+
 `join(long millis)`
 
 等待该线程终止的时间最长为指定的毫秒数。
+
+- 如果线程在这段时间内执行完，`join` 提前返回。
+
+- 如果线程还没执行完，主线程将不再等，继续执行。
 
 ```java
 Thread t = new Thread(() -> {
@@ -1013,9 +1483,11 @@ try {
 }
 ```
 
-`yield()`
+`yield()` 
 
 提示线程调度器当前线程愿意让出CPU使用权。
+
+让当前线程从`Running`状态进入`Runnable`状态
 
 ```java
 Thread.yield(); // 当前线程让步，但不保证让步成功
@@ -1067,6 +1539,8 @@ Thread t = new Thread(() -> {
 `interrupted()`
 
 静态方法，检测当前线程是否被中断，并清除中断状态。
+
+其他线程可以调用interrupted方法打断正在睡眠的线程，此时sleep方法抛出InterruptedException异常
 
 ```java
 if (Thread.interrupted()) {
@@ -1188,6 +1662,8 @@ System.out.println("当前线程ID: " + currentThread.getId());
 
 ThreadLocal并不是一个Thread，而是Thread的局部变量。当使用ThreadLocal维护变量时，ThreadLocal为每个使用该变量的线程提供独立的变量副本，所以每一个线程都可以独立地改变自己的副本，而不会影响其他线程所对应的副本。
 
+`ThreadLocal` 是 Java 提供的一种机制，用于 **为每个线程提供独立的变量副本**。也就是说，即使多个线程访问同一个 `ThreadLocal` 变量，它们看到的却是彼此**隔离**的副本。
+
 `ThreadLocal` 是 Java 中用于创建**线程局部变量**的类，位于 `java.lang` 包中。它为每个线程提供独立的变量副本，线程之间的变量互不干扰。这在需要线程隔离的数据存储时非常有用，比如避免多线程环境中共享变量带来的数据一致性问题。
 
 ##### 基本概念
@@ -1274,7 +1750,11 @@ System.out.println(threadLocal.get()); // 输出 null
 
 
 
+### 同步与异步
 
+需要等待结果返回，才能继续运行是同步
+
+不需要等待结果返回，就能继续运行就是异步
 
 
 
@@ -1282,38 +1762,53 @@ System.out.println(threadLocal.get()); // 输出 null
 
 Lambda是jdk8中的一个语法糖，可以简化匿名内部类的书写。让我们不用关注是什么对象，而是更关注我们对数据进行了什么操作。
 
-Lambda只能简化函数式接口的匿名内部类的写法
+用来实现**函数式接口的简洁写法**
 
 函数式接口：有且只有一个抽象方法的接口叫做函数式接口，接口上方可以加@FunctionalInterface注解
 
+<span style="color:red">函数式接口 **必须是接口（`interface`）**，而**不是抽象类（`abstract class`）**。</span>
 
+### 条件
 
-### runnable
+1. 必须用于函数式接口
 
-匿名内部类写法
+2. 接口必须是 SAM 接口：**SAM**：Single Abstract Method（单一抽象方法）。
+
+   接口中可以包含：
+
+   - 默认方法（`default`）
+   - 静态方法（`static`）
+   - 但只能有**一个抽象方法**。
+
+### 与匿名内部类的区别
+
+| 特性                       | 匿名内部类                                   | Lambda 表达式                                        |
+| -------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| 是什么                     | 创建一个**子类**或**接口的实现类**的匿名实例 | 实现一个**函数式接口**（只有一个抽象方法）的方法体   |
+| 是否生成类文件             | ✅ 是，会生成一个匿名内部类的 `.class` 文件   | ✅ 是，但通常是由 JVM 优化生成的 `invokedynamic` 调用 |
+| 是否可以有多个方法         | ✅ 可以实现多个接口方法（如果接口有多个）     | ❌ 只能实现一个方法（函数式接口）                     |
+| 使用场景                   | 任何接口或类的实现                           | 只能用于函数式接口（如 Runnable, Comparator 等）     |
+| 语法是否简洁               | ❌ 相对冗长                                   | ✅ 简洁                                               |
+| 是否保留外部变量作用域信息 | ✅ 是（有自己的作用域，`this` 指向匿名类）    | ✅ 是（`this` 指向外围类）                            |
+
+### 示例
 
 ```java
-public class LambdaDemo {
-    public static void main(String[] args) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("run方法执行了");
-            }
-        }).start();
-    }
-}
+Thread t1 = new Thread(() -> System.out.println("hello world"));
 ```
 
-lambda简化
+等同于
 
 ```java
-public class LambdaDemo {
-    public static void main(String[] args) {
-        new Thread(() -> System.out.println("run方法执行了")).start();
+Thread t1 = new Thread(new Runnable() {
+    @Override
+    public void run() {
+        System.out.println("hello world");
     }
-}
+});
 ```
+
+
 
 
 
@@ -3751,11 +4246,14 @@ System.err.println("错误");  // 打印错误信息
 
 3. 抛出错误
 
+   方法签名中如果抛出的是“受检异常（Checked Exception）”，你必须在调用处处理它（try-catch 或 throws）否则编译不会通过；
+如果抛出的是“运行时异常（RuntimeException）”，你可以选择处理，也可以不处理。
+   
    throws：写在方法定义处，表示声明一个异常
 
    - 编译时异常：必须要写
    - 运行时异常：可以不写
-
+   
    ```java
    public class test1 {
        public static void main(String[] args) {
@@ -3769,10 +4267,10 @@ System.err.println("错误");  // 打印错误信息
        public static void test() throws Exception {
            int[] arr = {1, 2, 3, 4, 5};
            System.out.println(arr[9]);
-       }
+    }
    }
    ```
-
+   
    throw：写在方法内，结束方法，手动抛出异常对象，交给调用者，方法下面的代码不再执行
 
 
