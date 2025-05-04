@@ -395,8 +395,6 @@ synchronized可以用来给对象或者方法进行加锁，当对某个对象�
 
 
 
-
-
 ## 面向对象
 
 ### 构造方法
@@ -959,803 +957,6 @@ Runnable r2 = () -> System.out.println("Hello from lambda");
 
 
 
-## 线程
-
-并发：同一时刻，有多个指令在单个CPU上交替执行
-
-并行：同一时刻，有多个指令在多个CPU上同时执行
-
-### 多线程实现方式
-
-#### 继承Thread类
-
-**实现步骤**
-
-1. 创建一个类并继承自 `Thread` 类。
-2. 重写 `Thread` 类的 `run()` 方法，将线程的任务逻辑写在 `run()` 方法中。
-3. 创建该类的实例。
-4. 调用 `start()` 方法启动线程。
-
-##### 普通写法
-
-```java
-public class ThreadDemo {
-    public static void main(String[] args) {
-        /*  1.定义一个类继承Thread
-            2.重写run方法
-            3. 创建子类的对象并启动线程 */
-        myTrhead t1 = new myTrhead();
-        myTrhead t2 = new myTrhead();
-        t1.setName("线程1");
-        t2.setName("线程2");
-        t1.start();
-        t2.start();
-    }
-}
-
-class myTrhead extends Thread {
-    @Override
-    public void run() {
-        for (int i = 0; i < 10000; i++) {
-            System.out.println(getName() + "hello world");
-        }
-    }
-}
-
-```
-
-##### 匿名内部类写法
-
-```java
-// 等同于
-public class ThreadDemo3 {
-    public static void main(String[] args) {
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 10000; i++) {
-                    System.out.println(getName() + "hello world");
-                }
-            }
-        };
-
-        Thread t2 = new Thread() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 10000; i++) {
-                    System.out.println(getName() + "hello world");
-                }
-            }
-        };
-
-        t.start();
-        t2.start();
-    }
-}
-```
-
-##### lambda写法
-
-```java
-public class ThreadDemo3 {
-    public static void main(String[] args) {
-        Thread t = new Thread(() -> {
-            for (int i = 0; i < 10000; i++) {
-                System.out.println(Thread.currentThread().getName() + " hello world");
-            }
-        });
-
-        Thread t2 = new Thread(() -> {
-            for (int i = 0; i < 10000; i++) {
-                System.out.println(Thread.currentThread().getName() + " hello world");
-            }
-        });
-
-        t.start();
-        t2.start();
-    }
-}
-```
-
-
-
-
-
-**优点**
-
-1. **简单直接**：通过继承 `Thread` 类，可以直接调用 `start()` 方法启动线程，代码较为直观。
-2. **易于实现**：适合快速创建单一功能的线程。
-
-**缺点**
-
-1. **单继承限制**：Java 是单继承语言，继承了 `Thread` 类后就无法再继承其他类，限制了类的扩展性。
-2. **线程与任务耦合**：继承 `Thread` 类后，线程的任务逻辑与线程本身耦合在一起，难以分离任务逻辑和线程控制。
-
-
-
-##### start方法
-
-```
-t.start()
-   ↓
-JVM 创建新线程
-   ↓
-新线程内部自动调用 t.run()
-   ↓
-t.run() 检查是否有 target
-   ↓
-有的话执行 target.run()（你传入的 Runnable 实现）
-```
-
-##### run方法
-
-`t.run()` 只是普通方法调用。
-
-它会在**当前线程**（比如 main 线程）中执行，不会创建新线程。
-
-所以它不会实现并发或多线程的效果。
-
-
-
-
-
-#### 实现Runnable接口
-
-**实现步骤**
-
-1. 创建一个类并实现 `Runnable` 接口。
-2. 在实现类中重写 `run()` 方法，将线程的任务逻辑写在 `run()` 方法中。
-3. 创建 `Runnable` 实现类的实例。
-4. <span style="color:red">将该实例作为参数传递给 `Thread` 类的构造方法，创建线程对象。</span>
-5. 调用线程对象的 `start()` 方法启动线程。
-
-```java
-public class ThreadDemo1 {
-    public static void main(String[] args) {
-        MyRun mr = new MyRun();
-        Thread t1 = new Thread(mr);
-        Thread t2 = new Thread(mr); 
-        t1.setName("线程1");
-        t2.setName("线程2");
-        t1.start();
-        t2.start();
-    }
-}
-
-class MyRun implements Runnable {
-    @Override
-    public void run() {
-        for (int i = 0; i < 100; i++) {
-            // 获取到当前线程的对象
-            Thread t = Thread.currentThread();
-            System.out.println(t.getName()+"hello world");
-        }
-    }
-}
-```
-
-```java
-public class ThreadDemo3 {
-    public static void main(String[] args) {
-        Thread t1 = new Thread(new Runnable() {
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    System.out.println("Thread 1: " + i);
-                }
-            }
-        });
-
-        t1.start(); // ✅ 正确启动新线程
-    }
-}
-```
-
-```bash
-public class ThreadDemo3 {
-    public static void main(String[] args) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    System.out.println(Thread.currentThread().getName() + ":" + i);
-                }
-            }
-        };
-
-        Thread thread = new Thread(runnable); // 创建线程对象
-        thread.start(); // 启动新线程，run() 会在子线程中执行
-    }
-}
-```
-
-```java
-public class ThreadDemo3 {
-    public static void main(String[] args) {
-        Runnable task = () -> {
-            for (int i = 0; i < 10; i++) {
-                System.out.println(Thread.currentThread().getName() + " → " + i);
-            }
-        };
-
-        Thread t1 = new Thread(task, "CustomThread-1");
-        t1.start();
-    }
-}
-```
-
-```java
-Runnable runnable = () -> System.out.println("Run in thread");
-Thread t1 = new Thread(runnable);
-```
-
-
-
-**传入 `Runnable` 但又重写了 `run()` 会怎样？**
-
-```java
-Thread t = new Thread(() -> System.out.println("Runnable running")) {
-    @Override
-    public void run() {
-        System.out.println("Thread.run() running");
-    }
-};
-
-t.start(); // 会打印哪个？
-```
-
-会打印 `Thread.run() running`
-
-因为你重写了 `Thread` 的 `run()` 方法，`target.run()` 就不会被调用了。
-
-
-
-#### Callable接口和Future接口
-
-可以获取到多线程的结果
-
-##### 使用`FutureTask`
-
-FutureTask 实现了 Runnable 和 Future
-
-```java
-public class ThreadDemo3 {
-    public static void main(String[] args) {
-        Callable<Integer> callable = () -> {
-            int result = 100;
-            Thread.sleep(5000);
-            return result;
-        };
-        FutureTask<Integer> task = new FutureTask<>(callable);
-        Thread thread = new Thread(task);
-        thread.start();
-        try {
-            int i = task.get();
-            System.out.println("Result: " + i);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-
-
-### 查看杀死进程
-
-#### windows
-
-tasklist 查看进程
-
-taskkill 杀死进程
-
-```bash
-tasklist | findstr java
-taskkill /F /PID 28060
-```
-
-
-
-#### Linux
-
-`ps fe`、`ps aux`
-
-
-
-### 守护线程
-
- java进程需要等待所有线程，有一种特殊的线程叫做守护线程，**只要其他非守护线程运行结束了，即使守护线程的代码没有执行完，也会强制结束。**
-
-```java
-public class ThreadDemo3 {
-    public static void main(String[] args) throws InterruptedException {
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    TimeUnit.SECONDS.sleep(100000);
-                    System.out.println("Hello World");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.out.println("Hello World");
-            }
-        });
-        t.setDaemon(true);  // 设置t为守护线程，其他非守护线程结束t自己结束
-        t.start();
-
-        Thread.sleep(1000);
-        System.out.println("结束");
-    }
-}
-```
-
-
-
-### 线程状态
-
-| 状态名          | 含义                                                       |
-| --------------- | ---------------------------------------------------------- |
-| `NEW`           | 新创建，还没启动（调用了 `new Thread()` 但还没 `start()`） |
-| `RUNNABLE`      | 可运行状态，正在运行或准备运行（由 JVM 管理调度）          |
-| `BLOCKED`       | 阻塞状态，等待别的线程释放 **同步锁（synchronized）**      |
-| `WAITING`       | 无限期等待（例如 `Object.wait()`、`Thread.join()`）        |
-| `TIMED_WAITING` | 有限时间等待（例如 `Thread.sleep(x)`、`join(x)`）          |
-| `TERMINATED`    | 线程执行完毕或异常终止                                     |
-
-
-
-### 类
-
-#### Thread
-
-##### 常用方法
-
-###### 线程标识相关方法
-
-`getId()`：获取线程的唯一标识符。
-
-```java
-Thread t = new Thread();
-long id = t.getId();
-System.out.println("线程ID: " + id);
-```
-
-`getName()/setName()`：获取或设置线程名称。
-
-```java
-Thread t = new Thread();
-t.setName("MyCustomThread");
-System.out.println("线程名称: " + t.getName());
-```
-
-`currentThread()`
-
-静态方法，获取当前正在执行的线程引用。
-
-```java
-Thread current = Thread.currentThread();
-System.out.println("当前线程: " + current.getName());
-```
-
-###### 线程控制方法
-
-`start()`
-
-启动线程，使线程进入就绪状态。
-
-```java
-Thread t = new Thread(() -> {
-    System.out.println("线程开始运行");
-});
-t.start(); // 正确的启动方式
-```
-
-`run()`
-
-包含线程执行的代码，通常由JVM调用，不应直接调用。
-
-```java
-Thread t = new Thread(() -> {
-    System.out.println("这是线程的任务");
-});
-// t.run(); // 错误用法，这只是普通方法调用
-t.start(); // 正确用法
-```
-
-`sleep(long millis)`
-
-使当前线程暂停执行指定的毫秒数。
-
-让线程从`running`状态进入`timed waiting`状态
-
-```java
-try {
-    System.out.println("线程将休眠2秒");
-    Thread.sleep(2000); // 休眠2秒
-    System.out.println("线程继续执行");
-} catch (InterruptedException e) {
-    e.printStackTrace();
-}
-```
-
-`join()`
-
-等待该线程终止。阻塞当前线程
-
-<span style="color:blue">`join()` 是主线程**主动阻塞自己**去等别人，而不是控制别人何时运行。</span>
-
-```java
-Thread t = new Thread(() -> {
-    try {
-        Thread.sleep(3000);
-        System.out.println("子线程执行完毕");
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-});
-t.start();
-
-try {
-    System.out.println("等待子线程完成");
-    t.join(); // 主线程等待t线程结束
-    System.out.println("主线程继续执行");
-} catch (InterruptedException e) {
-    e.printStackTrace();
-}
-```
-
-为什么需要join
-
-```java
-public class ThreadDemo3 {
-    static int r = 0;
-
-    public static void main(String[] args) throws InterruptedException {
-        test1();
-    }
-
-    public static void test1() throws InterruptedException {
-        System.out.println("开始");
-        Thread t = new Thread(() -> {
-            try {
-                TimeUnit.SECONDS.sleep(2);
-                r = 100;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-        t.start();
-        System.out.println("r结果：" + r);
-    }
-}
-```
-
-因为主线程和线程t是并行执行的，t线程需要2秒才赋值r=10
-
-而主线程一开始就要打印r的结果
-
-```java
-public class ThreadDemo3 {
-    static int r = 0;
-
-    public static void main(String[] args) throws InterruptedException {
-        test1();
-    }
-
-    public static void test1() throws InterruptedException {
-        System.out.println("开始");
-        Thread t = new Thread(() -> {
-            try {
-                TimeUnit.SECONDS.sleep(2);
-                r = 100;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-        t.start();
-        t.join();  // 等待t线程执行完毕
-        System.out.println("r结果：" + r);
-
-    }
-}
-```
-
-
-
-`join(long millis)`
-
-等待该线程终止的时间最长为指定的毫秒数。
-
-- 如果线程在这段时间内执行完，`join` 提前返回。
-
-- 如果线程还没执行完，主线程将不再等，继续执行。
-
-```java
-Thread t = new Thread(() -> {
-    /* 耗时任务 */
-});
-t.start();
-
-try {
-    t.join(1000); // 最多等待1秒
-    // 无论线程t是否结束，1秒后都会继续执行
-} catch (InterruptedException e) {
-    e.printStackTrace();
-}
-```
-
-`yield()` 
-
-提示线程调度器当前线程愿意让出CPU使用权。
-
-让当前线程从`Running`状态进入`Runnable`状态
-
-```java
-Thread.yield(); // 当前线程让步，但不保证让步成功
-```
-
-`interrupt()`
-
-中断线程。
-
-```java
-Thread t = new Thread(() -> {
-    try {
-        for (int i = 0; i < 10; i++) {
-            if (Thread.currentThread().isInterrupted()) {
-                System.out.println("线程被中断，退出");
-                return;
-            }
-            System.out.println("计数: " + i);
-            Thread.sleep(1000);
-        }
-    } catch (InterruptedException e) {
-        System.out.println("线程在sleep时被中断");
-    }
-});
-t.start();
-
-// 3秒后中断线程
-try {
-    Thread.sleep(3000);
-    t.interrupt();
-} catch (InterruptedException e) {
-    e.printStackTrace();
-}
-```
-
-`isInterrupted()`
-
-检测线程是否已被中断。
-
-```java
-Thread t = new Thread(() -> {
-    while (!Thread.currentThread().isInterrupted()) {
-        // 执行任务直到被中断
-    }
-    System.out.println("线程检测到中断信号，结束执行");
-});
-```
-
-`interrupted()`
-
-静态方法，检测当前线程是否被中断，并清除中断状态。
-
-其他线程可以调用interrupted方法打断正在睡眠的线程，此时sleep方法抛出InterruptedException异常
-
-```java
-if (Thread.interrupted()) {
-    System.out.println("线程被中断，中断状态被清除");
-}
-```
-
-线程状态和属性方法
-
-`isAlive()`
-
-判断线程是否还在运行。
-
-```java
-Thread t = new Thread(() -> {
-    try {
-        Thread.sleep(2000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-});
-t.start();
-
-System.out.println("线程启动后是否存活: " + t.isAlive());
-try {
-    Thread.sleep(3000);
-} catch (InterruptedException e) {
-    e.printStackTrace();
-}
-System.out.println("线程执行后是否存活: " + t.isAlive());
-```
-
-`getState()`
-
-获取线程状态。
-
-```java
-Thread t = new Thread();
-System.out.println("新建线程状态: " + t.getState()); // NEW
-t.start();
-System.out.println("启动后状态: " + t.getState()); // 可能是RUNNABLE
-```
-
-`getPriority()/setPriority(int)`
-
-获取或设置线程优先级。
-
-```java
-Thread t = new Thread();
-t.setPriority(Thread.MAX_PRIORITY); // 设置为最高优先级(10)
-System.out.println("线程优先级: " + t.getPriority());
-```
-
-`isDaemon()/setDaemon(boolean)`
-
-检查线程是否为守护线程或将线程设置为守护线程。
-
-```java
-Thread t = new Thread();
-t.setDaemon(true); // 设置为守护线程，必须在start()前调用
-System.out.println("是否为守护线程: " + t.isDaemon());
-```
-
-`getThreadGroup()`
-
-获取线程所属的线程组。
-
-```java
-Thread t = new Thread();
-ThreadGroup group = t.getThreadGroup();
-System.out.println("线程组: " + group.getName());
-```
-
-`getContextClassLoader()/setContextClassLoader()`
-
-获取或设置线程上下文类加载器。
-
-```java
-Thread t = Thread.currentThread();
-ClassLoader cl = t.getContextClassLoader();
-System.out.println("上下文类加载器: " + cl);
-```
-
-###### 线程堆栈相关方法
-
-`getStackTrace()`
-
-获取线程的堆栈跟踪信息。
-
-```java
-Thread t = Thread.currentThread();
-StackTraceElement[] stackTrace = t.getStackTrace();
-for (StackTraceElement element : stackTrace) {
-    System.out.println(element);
-}
-```
-
-`dumpStack()`
-
-打印当前线程的堆栈跟踪信息到标准错误流。
-
-```java
-Thread.dumpStack(); // 打印当前线程的堆栈跟踪
-```
-
-##### 类方法
-
-`currentThread()`
-
-```java
-Thread currentThread = Thread.currentThread();
-System.out.println("当前线程名称: " + currentThread.getName());
-System.out.println("当前线程ID: " + currentThread.getId());
-```
-
-
-
-#### ThreadLocal
-
-ThreadLocal并不是一个Thread，而是Thread的局部变量。当使用ThreadLocal维护变量时，ThreadLocal为每个使用该变量的线程提供独立的变量副本，所以每一个线程都可以独立地改变自己的副本，而不会影响其他线程所对应的副本。
-
-`ThreadLocal` 是 Java 提供的一种机制，用于 **为每个线程提供独立的变量副本**。也就是说，即使多个线程访问同一个 `ThreadLocal` 变量，它们看到的却是彼此**隔离**的副本。
-
-`ThreadLocal` 是 Java 中用于创建**线程局部变量**的类，位于 `java.lang` 包中。它为每个线程提供独立的变量副本，线程之间的变量互不干扰。这在需要线程隔离的数据存储时非常有用，比如避免多线程环境中共享变量带来的数据一致性问题。
-
-##### 基本概念
-
-当我们使用普通的成员变量时，多个线程共享这些变量，可能会导致线程安全问题。而通过 `ThreadLocal`，每个线程都能拥有自己的变量副本，避免了线程之间的干扰。
-
-- **核心原理**：`ThreadLocal` 为每个线程提供一个独立的变量副本。这些变量副本实际上存储在每个线程自己的 `ThreadLocalMap` 中。
-- **作用场景**：当每个线程需要独立的变量，且线程之间的变量不需要共享时，适合使用 `ThreadLocal`。
-
-##### 使用方法
-
-创建一个 `ThreadLocal` 实例时，可以通过 `set()` 方法设置当前线程的值，通过 `get()` 方法获取当前线程的值。
-
-```java
-public class ThreadLocalExample {
-    // 创建一个 ThreadLocal 对象
-    private static ThreadLocal<Integer> threadLocal = new ThreadLocal<>();
-
-    public static void main(String[] args) {
-        Thread thread1 = new Thread(() -> {
-            threadLocal.set(1);
-            System.out.println("Thread 1: " + threadLocal.get());  // Thread 1: 1
-        });
-
-        Thread thread2 = new Thread(() -> {
-            threadLocal.set(2);
-            System.out.println("Thread 2: " + threadLocal.get());  // Thread 2: 2
-        });
-
-        thread1.start();
-        thread2.start();
-    }
-}
-```
-
-使用 `initialValue()` 提供初始值
-
-```java
-public class ThreadLocalInitialValueExample {
-    private static ThreadLocal<Integer> threadLocal = ThreadLocal.withInitial(() -> 0);
-
-    public static void main(String[] args) {
-        Thread thread1 = new Thread(() -> {
-            System.out.println("Thread 1 initial value: " + threadLocal.get());  // Thread 1 initial value: 0
-            threadLocal.set(100);
-            System.out.println("Thread 1 updated value: " + threadLocal.get());  // Thread 1 updated value: 100
-        });
-
-        thread1.start();
-    }
-}
-```
-
-##### 常用方法
-
-`get()`
-
-获取当前线程关联的变量值。
-
-```java
-ThreadLocal<String> threadLocal = new ThreadLocal<>();
-System.out.println(threadLocal.get()); // 输出 null
-
-ThreadLocal<String> threadLocalWithInitial = ThreadLocal.withInitial(() -> "Default Value");
-System.out.println(threadLocalWithInitial.get()); // 输出 "Default Value"
-```
-
-`set(T value)`
-
-为当前线程设置线程局部变量的值。
-
-`remove()`
-
-移除当前线程的值，防止内存泄漏。
-
-```java
-ThreadLocal<String> threadLocal = new ThreadLocal<>();
-threadLocal.set("ThreadLocal Value");
-System.out.println(threadLocal.get()); // 输出 "ThreadLocal Value"
-
-threadLocal.remove();
-System.out.println(threadLocal.get()); // 输出 null
-```
-
-
-
-### 同步与异步
-
-需要等待结果返回，才能继续运行是同步
-
-不需要等待结果返回，就能继续运行就是异步
-
 
 
 ## Lambda
@@ -2198,12 +1399,6 @@ public class test {
 
 
 
-### 方法引用
-
-
-
-
-
 ### 收集器
 
 
@@ -2252,7 +1447,7 @@ Arrays.stream(array).forEach(System.out::println);
 
 
 
-### Collectors
+## Collectors
 
 1. `Collectors.toList()`: 将 Stream 中的元素收集到一个 List 中。
     示例: `List<String> list = stream.collect(Collectors.toList());`
@@ -2398,6 +1593,42 @@ Arrays.stream(array).forEach(System.out::println);
     ```
 
     
+
+## 方法引用
+
+方法引用（**Method Reference**）是 Java 8 引入的一种简洁的写法，主要目的是**简化**Lambda表达式（`lambda expressions`）的代码。
+
+方法引用属于**函数式编程**的一部分，它允许我们直接引用已有的方法，而不用重复写lambda表达式。
+
+
+
+### 基本形式
+
+| 形式                | 示例                        | 实例                     | 说明                           |
+| :------------------ | :-------------------------- | :----------------------- | ------------------------------ |
+| 1. 静态方法引用     | `ClassName::staticMethod`   | `Integer::parseInt`      | 引用类的静态方法               |
+| 2. 实例方法引用     | `instance::instanceMethod`  | `someObject::methodName` | 引用特定对象的实例方法         |
+| 3. 类的实例方法引用 | `ClassName::instanceMethod` | `String::toLowerCase`    | 引用某个类的任意对象的实例方法 |
+| 4. 构造器引用       | `ClassName::new`            | `ArrayList::new`         | 引用类的构造器（构建对象）     |
+
+
+
+静态方法
+
+```java
+int num = Integer.parseInt("123");
+```
+
+类实例方法
+
+```java
+String str = "HELLO";
+String lower = str.toLowerCase();
+```
+
+
+
+
 
 
 
@@ -3847,6 +3078,321 @@ public class eTest {
 
 
 
+#### HashMap
+
+##### 钻石操作符
+
+一下两种功能完全一样
+
+区别只是写法上的语法糖，后者是 **Java 7 及以后版本提供的简化写法**，称为：**钻石操作符（Diamond Operator）**：`<>`
+
+钻石操作符 `<>` **只能在赋值时使用**，不能用在声明泛型类的时候。
+
+```java
+Map<Integer, OrderStatus> map = new HashMap<Integer, OrderStatus>();
+// 编译器会自动推断出右边泛型的类型是 <Integer, OrderStatus>。
+Map<Integer, OrderStatus> map = new HashMap<>();
+```
+
+
+
+
+
+
+
+
+
+
+
+## 枚举
+
+### 什么是枚举
+
+**枚举**是一种特殊的 Java 类型，用于定义一组常量。使用枚举可以让代码更清晰、可读性更强，同时避免魔法数字（magic numbers）或字符串带来的错误。
+
+Java 中的枚举是 `enum` 关键字引入的，从 **JDK1.5** 开始支持。
+
+### 基本语法
+
+```java
+public enum Day {
+    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+}
+```
+
+- 枚举成员默认是 `public static final`。
+- 枚举类默认继承自 `java.lang.Enum`，不能继承其他类（因为 Java 不支持多继承）。
+- 枚举不能使用 `extends`，但可以实现接口 `implements`。
+
+### 示例
+
+**示例1**
+
+```java
+package EnumTest;
+
+public enum DayEnum {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday
+}
+```
+
+这是最简单的枚举写法。每个枚举常量（如 `Monday`）是一个“固定的对象”，它们**没有任何额外的信息**。
+
+```java
+public class EnumTest1 {
+    public static void main(String[] args) {
+        printDay(DayEnum.Monday);
+    }
+
+    public static void printDay(DayEnum day) {
+        switch (day) {
+            case Monday:
+                System.out.println("星期一");
+                break;
+            case Tuesday:
+                System.out.println("星期二");
+                break;
+            case Wednesday:
+                System.out.println("星期三");
+                break;
+            case Thursday:
+                System.out.println("星期四");
+                break;
+            case Friday:
+                System.out.println("星期五");
+                break;
+            case Saturday:
+                System.out.println("星期六");
+                break;
+            case Sunday:
+                System.out.println("星期日");
+                break;
+            default:
+                System.out.println("未知");
+                break;
+        }
+    }
+}
+```
+
+**示例2**
+
+```java
+public enum DayEnum {
+    Monday("星期一"),
+    Tuesday("星期二"),
+    Wednesday("星期三"),
+    Thursday("星期四"),
+    Friday("星期五"),
+    Saturday("星期六"),
+    Sunday("星期日");
+
+    private String dayName;
+
+    // 构造函数，给每个枚举常量赋值
+    DayEnum(String dayName) {
+        this.dayName = dayName;
+    }
+
+    public String getDayName() {
+        return dayName;
+    }
+}
+```
+
+```java
+System.out.println(DayEnum.Thursday.getDayName());  // 星期四
+```
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        for (DayEnum day : DayEnum.values()) {
+            System.out.println(day + " : " + day.getDayName());
+        }
+    }
+}
+```
+
+```java
+for (DayEnum day : DayEnum.values()) {
+    System.out.println(day);  // 实际上是调用了 day.toString() 方法。没有重写 toString() 方法，它默认返回的就是 name() 的值。
+    System.out.println(day.name());
+}
+```
+
+
+
+**示例3**
+
+```java
+public enum OrderStatus {
+    // 步骤 1：定义枚举常量（每个包含 code 和 desc）
+    CREATED(0, "已创建"),
+    PAID(1, "已付款"),
+    SHIPPED(2, "已发货"),
+    COMPLETED(3, "已完成"),
+    CANCELLED(4, "已取消");
+
+    // 步骤 2：定义成员变量
+    private final int code;
+    private final String description;
+
+    // 步骤 3：构造方法
+    OrderStatus(int code, String description) {
+        this.code = code;
+        this.description = description;
+    }
+
+    // 步骤 4：提供 getter 方法
+    public int getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    private static final Map<Integer, OrderStatus> codeMap = new HashMap<>();
+
+    static {
+        for (OrderStatus value : OrderStatus.values()) {
+            codeMap.put(value.code, value);
+        }
+    }
+
+    // 步骤 5：提供 toString 方法
+    @Override
+    public String toString() {
+        return "订单状态：" + code + "，" + description;
+    }
+
+    // 步骤 6：提供一个方法，根据 code 获取枚举常量
+    public static OrderStatus fromCode(int code) {
+        if (codeMap.containsKey(code)) {
+            return codeMap.get(code);
+        }
+        throw new IllegalArgumentException("无效的订单状态 " + code);
+    }
+
+    // 步骤7：是否是最终状态
+    public boolean isFinalStatus() {
+        return this == COMPLETED || this == CANCELLED;
+    }
+}
+```
+
+```java
+public class EnumTest1 {
+    public static void main(String[] args) {
+        OrderStatus status = OrderStatus.fromCode(2);
+        System.out.println("状态:" + status.getDescription());
+        System.out.println(status.isFinalStatus());
+        System.out.println(status.toString());
+    }
+}
+```
+
+#### 通过map缓存
+
+```java
+public enum OrderStatus {
+    CREATED(0, "已创建"),
+    PAID(1, "已付款"),
+    SHIPPED(2, "已发货"),
+    COMPLETED(3, "已完成"),
+    CANCELLED(4, "已取消");
+
+    private final int code;
+    private final String description;
+
+    OrderStatus(int code, String description) {
+        this.code = code;
+        this.description = description;
+    }
+
+    public int getCode() { return code; }
+    public String getDescription() { return description; }
+
+    // 用 Map 存储 code -> 枚举 的映射
+    private static final Map<Integer, OrderStatus> CODE_MAP = new HashMap<>();
+
+    // 静态代码块初始化映射表
+    static {
+        for (OrderStatus status : OrderStatus.values()) {
+            CODE_MAP.put(status.getCode(), status);
+        }
+    }
+
+    // 快速根据 code 查找枚举
+    public static OrderStatus fromCode(int code) {
+        OrderStatus status = CODE_MAP.get(code);
+        if (status == null) {
+            throw new IllegalArgumentException("无效的状态码：" + code);
+        }
+        return status;
+    }
+
+    public boolean isFinalStatus() {
+        return this == COMPLETED || this == CANCELLED;
+    }
+}
+```
+
+
+
+
+
+
+
+### 自带方法
+
+| 方法                   | 说明                          |
+| ---------------------- | ----------------------------- |
+| `values()`             | 返回所有枚举值的数组          |
+| `valueOf(String name)` | 将字符串转换成对应的枚举值    |
+| `name()`               | 返回枚举常量的名称            |
+| `ordinal()`            | 返回枚举常量的序号，从 0 开始 |
+
+### 语法
+
+```java
+Monday("星期一")
+```
+
+实际上在 Java 枚举中就是**调用构造方法 `DayEnum(String dayName)`**，传入的参数是 `"星期一"`。
+
+```java
+// 伪代码
+public static final DayEnum Monday = new DayEnum("星期一");
+public static final DayEnum Tuesday = new DayEnum("星期二");
+...
+```
+
+
+
+#### 构造函数
+
+枚举类中的构造函数不能是 `public`，只能是 `private` 或默认（包访问）权限。
+
+在 Java 中，枚举（`enum`）的构造函数默认就是 `private` 的
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## 接口
@@ -3948,6 +3494,54 @@ public class AdvancedInterfaceImpl implements AdvancedInterface {
     // 默认方法 anotherDefaultMethod 没有重写，直接继承接口的实现
 }
 ```
+
+### 默认方法
+
+在 **Java 8** 之前，接口中只能有抽象方法
+
+从Java 8开始，接口可以包含两种类型的方法：
+
+1. **抽象方法**：传统的接口方法，只有声明，没有实现
+2. **默认方法**：使用`default`关键字修饰，包含方法体的实现
+
+```java
+public interface Vehicle {
+    void start();  // 抽象方法
+
+    default void honk() {
+        System.out.println("Beep beep!");
+    }
+}
+```
+
+```java
+public class Car implements Vehicle {
+    @Override
+    public void start() {
+        System.out.println("Car started.");
+    }
+
+    // 可以不重写honk()，直接使用接口中的默认实现
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Car car = new Car();
+        car.start();  // 输出: Car started.
+        car.honk();   // 输出: Beep beep!
+    }
+}
+```
+
+
+
+
+
+
+
+
 
 
 
@@ -4293,6 +3887,16 @@ public class NameFormatException extends RuntimeException {
     }
 }
 ```
+
+
+
+
+
+
+
+
+
+
 
 ## 事务
 
@@ -4737,6 +4341,783 @@ public class MyClass {
 
 
 
+## FIle类
+
+在 Java 中，`java.io.File` 类是用于表示文件或目录（文件夹）路径名的抽象表示。**一个 `File` 对象可以表示磁盘上的一个实际文件或目录，也可以表示尚不存在的路径**。
+
+<span style="color:blue">`File` 仅仅是路径的抽象表示，它本身不表示文件内容，也不会直接创建文件或目录。</span>
+
+### 创建file对象
+
+```java
+import java.io.File;
+
+public class FileExample {
+    public static void main(String[] args) {
+        // 方式1：使用路径字符串
+        File file1 = new File("example.txt");
+
+        // 方式2：使用父路径字符串和子路径字符串
+        File file2 = new File("/home/user", "example.txt");
+
+        // 方式3：使用父File对象和子路径字符串
+        File parentDir = new File("/home/user");
+        File file3 = new File(parentDir, "example.txt");
+    }
+}
+```
+
+### 常用方法
+
+#### 路径相关
+
+| 方法                 | 说明                                          |
+| :------------------- | :-------------------------------------------- |
+| `getName()`          | 返回文件或目录的名称                          |
+| `getPath()`          | 返回创建 `File` 对象时使用的路径字符串        |
+| `getAbsolutePath()`  | 返回文件或目录的绝对路径                      |
+| `getCanonicalPath()` | 返回规范化的绝对路径，处理符号链接、`.`、`..` |
+| `getParent()`        | 返回父目录的路径字符串                        |
+| `getParentFile()`    | 返回父路径对应的File对象                      |
+
+#### 文件或目录属性
+
+| 方法                                        | 说明                               |
+| :------------------------------------------ | :--------------------------------- |
+| `exists()`                                  | 判断文件或目录是否存在             |
+| `isFile()`                                  | 判断是否是一个文件                 |
+| `isDirectory()`                             | 判断是否是一个目录                 |
+| `length()`                                  | 文件的字节大小（目录返回未指定值） |
+| `lastModified()`                            | 文件最后修改时间（毫秒时间戳）     |
+| `canRead()` / `canWrite()` / `canExecute()` | 是否可读/写/执行                   |
+
+#### 文件或目录操作
+
+| 方法                  | 说明                             |
+| :-------------------- | :------------------------------- |
+| `createNewFile()`     | 创建一个新文件（如果不存在）     |
+| `mkdir()`             | 创建单层目录                     |
+| `mkdirs()`            | 创建多层目录（包括必要的父目录） |
+| `delete()`            | 删除文件或空目录                 |
+| `renameTo(File dest)` | 重命名文件或目录                 |
+
+#### 目录操作
+
+| 方法          | 说明                                           |
+| :------------ | :--------------------------------------------- |
+| `list()`      | 返回当前目录下所有文件和目录的名称数组         |
+| `listFiles()` | 返回当前目录下所有文件和目录的 `File` 对象数组 |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## IO流
+
+IO流（Input/Output Stream）是 Java 中用于处理数据传输的机制，主要目的是在程序与外部设备（如文件、网络、内存、键盘等）之间进行数据的 **输入**（Input）和 **输出**（Output）。
+
+### 分类
+
+#### **按数据单位划分**
+
+| 类型   | 描述                           | 基本类                         | 适用范围                       |
+| :----- | :----------------------------- | :----------------------------- | ------------------------------ |
+| 字节流 | 以字节（8 bit）为单位传输数据  | `InputStream` / `OutputStream` | 所有类型的文件                 |
+| 字符流 | 以字符（16 bit）为单位传输数据 | `Reader` / `Writer`            | 纯文本文件（记事本能直接打开） |
+
+- **字节流**适合处理所有类型的数据，如图片、视频、音频、二进制文件。
+- **字符流**主要用于处理文本数据，自动处理字符编码。`.txt`、`.java`、`.xml`、`.html`
+
+#### **按流向划分**
+
+| 类型   | 描述           |
+| :----- | :------------- |
+| 输入流 | 读入数据到程序 |
+| 输出流 | 从程序写出数据 |
+
+
+
+
+
+#### 字节流
+
+##### FileInputStream
+
+1. 创建对象
+
+   如果文件不存在，直接报错
+
+```java
+public class FileInputDemo1 {
+    public static void main(String[] args) throws Exception {
+        FileInputStream fis = new FileInputStream(".\\src\\IODemo\\output.txt");
+        int data = 0;
+        while ((data = fis.read()) != -1) {
+            System.out.print((char) data);
+        }
+        fis.close();
+    }
+}
+```
+
+
+
+###### 方法
+
+**构造函数**
+
+| 构造方法                             | 描述                           |
+| :----------------------------------- | :----------------------------- |
+| `FileInputStream(String name)`       | 通过文件名字符串创建输入流对象 |
+| `FileInputStream(File file)`         | 通过 `File` 对象创建输入流对象 |
+| `FileInputStream(FileDescriptor fd)` | 通过文件描述符创建输入流对象   |
+
+**重要方法**
+
+| 方法                                   | 描述                                                         |
+| :------------------------------------- | :----------------------------------------------------------- |
+| `int read()`                           | 读取一个字节，返回值是 0-255 范围的字节值，或者返回 -1 表示读到末尾 |
+| `int read(byte[] b)`                   | 读取多个字节，存入数组，返回实际读取的字节数，或 -1          |
+| `int read(byte[] b, int off, int len)` | 从流中读取最多 len 个字节，存储到数组 b 的 off 位置          |
+| `long skip(long n)`                    | 跳过 n 个字节                                                |
+| `int available()`                      | 返回可读取（不阻塞）的字节数                                 |
+| `void close()`                         | 关闭流，释放资源                                             |
+
+一次读取一个字节速度太慢
+
+`int read(byte[] b)`一次读取一个字节数组的数据，每次读取尽可能把数组装满
+
+
+
+###### 循环读取
+
+```java
+public class FileInputDemo2 {
+    public static void main(String[] args) throws Exception {
+        // 创建输入输出流
+        FileInputStream fis = new FileInputStream(".\\src\\IODemo\\output.txt");
+        FileOutputStream fos = new FileOutputStream(".\\src\\IODemo\\output2.txt");
+        // 读写数据
+        int data = 0;
+        // 读取一个字节，赋给 data
+        // 判断 data 是否 != -1
+        while ((data = fis.read()) != -1) {
+            fos.write(data);
+        }
+        // 释放资源
+        // 先开的最后关闭
+        fos.close();
+        fis.close();
+    }
+}
+```
+
+```java
+public class FileInputDemo1 {
+    public static void main(String[] args) throws Exception {
+        FileInputStream fis = new FileInputStream(".\\src\\IODemo\\output.txt");
+        int len = 0;  // 每次从文件中实际读取的字节数量
+        byte[] b = new byte[1024];
+        while ((len = fis.read(b)) != -1) {
+            System.out.println(new String(b, 0, len));  // 读取len个字节，存储到数组b的0位置
+        }
+        fis.close();
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+##### FileOutputStream
+
+操作本地文件的字节输出流，可以把程序中的数据写到本地文件中
+
+1. 创建字节输出流对象
+   - 如果文件已存在会清空文件
+   - 文件不存在会创建一个新的文件，文件夹不存在会报错
+   - 
+2. 写数据
+   - int参数是写入ASCII对应的字符
+3. 释放资源
+
+```java
+public class FileOutputDemo1 {
+    public static void main(String[] args) throws Exception {
+        // 1. 创建 FileOutputStream 对象
+        FileOutputStream fos = new FileOutputStream(".\\src\\IODemo\\output.txt");
+        // 2. 写入数据
+        fos.write("hello world!".getBytes());
+        // 3. 释放资源
+        fos.close();
+    }
+}
+```
+
+```java
+public class FileOutputWithFileDemo {
+    public static void main(String[] args) {
+        // 1. 创建 File 对象（指定文件路径）
+        File file = new File("./src/IODemo/output.txt");
+
+        FileOutputStream fos = null;
+        try {
+            // 2. 创建 FileOutputStream 对象，传入 File
+            fos = new FileOutputStream(file);
+
+            // 3. 写入数据
+            String data = "Hello, this is written by File object!";
+            byte[] bytes = data.getBytes(); // 字符串转字节数组
+            fos.write(bytes);
+
+            // 写完后记得刷新（可选）
+            fos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            // 4. 最后一定要关闭流，释放资源
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
+
+###### 方法
+
+**构造方法**
+
+| 方法签名                                        | 说明                                                         |
+| :---------------------------------------------- | :----------------------------------------------------------- |
+| `FileOutputStream(String name)`                 | 创建文件输出流，向指定文件写数据。如果文件不存在，会创建；如果存在，会**清空原内容**。 |
+| `FileOutputStream(String name, boolean append)` | 创建文件输出流。`append=true` 时，不会清空，而是在文件末尾追加写入。 |
+| `FileOutputStream(File file)`                   | 传入一个 `File` 对象来创建流。                               |
+| `FileOutputStream(File file, boolean append)`   | 同上，支持追加模式。                                         |
+| `FileOutputStream(FileDescriptor fdObj)`        | 通过已有的文件描述符创建流。**很少用**，用于底层控制。       |
+
+**写入方法**
+
+| 方法签名                                 | 作用                                                   | 备注                                       |
+| :--------------------------------------- | :----------------------------------------------------- | :----------------------------------------- |
+| `void write(int b)`                      | 写入**单个字节**（低8位有效），即写一个0~255的数字。   | 写一个字节，虽然参数是 `int`，但只用低位。 |
+| `void write(byte[] b)`                   | 写入整个**字节数组**。                                 | 比较常用，写多字节数据。                   |
+| `void write(byte[] b, int off, int len)` | 写**byte数组的一部分**，从 `off` 开始写 `len` 个字节。 | 灵活控制写入范围。                         |
+
+**资源管理方法**
+
+| 方法签名       | 作用                               | 备注                                 |
+| :------------- | :--------------------------------- | :----------------------------------- |
+| `void flush()` | 强制把内存中缓存的数据写到文件里。 | 避免数据丢失，尤其在写完但没关流时。 |
+| `void close()` | 关闭流，释放资源。                 | 必须调用，否则资源泄露。             |
+
+#### 字符流
+
+##### FilerReader
+
+###### 构造方法
+
+| 构造方法                        | 说明                            |
+| :------------------------------ | :------------------------------ |
+| `FileReader(String fileName)`   | 通过文件路径创建 FileReader     |
+| `FileReader(File file)`         | 通过 `File` 对象创建 FileReader |
+| `FileReader(FileDescriptor fd)` | 通过文件描述符创建 FileReader   |
+
+###### 主要方法
+
+| 方法                                            | 说明                                                     |
+| :---------------------------------------------- | :------------------------------------------------------- |
+| `int read()`                                    | 读取单个字符，返回字符的 Unicode 编码，读到末尾返回 `-1` |
+| `int read(char[] cbuf)`                         | 读取多个字符到字符数组中，返回实际读取的字符数           |
+| `int read(char[] cbuf, int offset, int length)` | 从指定位置开始读取指定长度的字符                         |
+| `void close()`                                  | 关闭流，释放资源                                         |
+
+###### `int read(char[] cbuf)`
+
+一个char占2字节(16位)
+
+java内部使用`utf-16`编码表示字符串
+
+当使用FilerReader从utf-8读取编码时
+
+1. 首先，从文件读取原始字节数据（例如一个中文字符的 3 个 UTF-8 编码字节）
+2. 然后，解码器识别这 3 个字节组成一个 UTF-8 编码的中文字符
+3. 最后，将这个字符转换为 Java 内部的 UTF-16 表示（1 个 `char`，2 字节）
+
+
+
+###### 示例
+
+```java
+public static void main(String[] args) throws Exception {
+    FileReader fr = new FileReader(".\\src\\IODemo\\output.txt");
+    int ch;
+    while ((ch = fr.read()) != -1) {
+        System.out.print((char) ch);
+    }
+    fr.close();
+}
+```
+
+```java
+public static void main(String[] args) throws Exception {
+    FileReader fr = new FileReader(".\\src\\IODemo\\output.txt");
+    char[] chars = new char[1024];
+    int len = 0;
+    while ((len = fr.read(chars)) != -1) {
+        System.out.print(new String(chars, 0, len));
+    }
+    fr.close();
+}
+```
+
+###### 缓冲区
+
+在关联文件时，会创建缓冲区（长度为8192的字节数组）
+
+读取数据：
+
+1. 判断缓冲区是否有数据可以获取
+2. 缓冲区没有数据：
+   - 从文件中获取数据，装到缓冲区中，每次尽可能装满缓冲区
+   - 如果文件里也没有数据了，返回 `-1`
+3. 缓冲区有数据：从缓冲区读取
+   - 空参read：一次读取一个字节，遇到中文一次读多个字节，并解码成十进制返回
+   - 有参read：读取字节，解码，强转。强转后的字符放到数组中。
+
+
+
+##### FileWriter
+
+
+
+###### 常用方法
+
+| 方法                                   | 说明                                 |
+| :------------------------------------- | :----------------------------------- |
+| `write(int c)`                         | 写入单个字符                         |
+| `write(char[] cbuf)`                   | 写入字符数组                         |
+| `write(char[] cbuf, int off, int len)` | 写入字符数组的一部分                 |
+| `write(String str)`                    | 写入字符串                           |
+| `write(String str, int off, int len)`  | 写入字符串的一部分                   |
+| `flush()`                              | 刷新流。把缓冲区内容强制写出到文件中 |
+| `close()`                              | 关闭流，释放资源（关闭前会自动flush) |
+
+
+
+###### 示例
+
+```java
+public static void main(String[] args) throws Exception {
+    char[] chars = new char[1024];
+    try (
+            FileReader fileReader = new FileReader(".\\src\\IODemo\\output.txt");
+            FileWriter fileWriter = new FileWriter(".\\src\\IODemo\\output3.txt", true);
+    ) {
+        int len = 0;
+        while ((len = fileReader.read(chars)) != -1) {
+            fileWriter.write(chars, 0, len);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    String[] str = {"Hello", "World", "Java", "Programming"};
+    try (FileWriter fw = new FileWriter(".\\src\\IODemo\\output4.txt")) {
+        for (String s : str) {
+            fw.write(s + "\r\n");
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+
+
+###### 缓冲区
+
+长度为8192的字节数组
+
+写数据时，从缓冲区把数据写入：
+
+1. 缓存区数据装满了
+2. flush
+
+
+
+#### Reader
+
+在 Java 中，`Reader` 是 **字符流**（character streams）体系的基础抽象类，属于 `java.io` 包。它专门用于读取**字符（char）**数据。
+
+`Reader` 是 **抽象类**
+
+设计目的是为了**处理字符数据**，而不是原始字节（byte）数据。
+
+`FileReader` 是 `Reader` 的子类，专门用于从**文件**中读取字符数据。
+
+##### 核心方法
+
+| 方法                                      | 说明                                                     |
+| :---------------------------------------- | :------------------------------------------------------- |
+| `int read()`                              | 读取单个字符，返回字符的 int 表示，若到达流末尾返回 -1。 |
+| `int read(char[] cbuf)`                   | 读取多个字符到数组中，返回读取的字符数量。               |
+| `int read(char[] cbuf, int off, int len)` | 将字符读入数组的指定部分。                               |
+| `void close()`                            | 关闭流，释放资源。                                       |
+
+
+
+
+
+
+
+
+
+
+
+#### try-with-resources
+
+`try (资源) {}`
+
+小括号 `()` 里的内容**必须是资源声明**，而且这些资源对象**必须实现了 `AutoCloseable` 接口**。
+
+在try块执行完毕后会自动调用`close()`方法释放资源
+
+```java
+try (
+    BufferedReader reader = new BufferedReader(new FileReader("file.txt"));
+    BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))
+) {
+    writer.write(reader.readLine());
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+
+
+
+
+#### 测试
+
+##### 复制文件夹内容
+
+```java
+public class FileTestDemo1 {
+    public static void main(String[] args) {
+        File src = new File(".\\src\\IODemo\\File1");
+        File dest = new File(".\\src\\IODemo\\File2");
+        try {
+            copyDir(src, dest);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void copyDir(File src, File dest) throws IOException {
+        if (!src.exists()) {
+            throw new IOException("源目录不存在: " + src.getAbsolutePath());
+        }
+        if (!dest.exists()) {
+            dest.mkdirs(); // 创建目标目录
+        }
+        File[] files = src.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    try (FileInputStream fis = new FileInputStream(file); FileOutputStream fos = new FileOutputStream(new File(dest, file.getName()))) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = fis.read(buffer)) != -1) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+                } else if (file.isDirectory()) {
+                    // 递归调用
+                    copyDir(file, new File(dest, file.getName()));
+                }
+            }
+        }
+    }
+}
+```
+
+
+
+##### 读取内容并按数字大小排序
+
+```java
+public static void main(String[] args) {
+    File file = new File(".\\src\\IODemo\\TestDemo\\t1.txt");
+    StringBuilder sb = new StringBuilder();
+    // 使用 try-with-resources 自动关闭流
+    try (FileInputStream fis = new FileInputStream(file)) {
+        int len;
+        byte[] buffer = new byte[1024];
+        while ((len = fis.read(buffer)) != -1) {
+            sb.append(new String(buffer, 0, len, StandardCharsets.UTF_8));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    // 分割、转换成Integer、排序
+    List<Integer> collect = Arrays.stream(sb.toString().split("-"))
+            .map(Integer::parseInt) // 直接map成Integer
+            .sorted()
+            .collect(Collectors.toList());
+    System.out.println(collect);
+}
+```
+
+
+
+
+
+
+
+#### 换行
+
+windows： `\r\n`  
+
+在windows中，java对换行进行了优化  `\r`、 `\n`写其中一个就可以
+
+Linux：`\n`
+
+Mac：`\r`
+
+
+
+
+
+## 缓冲流
+
+### 字节缓冲流
+
+**字节缓冲流**是对普通字节流（比如 `FileInputStream`、`FileOutputStream`）的增强，它通过一个**内部缓冲区**（通常是一个字节数组）来减少实际读写磁盘或网络的次数，从而提高 I/O 性能。
+
+#### BufferedInputStream
+
+字节缓冲输入流
+
+- 当你调用 `read()` 方法时，它不会每次都直接从磁盘读取数据。
+- 它会一次性从磁盘读取一大块数据到缓冲区（比如 8KB）。
+- 之后的读取操作直接从缓冲区中取数据，只有当缓冲区用完后，才会再次从磁盘读数据。
+
+| 方法签名                                        | 说明                                                         |
+| :---------------------------------------------- | :----------------------------------------------------------- |
+| `BufferedInputStream(InputStream in)`           | 创建一个默认缓冲区大小（8KB = 8192字节）的缓冲输入流，包装一个已有的输入流对象。 |
+| `BufferedInputStream(InputStream in, int size)` | 创建一个指定缓冲区大小的缓冲输入流。                         |
+
+#### BufferedOutputStream
+
+字节缓冲输出流
+
+- 当你调用 `write()` 方法时，它把数据先写入到内部缓冲区。
+- 只有当缓冲区满了或者调用了 `flush()`/`close()` 方法时，才会将缓冲区中的数据一次性写到磁盘。
+
+| 方法签名                                           | 说明                                                         |
+| :------------------------------------------------- | :----------------------------------------------------------- |
+| `BufferedOutputStream(OutputStream out)`           | 创建一个默认缓冲区大小的缓冲输出流，包装一个已有的输出流对象。 |
+| `BufferedOutputStream(OutputStream out, int size)` | 创建一个指定缓冲区大小的缓冲输出流。                         |
+
+#### 示例
+
+```java
+private static void copyDir1(File src, File dest) throws IOException {
+    if (!src.exists()) {
+        throw new IOException("源目录不存在: " + src.getAbsolutePath());
+    }
+    if (!dest.exists()) {
+        dest.mkdirs(); // 创建目标目录
+    }
+    File[] files = src.listFiles();
+    if (files != null) {
+        for (File file : files) {
+            if (file.isFile()) {
+                File newFile = new File(dest, file.getName()); // 关键点：新建目标文件
+                try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(newFile))) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = bis.read(buffer)) != -1) {
+                        bos.write(buffer, 0, len);
+                    }
+                    bos.flush(); // 刷新缓冲区，确保数据写完
+                }
+            } else if (file.isDirectory()) {
+                // 递归调用
+                copyDir1(file, new File(dest, file.getName()));
+            }
+        }
+    }
+}
+```
+
+实际上存在**两层缓冲区**：
+
+| 层次   | 类型                                          | 作用                                                      |
+| :----- | :-------------------------------------------- | :-------------------------------------------------------- |
+| 第一层 | `BufferedInputStream` 内部自带的**8KB缓冲区** | 减少磁盘IO操作，批量从磁盘读入内存                        |
+| 第二层 | 你自己定义的 `byte[] buffer`（比如1024字节）  | 从 `BufferedInputStream` 中批量读取数据，提高程序读写效率 |
+
+```java
+硬盘文件
+   ↓（大块读取）
+BufferedInputStream（内部8KB缓冲）
+   ↓（按你的byte[] buffer大小读取）
+程序
+   ↓（按你的byte[] buffer大小写入）
+BufferedOutputStream（内部8KB缓冲）
+   ↓（大块写入）
+硬盘文件
+```
+
+`BufferedInputStream`可以**减少和磁盘打交道的次数**。
+
+`byte[] buffer`可以**减少程序和流之间打交道的次数**。
+
+
+
+
+
+### 字符缓冲流
+
+#### BufferedReader
+
+字符缓冲输入流
+
+##### 构造方法
+
+```java
+BufferedReader(Reader in)
+BufferedReader(Reader in, int sz) // 可指定缓冲区大小
+```
+
+##### 常用方法
+
+- `String readLine()`：读取一行文本（不包含换行符），返回 null 表示读完了。
+- `int read()`：读取单个字符。
+- `int read(char[] cbuf, int off, int len)`：读取字符数组。
+
+##### 示例
+
+```java
+import java.io.*;
+
+public class BufferedReaderExample {
+    public static void main(String[] args) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("example.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line); // 输出每一行
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
+#### BufferWriter
+
+字符缓冲输出流
+
+<span style="color:blue">输出流在关联文件时会清空文件</span>
+
+##### 构造方法
+
+```java
+BufferedWriter(Writer out)
+BufferedWriter(Writer out, int sz) // 可指定缓冲区大小
+```
+
+##### 常用方法
+
+- `void write(String s)`：写入字符串。
+- `void newLine()`：写入一个换行符（与平台无关）。
+- `void flush()`：刷新缓冲区，把数据强制写入目标。
+- `void close()`：关闭流并释放资源。
+
+##### 示例
+
+```java
+import java.io.*;
+
+public class BufferedWriterExample {
+    public static void main(String[] args) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))) {
+            writer.write("Hello world!");
+            writer.newLine(); // 换行
+            writer.write("这是第二行文本。");
+            writer.flush(); // 强制写入
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    File file1 = new File(".\\src\\IODemo\\TestDemo2\\1.txt");
+    File file2 = new File(".\\src\\IODemo\\TestDemo2\\2.txt");
+    try (
+        BufferedReader br1 = new BufferedReader(new FileReader(file1)); 
+        BufferedWriter bw1 = new BufferedWriter(new FileWriter(file2))
+    ) {
+        String line;
+        ArrayList<String> arr = new ArrayList<>();
+        while ((line = br1.readLine()) != null) {
+            arr.add(line);
+        }
+        // Comparator<T> 是一个函数式接口
+        Collections.sort(arr, (o1, o2) -> {
+            int i1 = Integer.parseInt(o1.split("\\.")[0]);
+            int i2 = Integer.parseInt(o2.split("\\.")[0]);
+            return i1 - i2;
+        });
+        for (String s : arr) {
+            bw1.write(s);
+            bw1.newLine();
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+
+
+
+
 ## 反射
 
 反射允许对成员变量，成员方法和构造函数的信息进行编程访问
@@ -4981,6 +5362,209 @@ System.out.println(UUID.randomUUID().toString().replaceAll("-", ""));
 
 
 
+### `java.util.Arrays`
+
+`java.util.Arrays` 是 Java 标准库（Java SE）中的一个 **工具类**。
+
+它包含了用于 **操作数组** 的一系列静态方法，例如：排序、搜索、复制、填充、比较等。
+
+由于是 **final类**（`public final class Arrays`），所以不能被继承。
+
+#### 常用方法
+
+`java.util.Arrays` 是 Java 提供的数组操作工具类，包含了一系列的静态方法，用于数组的排序、搜索、复制、比较、填充等操作。
+
+1. `copyOf`
+
+**作用**：复制整个数组到一个新数组，并可以指定新数组的长度。
+
+```java
+import java.util.Arrays;
+
+int[] original = {1, 2, 3};
+int[] copy = Arrays.copyOf(original, 5);
+
+System.out.println(Arrays.toString(copy)); // [1, 2, 3, 0, 0]
+```
+
+- 如果新长度大于原数组，后面部分用默认值填充。
+
+2. `copyOfRange`
+
+**作用**：复制数组中指定范围的元素到新数组。
+
+```java
+int[] original = {1, 2, 3, 4, 5};
+int[] rangeCopy = Arrays.copyOfRange(original, 1, 4);
+
+System.out.println(Arrays.toString(rangeCopy)); // [2, 3, 4]
+```
+
+- `from`（包含），`to`（不包含）。
+
+3. `sort`
+
+**作用**：对数组进行升序排序。
+
+```java
+int[] arr = {5, 1, 4, 2, 3};
+Arrays.sort(arr);
+
+System.out.println(Arrays.toString(arr)); // [1, 2, 3, 4, 5]
+```
+
+- 支持基本数据类型数组和对象数组（对象数组可自定义比较器）。
+
+4. `binarySearch`
+
+**作用**：在**已排序数组**中使用二分查找法查找元素。
+
+```java
+int[] arr = {1, 2, 3, 4, 5};
+int index = Arrays.binarySearch(arr, 3);
+
+System.out.println(index); // 2
+```
+
+- 如果找到返回索引，否则返回负数（插入点的负值减一）。
+
+5. `fill`
+
+**作用**：将数组的所有元素填充为某个值。
+
+```java
+int[] arr = new int[5];
+Arrays.fill(arr, 7);
+
+System.out.println(Arrays.toString(arr)); // [7, 7, 7, 7, 7]
+```
+
+6. `equals`
+
+**作用**：比较两个数组是否**元素顺序、内容相同**。
+
+```java
+int[] a = {1, 2, 3};
+int[] b = {1, 2, 3};
+boolean result = Arrays.equals(a, b);
+
+System.out.println(result); // true
+```
+
+- 只对一维数组有效。
+
+7. `deepEquals`
+
+**作用**：深度比较两个**多维数组**是否内容相同。
+
+```java
+int[][] a = {{1, 2}, {3, 4}};
+int[][] b = {{1, 2}, {3, 4}};
+boolean result = Arrays.deepEquals(a, b);
+
+System.out.println(result); // true
+```
+
+- 对嵌套数组也能正确比较。
+
+8. `toString`
+
+**作用**：返回一维数组的字符串表示。
+
+```java
+int[] arr = {1, 2, 3};
+System.out.println(Arrays.toString(arr)); // [1, 2, 3]
+```
+
+- 适合打印调试使用。
+
+9. `deepToString`
+
+**作用**：返回多维数组的字符串表示。
+
+```java
+int[][] arr = {{1, 2}, {3, 4}};
+System.out.println(Arrays.deepToString(arr)); // [[1, 2], [3, 4]]
+```
+
+- 可以正确打印嵌套数组。
+
+10. `asList`
+
+**作用**：将数组转换为 `List`（固定大小）。
+
+```java
+String[] array = {"a", "b", "c"};
+List<String> list = Arrays.asList(array);
+
+System.out.println(list); // [a, b, c]
+```
+
+- 注意：返回的 `List` **大小固定**，不能添加或删除元素。
+
+11. `setAll`
+
+**作用**：通过函数，给数组每个索引位置设置值。
+
+```java
+int[] arr = new int[5];
+Arrays.setAll(arr, i -> i * i);
+
+System.out.println(Arrays.toString(arr)); // [0, 1, 4, 9, 16]
+```
+
+12. `parallelSort`
+
+**作用**：使用多线程并行排序，提高大数组的排序性能。
+
+```java
+int[] arr = {5, 3, 1, 2, 4};
+Arrays.parallelSort(arr);
+
+System.out.println(Arrays.toString(arr)); // [1, 2, 3, 4, 5]
+```
+
+- 对于非常大的数组，比 `sort` 更快。
+
+13. `stream`
+
+**作用**：将数组转为 `Stream` 流，方便使用 Stream API。
+
+```java
+int[] arr = {1, 2, 3, 4, 5};
+int sum = Arrays.stream(arr).sum();
+
+System.out.println(sum); // 15
+```
+
+14. `Spliterator`
+
+**作用**：`Arrays.spliterator(arr)` 是用来**生成一个 `Spliterator`** 的。`Spliterator` 是 Java 8 引入的一个接口，全称是 **Splitable Iterator**，可以理解为**可分割的迭代器**，主要用于支持并行遍历，比如和 `Stream` API 配合使用。
+
+```java
+import java.util.Arrays;
+import java.util.Spliterator;
+import java.util.function.IntConsumer;
+
+public class SpliteratorExample {
+    public static void main(String[] args) {
+        int[] arr = {1, 2, 3, 4, 5};
+
+        // 创建一个 Spliterator 对象
+        Spliterator.OfInt spliterator = Arrays.spliterator(arr);
+
+        // 遍历元素
+        spliterator.forEachRemaining((int value) -> {
+            System.out.println("元素: " + value);
+        });
+    }
+}
+```
+
+
+
+
+
 ## Spring工具类
 
 ### DigestUtils
@@ -5015,6 +5599,20 @@ String FileName = UUID.randomUUID().toString();
 
 
 ### BeanUtils
+
+
+
+### Jackson
+
+Spring Boot 默认集成了 **Jackson** 作为 JSON 的序列化与反序列化库。
+
+当你使用 `@RestController` 返回一个对象时，Spring Boot 会自动使用 Jackson 将对象转换为 JSON。
+
+
+
+
+
+
 
 
 
