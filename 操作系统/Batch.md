@@ -106,8 +106,8 @@ pause
 netstat -ano
 
 :: 查看指定端口（如 8080）被谁占用
-netstat -aon | findstr :8080
-netstat -aon | findstr 8080
+netstat -ano | findstr :8080
+netstat -ano | findstr 8080
 
 :: 根据 PID 查找对应的进程
 tasklist | findstr <PID>

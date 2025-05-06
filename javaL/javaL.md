@@ -6,6 +6,88 @@
 
 一个java文件中最多只能有一个`public`类，并且这个`public`类的名字必须和文件名相同
 
+在 Java 中，一个 `.java` 文件中可以定义 **多个非 `public` 的类**。
+
+
+
+### 多态
+
+#### 常见的多态用法
+
+父类变量指向子类对象
+
+```java
+Animal a1 = new Dog();
+Animal a2 = new Cat();
+```
+
+未来的代码需要**处理很多不同的子类对象**，你就会发现用 `Parent` 作为统一类型**非常方便、非常强大**。
+
+可以把它们放进一个列表里
+
+```java
+List<Animal> animals = new ArrayList<>();
+animals.add(new Dog());
+animals.add(new Cat());
+```
+
+`Animal a1 = new Dog();`
+
+| 部分        | 名称             | 含义                                           |
+| ----------- | ---------------- | ---------------------------------------------- |
+| `Animal`    | **引用类型**     | **变量的声明类型**，也叫“编译时类型”           |
+| `a1`        | 变量名           | 指向对象的引用变量                             |
+| `new Dog()` | **实际对象类型** | 创建的真实对象，也叫“运行时类型”或“实例化对象” |
+
+<span style="color:red">直接用子类类型，可以使用子类特有的方法</span>
+
+
+
+#### 向下转型
+
+为什么 `Child p = new Parent();` 是错误的？
+
+这是 **向下转型（Downcasting）**，但尝试直接用父类对象赋值给子类引用会 **编译时报错** 或 **运行时抛出异常**，因为：
+
+- 不是所有 `Parent` 类型的对象都是 `Child` 类型的实例。
+- 编译器无法保证安全性。
+
+```java
+Child p = new Parent();
+```
+
+```java
+Parent p = new Child();  // 向上转型
+Child c = (Child) p;  // 向下转型
+```
+
+
+
+#### 成员变量隐藏
+
+Java 字段不是多态的
+
+- **方法是多态的**：调用哪个方法由**实际对象类型**决定（运行时绑定）。
+
+- **字段不是多态的**：访问哪个字段由**引用变量的类型**决定（编译时绑定）。
+
+```java
+class Parent {
+    String name = "parent";
+}
+
+class Child extends Parent {
+    String name = "child";
+}
+
+public class Test1 {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        System.out.println(p.name);  // "parent"
+    }
+}
+```
+
 
 
 
@@ -218,6 +300,7 @@ public class StaticVariableExample {
 - **常用于工具类方法**：如 `Math` 类中的 `Math.sqrt()`，因为不需要保存状态。
 - 静态方法不能使用 `this` 和 `super` 关键字。
 - **静态方法**是可以通过类的实例来调用的，但 **不推荐** 这样做。
+- <span style="color:blue">静态方法（`static` methods）不能被子类或实现类重写（override）</span>
 
 ```java
 public class eTest {
@@ -244,6 +327,32 @@ public class eTest {
 }
 ```
 
+```java
+class Parent {
+    static void sayHello() {
+        System.out.println("Hello from Parent");
+    }
+}
+
+class Child extends Parent {
+    static void sayHello() {
+        System.out.println("Hello from Child");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        p.sayHello(); // 输出：Hello from Parent ❗️不是 Child
+    }
+}
+
+// 尽管 Child 也定义了 sayHello()，但由于方法是静态的，调用的是 引用变量类型 的方法（Parent），而不是对象实例的实际类型（Child）。
+// 所以输出的是 Parent 的方法。
+```
+
+
+
 #### 静态内部类
 
 静态类指的是用 `static` 修饰的 **嵌套类**（即定义在另一个类内部的静态类）。<span style="color:red">在 Java 中，只有内部类可以声明为静态类，顶层类不能是静态的。</span>
@@ -268,6 +377,90 @@ public class OuterClass {
     }
 }
 ```
+
+
+
+#### 静态代码块
+
+##### 底层原理
+
+静态代码块在类的字节码被加载到JVM时执行，并且在整个JVM生命周期中只会执行一次。JVM在加载类时，先加载类的字节码，接着在类中查找静态成员和静态代码块。所有的静态代码块会按照它们在类中定义的顺序依次执行。
+
+##### 执行时机
+
+<span style="color:red">静态代码块是在**类初始化阶段**执行的。类的初始化发生在**主动引用**</span>
+
+| 主动引用方式                      | 描述                                     |
+| --------------------------------- | ---------------------------------------- |
+| 1. 创建类的实例                   | `new MyClass()`                          |
+| 2. 访问类的静态变量（非 `final`） | `MyClass.staticVar`                      |
+| 3. 调用类的静态方法               | `MyClass.staticMethod()`                 |
+| 4. 使用反射操作该类               | `Class.forName("com.example.MyClass")`   |
+| 5. 子类初始化时，父类也会被初始化 | `new SubClass()` 会先初始化 `SuperClass` |
+| 6. JVM 启动时指定的主类           | 启动类也会被初始化                       |
+
+##### 执行顺序
+
+在 Java 中，**静态变量和静态代码块按照它们在类中出现的顺序执行**。
+
+```java
+public class ATest {
+    public static void main(String[] args) {
+        A a = new A();
+        System.out.println(A.m);  // 300
+    }
+}
+
+class A {
+    static int m = 100;
+    static {
+        System.out.println("A类静态代码块初始化");
+        m = 300;
+    }
+    
+    public A() {
+        System.out.println("A类构造函数初始化");
+    }
+}
+```
+
+**执行顺序：**
+
+1. `static int m = 100` → 初始化静态变量 `m` 为 100。
+2. 执行静态代码块 → 打印 `"A类静态代码块初始化"`，然后将 `m` 设为 300。
+3. 构造函数执行 → 打印 `"A类构造函数初始化"`。
+4. `System.out.println(A.m)` → 输出 `300`。
+
+```java
+public class ATest {
+    public static void main(String[] args) {
+        A a = new A();
+        System.out.println(A.m);  // 100
+    }
+}
+
+class A {
+    static {
+        System.out.println("A类静态代码块初始化");
+        m = 300;
+    }
+
+    static int m = 100;
+ 
+    public A() {
+        System.out.println("A类构造函数初始化");
+    }
+}
+```
+
+**执行顺序：**
+
+1. 执行静态代码块 → 打印 `"A类静态代码块初始化"`，将 `m` 设为 300。
+2. 再执行 `static int m = 100` → 把 `m` 重新赋值为 100（**覆盖了前面设置的 300**）。
+3. 构造函数执行 → 打印 `"A类构造函数初始化"`。
+4. `System.out.println(A.m)` → 输出 `100`。
+
+
 
 
 
@@ -3399,17 +3592,40 @@ public static final DayEnum Tuesday = new DayEnum("星期二");
 
 Java接口是一系列方法的声明，是一些方法特征的集合，一个接口只有方法的特征没有方法的实现，因此这些方法可以在不同的地方被不同的类实现，而这些实现可以具有不同的行为（功能）。
 
-接口可以理解为一种特殊的类型，它可以包含**常量**（`public static final` 默认修饰）和**方法的定义**，包括**抽象方法**、**默认方法**（`default`）、**静态方法**（`static`）以及**私有方法**（`private`，Java 9 及之后支持）。
+### 特点
+
+接口可以理解为一种特殊的类型，它可以包含**常量**（`public static final` 默认修饰）和**方法的定义**，包括**抽象方法**、**默认方法**（`default`）、**静态方法**（`static`）（从 Java 8 开始，接口可以包含默认方法，抽象方法）以及**私有方法**（`private`，Java 9 及之后支持）。
 
 接口是解决 Java 无法使用多继承的一种手段，因为一个类可以实现多个接口，而 Java 的类只能继承一个父类。但接口在实际中的主要作用是**制定标准**，为实现类提供一组必须实现的规范或行为。
 
-在 Java 8 之前，接口可以被理解为**100% 抽象类**，因为接口中的方法必须全部是抽象方法，且不能包含任何实现。然而，从 Java 8 开始，接口可以包含**默认方法**和**静态方法**，因此接口已不再是严格意义上的“100% 抽象类”。
+在 Java 8 之前，接口可以被理解为**100% 抽象类**，因为接口中的方法必须全部是抽象方法，且不能包含任何实现。然而，从 Java 8 开始，接口可以包含**默认方法**和**静态方法**，因此接口已不再是严格意义上的 "100% 抽象类"。
 
-- 接口中的方法必须是公开的，因为接口的目的是对外提供功能。
-- 接口中的方法默认是抽象方法，必须由实现类实现（除非是 `default` 或 `static` 方法）
-- 接口本身无法创建对象，但它的实现类可以创建对象。
+1. 接口中的所有方法默认是 `public abstract`（在 Java 8 之前）。
 
-**示例**
+2. 接口中的属性（成员变量）默认是 `public static final`。
+
+3. 接口不能包含构造方法。
+
+4. 接口支持多继承（类只能单继承，但接口可以多继承）。
+
+5. 从 Java 8 开始，接口可以包含：
+
+   - 默认方法（`default` 修饰）
+   - 静态方法（`static` 修饰）
+
+6. 从 Java 9 开始，接口可以包含：
+
+   - 私有方法（`private` 修饰）——用于默认方法之间的共享逻辑。
+
+   <span style="color:blue">在java9之前接口里的方法必须是公开的</span>
+
+7. 接口中的方法默认是抽象方法，必须由实现类实现（除非是 `default` 或 `static` 方法）
+
+8. 接口本身无法创建对象，但它的实现类可以创建对象。
+
+
+
+### **示例**
 
 ```java
 public interface Flyable {
@@ -3446,6 +3662,7 @@ public interface AdvancedInterface {
     void abstractMethod1();
     // 等同于 public void abstractMethod1();
     // 等同于 public abstract void abstractMethod1();
+    
     String abstractMethod2(String input);
 
     // 3. 默认方法（default）：可以有方法体，供实现类直接使用或重写
@@ -4155,8 +4372,6 @@ The common interface extended by all annotation types
 
 <span style="color:red">注解的本质就是一个继承了 Annotation（注解） 接口的接口。</span>
 
-
-
 ### 常用注解
 
 `@Override`
@@ -4233,7 +4448,7 @@ public class Test {
 
 `@Retention`
 
-指定注解的生命周期，也就是注解保留的阶段。
+指定注解的生命周期，也就是注解保留的阶段。指定注解在什么级别可用。
 
 取值类型（RetentionPolicy 枚举）:
 
@@ -4320,10 +4535,11 @@ public @interface MyAnnotation {
 
 1. **属性声明格式**：`类型 属性名()`。
 2. **默认值**：可以通过 `default` 关键字为属性设置默认值。如果注解中的属性有默认值，则使用注解时可以选择不提供该属性。
-3. 支持的属性类型：
+3. **本质**：抽象方法（`public abstract`），**可以有默认值（`default`）**，否则使用注解时必须显式赋值。
+4. 支持的属性类型：
    - 基本类型：`int`、`float`、`double`、`boolean` 等。
    - `String`。
-   - 枚举类型。
+   - 枚举类型（enum）。
    - 注解类型。
    - 一维数组（如 `int[]`、`String[]` 等）。
 
@@ -4338,6 +4554,660 @@ public @interface MyAnnotation {
 public class MyClass {
 }
 ```
+
+5. 如果一个注解**只有一个名为 `value` 的属性**，那么在使用该注解时，可以**省略属性名 `value=`，只写属性值**。
+
+   如果存在多个属性，即使有一个是 `value`，也**不能省略**属性名
+
+   ```java
+   public @interface MyAnnotation {
+       String value();
+   }
+   ```
+
+   ```java
+   @MyAnnotation("Hello") // ✅ 合法，省略了 value=
+   // 等价于@MyAnnotation(value = "Hello")
+   public class MyClass {}
+   ```
+
+
+
+### 示例
+
+定义注解 `@RunMe`，被这个注解标记的方法会被自动执行。
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface RunMe {
+}
+```
+
+```java
+class MyTestClass {
+    @RunMe
+    public void sayHello() {
+        System.out.println("Hello");
+    }
+
+    @RunMe
+    public void sayGoodbye() {
+        System.out.println("Goodbye");
+    }
+}
+
+public class RunMeTest {
+    public static void main(String[] args) throws Exception {
+        MyTestClass obj = new MyTestClass();
+        Method[] methods = obj.getClass().getDeclaredMethods();
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(RunMe.class)) {
+                method.invoke(obj);
+            }
+        }
+    }
+}
+```
+
+
+
+
+
+## 反射
+
+反射允许对成员变量，成员方法和构造函数的信息进行编程访问
+
+```java
+public class aTest1 {
+
+    @t1(age = 20, address = {"street1", "USA", "JinHua"})
+    public void a() {
+        System.out.println("hello world");
+    }
+
+    public static void main(String[] args) {
+        try {
+            Class<aTest1> clazz = aTest1.class;
+            Method method = clazz.getDeclaredMethod("a");
+            if (method.isAnnotationPresent(t1.class)) {
+                t1 ann = method.getAnnotation(t1.class);
+                System.out.println("name：" + ann.name());
+                System.out.println("age：" + ann.age());
+                System.out.println("gender：" + ann.gender());
+                System.out.print("address：");
+                Arrays.stream(ann.address()).forEach(item -> System.out.print(item + " "));
+            } else {
+                System.out.println("no t1 annotation");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+```java
+public class SecretClass {
+    private String secret = "我是一个秘密";
+
+    private void hiddenMethod() {
+        System.out.println("你不该看到我！");
+    }
+}
+
+public class aTest2 {
+    public static void main(String[] args) throws Exception {
+        SecretClass sc = new SecretClass();
+        Class clazz = sc.getClass();
+        Field field = clazz.getDeclaredField("secret");
+        field.setAccessible(true);
+        System.out.println(field.get(sc));
+        Method method = clazz.getDeclaredMethod("hiddenMethod");
+        method.setAccessible(true);
+        method.invoke(sc);
+    }
+}
+```
+
+
+
+### 静态 & 动态语言
+
+| 特性                       | 动态语言                       | 静态语言                 |
+| -------------------------- | ------------------------------ | ------------------------ |
+| **类型检查时机**           | 运行时                         | 编译时                   |
+| **是否需要显式声明类型**   | 不需要                         | 通常需要                 |
+| **灵活性**                 | 高（易于快速开发）             | 相对较低（但更安全）     |
+| **运行前能否发现类型错误** | 否                             | 是                       |
+| **性能**                   | 较低（类型不确定，运行时检查） | 较高（类型已知，可优化） |
+
+#### 动态语言
+
+这些语言的变量类型是在**运行时**决定的：
+
+- **Python**
+- **JavaScript**
+- **Ruby**
+- **PHP**
+- **Perl**
+- **Lua**
+- **Smalltalk**
+
+#### 静态语言
+
+这些语言的变量类型是在**编译时**决定的：
+
+- **Java**
+- **C**
+- **C++**
+- **C#**
+- **Go**
+- **Rust**
+- **Kotlin**
+- **Swift**
+- **TypeScript**（虽然是 JavaScript 的超集，但具备静态类型）
+
+
+
+#### Java动态特性
+
+虽然 Java 是静态语言，但它支持一些“动态行为”，例如：
+
+- **反射（Reflection）**：运行时查看/操作类和对象的结构。
+- **动态类加载（ClassLoader）**：运行时加载类。
+- **接口 + 多态**：允许在运行时决定调用哪个方法。
+
+
+
+### 获取class对象
+
+加载完类之后，在堆内存方法区中就产生了一个Class类型的对象（一个类只有一个Class对象）
+
+1. `Class.forName(全类名)`
+2. `类名.class`
+3. `对象.getClass`
+
+```java
+public class aTest2 {
+    public static void main(String[] args) throws ClassNotFoundException {
+
+        Class clazz1 = Class.forName("test.dto.Student");
+
+        Class clazz2 = Student.class;
+
+        Student s1 = new Student();
+        Class clazz3 = s1.getClass();
+
+        System.out.println(clazz1 == clazz2);  // true
+        System.out.println(clazz1 == clazz3);  // true
+    }
+}
+```
+
+4. 基本内置类型的包装类都有一个Type属性
+
+```java
+Class intClass = Integer.TYPE;
+```
+
+5. 获取父类类型
+
+```java
+Class c5 = c1.getSuperclass();
+```
+
+
+
+
+
+### 访问私有成员
+
+默认情况下，反射无法访问私有成员，需要先调用 `setAccessible(true)` 来绕过权限检查。
+
+```java
+field.setAccessible(true);
+```
+
+
+
+
+
+### 获取构造方法
+
+1. 获取所有的构造函数
+
+   ```java
+   Constructor<?>[] constructors = clazz.getConstructors(); // 公有构造函数
+   Constructor<?>[] allConstructors = clazz.getDeclaredConstructors(); // 所有构造函数
+   ```
+
+2. 获取单个构造函数
+
+   ```java
+   Constructor<?> constructor = clazz.getConstructor(String.class, int.class); // 参数类型
+   Constructor<?> declaredConstructor = clazz.getDeclaredConstructor(String.class);
+   ```
+
+3. 通过构造函数创建对象
+
+   ```java
+   Constructor<?> constructor = clazz.getConstructor(String.class, int.class);
+   Object instance = constructor.newInstance("John", 25);
+   ```
+
+   
+
+### 获取字段
+
+1. 获取所有字段
+
+   ```java
+   Field[] publicFields = clazz.getFields(); // 公有字段
+   Field[] allFields = clazz.getDeclaredFields(); // 所有字段
+   ```
+
+2. 获取单个字段
+
+   ```java
+   Field field = clazz.getField("publicFieldName"); // 公有字段
+   Field privateField = clazz.getDeclaredField("privateFieldName"); // 私有字段
+   ```
+
+3. 获取字段值
+
+   ```java
+   Field field = clazz.getDeclaredField("name");
+   field.setAccessible(true); // 绕过访问限制
+   Object value = field.get(obj); // 获取字段值
+   ```
+
+4. 设置字段值
+
+   ```java
+   Field field = clazz.getDeclaredField("name");
+   field.setAccessible(true);
+   field.set(obj, "New Value"); // 设置字段值
+   ```
+
+#### Field
+
+##### 获取字段的基本信息
+
+`field.getName()`：获取字段的名称（字符串形式）。
+
+```java
+String fieldName = field.getName();
+```
+
+`field.getType()`：获取字段的类型（`Class` 对象），例如 `int.class`、`String.class`。
+
+```java
+Class<?> fieldType = field.getType();
+```
+
+`field.getModifiers()`：获取字段的修饰符，以整数形式返回（如 `public`、`private`、`static` 等）。可结合 `Modifier` 类解析。
+
+```java
+int modifiers = field.getModifiers();
+boolean isPublic = Modifier.isPublic(modifiers);
+```
+
+`field.getGenericType()`：获取字段的泛型类型（`Type` 对象），例如 `List<String>`。
+
+```java
+Type genericType = field.getGenericType();
+```
+
+##### 操作字段值
+
+`field.get(Object obj)`：获取指定对象的此字段的值。
+
+```java
+Object value = field.get(obj);
+```
+
+`field.set(Object obj, Object value)`：设置指定对象的此字段的值为 `value`。
+
+```java
+field.set(obj, "New Value");
+```
+
+##### 控制字段的访问权限
+
+`field.setAccessible(boolean flag)`：设置是否允许通过反射访问私有字段。
+
+```java
+field.setAccessible(true); // 绕过私有字段的访问限制
+```
+
+
+
+## 类的加载和初始化
+
+### Java 类生命周期
+
+Java 类从被加载到内存中到最终可以被使用，主要经历以下几个阶段：
+
+1. **类加载（Loading）**
+
+   类加载是指将 `.class` 字节码文件从文件系统或网络中读取到内存中，并生成一个 `java.lang.Class` 对象。
+
+   JVM 通过类加载器读取 `.class` 文件字节码，生成 `Class` 对象。
+
+   ```java
+   ClassLoader loader = MyClass.class.getClassLoader();
+   ```
+
+   - 由 `ClassLoader`（类加载器）完成，主要负责查找、读取 `.class` 文件并定义类。
+   - 加载后，类的字节码内容会存放在方法区（Java 8 之前）或元空间（Java 8 及之后）。
+   - 元空间不再使用 JVM 堆内存，而是使用 **本地内存（native memory）**
+
+2. **类链接（Linking）**
+
+   - 验证（Verification）
+   - 准备（Preparation）
+   - 解析（Resolution）
+
+3. **初始化（Initialization）**
+
+   初始化阶段是执行 `<clinit>` 方法，也就是类构造器的阶段。
+
+   **触发条件：** JVM 遇到首次主动使用该类（如下几种情况）时，会触发初始化。
+
+   主动使用的几种情况：
+
+   | 场景                       | 说明                      |
+   | -------------------------- | ------------------------- |
+   | 创建类的实例               | `new` 一个对象时          |
+   | 访问类的静态变量或静态方法 | 非 final 的 `static` 成员 |
+   | 使用反射调用类的方法       | `Class.forName()`         |
+   | 初始化子类                 | 父类会先初始化            |
+
+4. **使用（Using）**
+
+5. **卸载（Unloading）**
+
+
+
+#### 类加载
+
+JVM通过**类加载器**读取 `.class` 文件或其他源（网络、加密文件等）
+
+调用 `defineClass()` 转换为 `Class` 对象
+
+将类的定义信息保存到方法区（Java 8 以前）或元空间（Java 8+）
+
+##### 类加载器
+
+**类加载器（ClassLoader）**是负责将 `.class` 文件加载进 JVM 的组件。它根据类的全限定名查找字节码，并将其加载为 `Class` 对象。
+
+类加载器的基本结构
+
+```
+ClassLoader (抽象类)
+  ├── Bootstrap ClassLoader （启动类加载器）✅
+  ├── Extension ClassLoader（扩展类加载器）✅
+  └── Application ClassLoader（系统类加载器）✅
+        └── 自定义类加载器（可扩展）
+```
+
+| 加载器                                            | 作用                                              | 加载路径               | 说明                                               |
+| ------------------------------------------------- | ------------------------------------------------- | ---------------------- | -------------------------------------------------- |
+| **Bootstrap ClassLoader**                         | 加载 Java 核心类，如 `java.lang.*`，`java.util.*` | `$JAVA_HOME/lib`       | 启动类加载器，用 C++ 实现，在 Java 中表现为 `null` |
+| **Extension ClassLoader**                         | 加载扩展目录类，如 `javax.*`                      | `$JAVA_HOME/lib/ext`   | 扩展类加载器                                       |
+| **Application ClassLoader**（System ClassLoader） | 加载用户类（开发者写的类）                        | `classpath` 指定的路径 | 系统类加载器                                       |
+
+```java
+public class classTest1 {
+    public static void main(String[] args) throws ClassNotFoundException {
+        // 获取系统类加载器
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        System.out.println(systemClassLoader);  // jdk.internal.loader.ClassLoaders$AppClassLoader@63947c6b
+
+        // 获取系统类加载器的父类加载器-->扩展类加载器
+        ClassLoader parentClassLoader = systemClassLoader.getParent();
+        System.out.println(parentClassLoader);  // jdk.internal.loader.ClassLoaders$PlatformClassLoader@776ec8df
+
+        // 获取扩展类加载器的父类加载器-->根类加载器
+        ClassLoader parentParentClassLoader = parentClassLoader.getParent();
+        System.out.println(parentParentClassLoader);  // null
+        
+        ClassLoader classLoader = classTest1.class.getClassLoader();
+        System.out.println(classLoader);  // jdk.internal.loader.ClassLoaders$AppClassLoader@63947c6b
+
+        ClassLoader classLoader1 = Class.forName("java.lang.Object").getClassLoader();
+        System.out.println(classLoader1);
+    }
+}
+```
+
+
+
+##### 双亲委派模型
+
+双亲委派机制是一种**类加载委托机制**：当一个类加载器需要加载某个类时，它并不会自己去尝试加载，而是**先将请求交给父类加载器**去加载。只有当父类加载器无法加载该类时，子类加载器才会尝试自己加载。
+
+```
+AppClassLoader
+    ↓
+ExtClassLoader
+    ↓
+BootstrapClassLoader
+```
+
+###### <span style="color:blue">加载流程</span>
+
+假设你在代码中写了：
+
+```java
+Class.forName("java.lang.String");
+```
+
+加载过程如下：
+
+1. 当前类加载器收到加载 `java.lang.String` 的请求。
+2. 它先把请求交给父加载器。
+3. 父加载器再继续往上交给它的父加载器。
+4. 最终交给 **启动类加载器**。
+5. 如果启动类加载器能加载（比如 `String.class` 在 `rt.jar` 中），则加载成功。
+6. 如果启动类加载器不能加载（比如是用户自定义类），子加载器才尝试，才会逐层返回由下层加载器尝试加载。
+
+这个过程就像“**自底向上的请求，自顶向下的加载**”。
+
+###### <span style="color:blue">为什么使用双亲委派机制</span>
+
+核心思想：防止“核心类”被篡改或伪造。
+
+没有双亲委派机制时：
+
+假设你写了一个类，名字就叫：
+
+```java
+package java.lang;
+
+public class String {
+    public String() {
+        System.out.println("Hacked String!");
+    }
+}
+```
+
+你把它放在你的项目里（classpath 下），如果没有双亲委派机制，**应用类加载器就可能直接加载你这个“伪造”的 String 类**。
+
+这样一来：
+
+- 你就可以“冒充”JDK的核心类。
+- 任何使用 `java.lang.String` 的代码都有可能调用你写的假类。
+- 会造成 **严重安全隐患**。
+
+有双亲委派机制时
+
+当你请求加载 `java.lang.String`：
+
+1. 应用类加载器会把请求交给它的父类加载器（扩展类加载器）。
+2. 扩展类加载器再往上交给启动类加载器。
+3. 启动类加载器发现它自己已经加载 `rt.jar` 中的 String 类，返回这个类。
+4. 子类加载器不会加载你写的那个“伪造”的 String。
+
+这样，你的伪造类就不会被加载，就被“拦住了”。
+
+###### <span style="color:blue">自定义类加载器破坏双亲委派</span>
+
+有些框架（如 Tomcat、OSGi、JDBC SPI）为了支持热部署、插件机制，**会破坏双亲委派机制**，例如：
+
+- 先尝试自己加载（child-first）
+- 加载不到再委托父加载器
+
+这是为了实现更灵活的类加载需求，但也带来了更多的风险和复杂性。
+
+
+
+#### 类初始化
+
+在触发初始化之前，JVM 会判断是否为“**主动引用**”。只有在**主动引用**的情况下，类才会被**立即初始化**，否则可能是“**被动引用**”，类不会被初始化。
+
+| 类型                              | 是否触发类的初始化？ | 说明                             |
+| --------------------------------- | -------------------- | -------------------------------- |
+| **主动引用（Active Reference）**  | ✅ 会触发初始化       | 对类的直接使用                   |
+| **被动引用（Passive Reference）** | ❌ 不会触发初始化     | 对类的间接使用或编译器优化的情形 |
+
+##### 类主动引用
+
+以下这些行为会触发类的初始化：
+
+1. **创建类的实例（new）**
+
+```java
+Test test = new Test();  // 主动使用类，触发初始化
+```
+
+2. **访问类的静态变量（非 `final`）或静态方法**
+
+```java
+System.out.println(Test.value);  // 访问静态变量（非编译期常量）
+Test.staticMethod();             // 调用静态方法
+```
+
+3. **使用反射操作类**
+
+```java
+Class.forName("com.example.Test");  // 直接触发初始化
+```
+
+4. **初始化子类时，父类也会被初始化**
+
+```java
+class Parent {
+    static { System.out.println("Parent init"); }
+}
+
+class Child extends Parent {
+    static { System.out.println("Child init"); }
+}
+
+Child c = new Child();  // 会先初始化 Parent，再初始化 Child
+```
+
+5. **调用 `main()` 方法所在的类**
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        // 该类本身会首先被初始化
+    }
+}
+```
+
+###### 示例
+
+```java
+public class classTest1 {
+    static {
+        System.out.println("Main 类被加载");
+    }
+
+    public static void main(String[] args) {
+        Father f = new Son();
+    }
+}
+
+class Father {
+    static {
+        System.out.println("父类被加载");
+    }
+}
+
+class Son extends Father {
+    static {
+        System.out.println("子类被加载");
+    }
+}
+```
+
+输出：
+
+```
+Main 类被加载
+父类被加载
+子类被加载
+```
+
+
+
+##### 类被动引用
+
+1. **访问类的静态常量（`final` 修饰的编译期常量）**
+
+```java
+public class Test {
+    public static final int VALUE = 123;  // 编译期常量
+    static { System.out.println("Test init"); }
+}
+
+System.out.println(Test.VALUE);  // 不会触发 Test 初始化
+```
+
+> 因为 `VALUE` 是 `final` 且是基本类型，编译器会在编译阶段将其值替换，根本不会加载 `Test` 类。
+
+2. **通过数组定义引用类**
+
+```java
+Test[] array = new Test[10];  // 不会触发 Test 初始化
+```
+
+JVM 只为数组分配内存，并不会初始化引用的类。
+
+3. **子类访问父类的静态变量**
+
+```java
+class Parent {
+    static { System.out.println("Parent init"); }
+    static int value = 123;
+}
+
+class Child extends Parent {
+    static { System.out.println("Child init"); }
+}
+
+System.out.println(Child.value);  // 只初始化 Parent，不初始化 Child
+```
+
+4. **通过反射获取 `Class` 对象，但不实例化**
+
+```java
+Class cls = Test.class;  // 不会触发 Test 初始化
+```
+
+仅获取 `Class` 对象并不会触发初始化，除非使用 `Class.forName()`。
+
+
+
+
+
+
+
+
 
 
 
@@ -5113,218 +5983,6 @@ public static void main(String[] args) {
     }
 }
 ```
-
-
-
-
-
-## 反射
-
-反射允许对成员变量，成员方法和构造函数的信息进行编程访问
-
-```java
-public class aTest1 {
-
-    @t1(age = 20, address = {"street1", "USA", "JinHua"})
-    public void a() {
-        System.out.println("hello world");
-    }
-
-    public static void main(String[] args) {
-        try {
-            Class<aTest1> clazz = aTest1.class;
-            Method method = clazz.getDeclaredMethod("a");
-            if (method.isAnnotationPresent(t1.class)) {
-                t1 ann = method.getAnnotation(t1.class);
-                System.out.println("name：" + ann.name());
-                System.out.println("age：" + ann.age());
-                System.out.println("gender：" + ann.gender());
-                System.out.print("address：");
-                Arrays.stream(ann.address()).forEach(item -> System.out.print(item + " "));
-            } else {
-                System.out.println("no t1 annotation");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```java
-public class SecretClass {
-    private String secret = "我是一个秘密";
-
-    private void hiddenMethod() {
-        System.out.println("你不该看到我！");
-    }
-}
-
-public class aTest2 {
-    public static void main(String[] args) throws Exception {
-        SecretClass sc = new SecretClass();
-        Class clazz = sc.getClass();
-        Field field = clazz.getDeclaredField("secret");
-        field.setAccessible(true);
-        System.out.println(field.get(sc));
-        Method method = clazz.getDeclaredMethod("hiddenMethod");
-        method.setAccessible(true);
-        method.invoke(sc);
-    }
-}
-```
-
-
-
-### 获取class对象
-
-1. `Class.forName(全类名)`
-2. `类名.class`
-3. `对象.getClass`
-
-```java
-public class aTest2 {
-    public static void main(String[] args) throws ClassNotFoundException {
-
-        Class clazz1 = Class.forName("test.dto.Student");
-
-        Class clazz2 = Student.class;
-
-        Student s1 = new Student();
-        Class clazz3 = s1.getClass();
-
-        System.out.println(clazz1 == clazz2);  // true
-        System.out.println(clazz1 == clazz3);  // true
-    }
-}
-
-```
-
-### 访问私有成员
-
-默认情况下，反射无法访问私有成员，需要先调用 `setAccessible(true)` 来绕过权限检查。
-
-```java
-field.setAccessible(true);
-```
-
-
-
-
-
-### 获取构造方法
-
-1. 获取所有的构造函数
-
-   ```java
-   Constructor<?>[] constructors = clazz.getConstructors(); // 公有构造函数
-   Constructor<?>[] allConstructors = clazz.getDeclaredConstructors(); // 所有构造函数
-   ```
-
-2. 获取单个构造函数
-
-   ```java
-   Constructor<?> constructor = clazz.getConstructor(String.class, int.class); // 参数类型
-   Constructor<?> declaredConstructor = clazz.getDeclaredConstructor(String.class);
-   ```
-
-3. 通过构造函数创建对象
-
-   ```java
-   Constructor<?> constructor = clazz.getConstructor(String.class, int.class);
-   Object instance = constructor.newInstance("John", 25);
-   ```
-
-   
-
-### 获取字段
-
-1. 获取所有字段
-
-   ```java
-   Field[] publicFields = clazz.getFields(); // 公有字段
-   Field[] allFields = clazz.getDeclaredFields(); // 所有字段
-   ```
-
-2. 获取单个字段
-
-   ```java
-   Field field = clazz.getField("publicFieldName"); // 公有字段
-   Field privateField = clazz.getDeclaredField("privateFieldName"); // 私有字段
-   ```
-
-3. 获取字段值
-
-   ```java
-   Field field = clazz.getDeclaredField("name");
-   field.setAccessible(true); // 绕过访问限制
-   Object value = field.get(obj); // 获取字段值
-   ```
-
-4. 设置字段值
-
-   ```java
-   Field field = clazz.getDeclaredField("name");
-   field.setAccessible(true);
-   field.set(obj, "New Value"); // 设置字段值
-   ```
-
-#### Field
-
-##### 获取字段的基本信息
-
-`field.getName()`：获取字段的名称（字符串形式）。
-
-```java
-String fieldName = field.getName();
-```
-
-`field.getType()`：获取字段的类型（`Class` 对象），例如 `int.class`、`String.class`。
-
-```java
-Class<?> fieldType = field.getType();
-```
-
-`field.getModifiers()`：获取字段的修饰符，以整数形式返回（如 `public`、`private`、`static` 等）。可结合 `Modifier` 类解析。
-
-```java
-int modifiers = field.getModifiers();
-boolean isPublic = Modifier.isPublic(modifiers);
-```
-
-`field.getGenericType()`：获取字段的泛型类型（`Type` 对象），例如 `List<String>`。
-
-```java
-Type genericType = field.getGenericType();
-```
-
-##### 操作字段值
-
-`field.get(Object obj)`：获取指定对象的此字段的值。
-
-```java
-Object value = field.get(obj);
-```
-
-`field.set(Object obj, Object value)`：设置指定对象的此字段的值为 `value`。
-
-```java
-field.set(obj, "New Value");
-```
-
-##### 控制字段的访问权限
-
-`field.setAccessible(boolean flag)`：设置是否允许通过反射访问私有字段。
-
-```java
-field.setAccessible(true); // 绕过私有字段的访问限制
-```
-
-
-
-### 获取成员方法
-
-
 
 
 
