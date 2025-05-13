@@ -121,6 +121,8 @@ Spring技术对IoC思想进行了实现
 
 ### AOP
 
+**AOP（Aspect Oriented Programming）**，即**面向切面编程**，是一种编程范式，用于将横切关注点（如日志记录、安全控制、事务管理等）从业务逻辑中分离出来，从而提高模块化程度。
+
 AOP（Aspect Oriented Programming）面向切面编程
 
 - OOP（Object Oriented Programming）面向对象编程
@@ -134,6 +136,69 @@ AOP（Aspect Oriented Programming）面向切面编程
 - 通知
 - 通知类：定义通知的类
 - 切面：描述通知与切入点的对应关系
+
+
+
+#### 核心概念
+
+| 名称                     | 说明                                                         |
+| ------------------------ | ------------------------------------------------------------ |
+| **切面（Aspect）**       | 把横切关注点模块化的特殊对象，典型如日志、权限、事务等。     |
+| **连接点（Join Point）** | 程序执行的某个特定位置（如方法调用、异常抛出等），Spring AOP 只支持方法级别的连接点。 |
+| **通知（Advice）**       | 切面在特定连接点上执行的动作，比如方法执行前、后、异常时等。 |
+| **切入点（Pointcut）**   | 匹配连接点的规则（表达式），决定 Advice 应该应用到哪些连接点。 |
+| **目标对象（Target）**   | 被代理的业务对象，即那些被切面增强的对象。                   |
+| **代理对象（Proxy）**    | AOP 创建的对象，包含了原始对象和增强逻辑。                   |
+| **织入（Weaving）**      | 将切面与目标对象连接起来的过程，Spring AOP 是在运行时通过代理完成织入的。 |
+
+
+
+#### 注意点
+
+1. Spring AOP 只能拦截 Spring 容器管理的 Bean，直接 new 的对象不会被 Spring 管理，因此无法被 AOP 拦截。
+
+
+
+#### 示例
+
+```java
+// AOP切面类
+@Aspect
+@Component
+public class MyAdvice {
+    @Pointcut("execution(void com.kagy.kagydemo.Test.Test1.add())")
+    public void pt() {}
+
+    @Before("pt()")
+    public void before() {
+        System.out.println("Before Add");
+    }
+}
+```
+
+```java
+@Component
+public class Test1 {
+
+    public void add() {
+        System.out.println(1 + 2);
+    }
+}
+```
+
+```java
+@SpringBootApplication
+public class KagyDemoApplicationTest {
+
+    public static void main(String[] args) {
+        ApplicationContext context = SpringApplication.run(KagyDemoApplicationTest.class, args);
+        // 从Spring容器中获取Test1的实例
+        Test1 test1 = context.getBean(Test1.class);
+        test1.add();
+    }
+
+}
+```
 
 
 

@@ -8,6 +8,12 @@
 
 在 Java 中，一个 `.java` 文件中可以定义 **多个非 `public` 的类**。
 
+在 Java 中，**顶级类（Top-level class）** 只能使用以下两个访问修饰符之一：
+
+- `public`
+- **无修饰符（即默认的包私有，package-private）**
+- 不能是**`private` 或 `protected`**。
+
 
 
 ### 多态
@@ -87,6 +93,30 @@ public class Test1 {
     }
 }
 ```
+
+
+
+### instanceof
+
+判断一个对象是否是某个类的实例，**或者是其子类/实现类的实例**。
+
+```java
+class Animal {}
+class Dog extends Animal {}
+
+public class Test {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+
+        System.out.println(a instanceof Dog);    // true
+        System.out.println(a instanceof Animal); // true
+        System.out.println(a instanceof Object); // true
+        System.out.println(a instanceof String); // 编译错误 ❌
+    }
+}
+```
+
+
 
 
 
@@ -232,6 +262,7 @@ animal.sleep(); // 输出: Tom is sleeping.
 
 - 一个类只能继承一个抽象类，但可以实现多个接口。
 - 抽象类可以有构造函数，而接口不能。
+- 接口中的方法默认是 `public`；不能用 `private/protected`。抽象类中的方法和变量可以使用各种访问修饰符（`private`, `protected`, `public`）。
 
 **使用抽象类而不是接口的情况抽象方法**
 
@@ -3287,11 +3318,21 @@ Map<Integer, OrderStatus> map = new HashMap<Integer, OrderStatus>();
 Map<Integer, OrderStatus> map = new HashMap<>();
 ```
 
+##### 红黑树
 
+红黑树是在每个节点上增加一个**颜色标志（红或黑）**的二叉搜索树。它确保树大致平衡，使得插入、删除、查找操作的时间复杂度为 **O(log n)**。
 
+红黑树必须满足的5条性质：
 
+1. **每个节点是红色或黑色。**
+2. **根节点是黑色。**
+3. **每个叶子节点（NIL，空节点）是黑色。**
+4. **如果一个节点是红色的，则它的子节点必须是黑色的。**（即**不能有两个连续的红色节点**）
+5. **从任一节点到其所有后代叶子节点的简单路径上，必须包含相同数目的黑色节点。（称为黑高）**
 
+衍生特性：
 
+1. 从根节点到叶子节点的最长路径，不超过最短路径的两倍
 
 
 
@@ -3912,7 +3953,7 @@ public class StringIndexExample {
 
 ### 异常分类
 
-1. 编译异常（Exception）：程序在编译过程中发现的异常，受检异常。
+1. 编译异常（Exception）：程序在编译过程中发现的异常，**受检异常**。
 
    在编译时必须被处理的异常，否则程序无法通过编译。
 
@@ -3924,7 +3965,7 @@ public class StringIndexExample {
 
    如`SQLException`、`IOException`、`ClassNotFoundException`
 
-2. 运行时异常（RuntimeException）：又称为非受检异常。
+2. 运行时异常（RuntimeException）：又称为**非受检异常**。
 
    在编译时不强制处理的异常，在运行时出现。
 
@@ -3940,7 +3981,7 @@ public class StringIndexExample {
 
    表示 JVM 本身无法恢复的严重问题。
 
-   通常不需要程序处理，程序员也无法控制。
+   通常不需要程序处理，程序员也无法控制，不建议捕获。
    
    如`StackOverflowError`、`OutOfMemoryError`、`NoClassDefFoundError`
 
@@ -4800,21 +4841,38 @@ field.setAccessible(true);
 
 ### 获取字段
 
-1. 获取所有字段
+1. 获取所有**公共**字段，包括继承的
+
+   `getFields()`
 
    ```java
    Field[] publicFields = clazz.getFields(); // 公有字段
    Field[] allFields = clazz.getDeclaredFields(); // 所有字段
    ```
 
-2. 获取单个字段
+2. 获取当前类声明所有字段（包括私有的），不包括父类
+
+   `getDeclaredFields()`
+
+   ```java
+   Car car = new Car();
+   Class carClass = car.getClass();
+   Field[] publicFields = carClass.getDeclaredFields();
+   for (Field publicField : publicFields) {
+       System.out.println(publicField.getName());
+   }
+   ```
+
+3. 获取单个公共字段
+
+   `getField(String name)`
 
    ```java
    Field field = clazz.getField("publicFieldName"); // 公有字段
    Field privateField = clazz.getDeclaredField("privateFieldName"); // 私有字段
    ```
 
-3. 获取字段值
+4. 获取字段值
 
    ```java
    Field field = clazz.getDeclaredField("name");
@@ -4822,7 +4880,7 @@ field.setAccessible(true);
    Object value = field.get(obj); // 获取字段值
    ```
 
-4. 设置字段值
+5. 设置字段值
 
    ```java
    Field field = clazz.getDeclaredField("name");
@@ -4831,6 +4889,9 @@ field.setAccessible(true);
    ```
 
 #### Field
+
+- 获取类中定义的字段（成员变量），包括私有字段。
+- 可以读取和修改对象的字段值。
 
 ##### 获取字段的基本信息
 
@@ -4867,6 +4928,19 @@ Type genericType = field.getGenericType();
 Object value = field.get(obj);
 ```
 
+```java
+Car car = new Car();
+car.setColor("red");
+Class carClass = car.getClass();
+Field[] publicFields = carClass.getDeclaredFields();
+for (Field publicField : publicFields) {
+    if(publicField.getName().equals("color")){
+        publicField.setAccessible(true);
+        System.out.println(publicField.get(car));
+    }
+}
+```
+
 `field.set(Object obj, Object value)`：设置指定对象的此字段的值为 `value`。
 
 ```java
@@ -4877,9 +4951,539 @@ field.set(obj, "New Value");
 
 `field.setAccessible(boolean flag)`：设置是否允许通过反射访问私有字段。
 
+<span style="color:red">`private` / `protected` / 默认</span> 需要设置
+
 ```java
-field.setAccessible(true); // 绕过私有字段的访问限制
+field.setAccessible(true); // 允许访问私有字段
 ```
+
+##### 注解相关
+
+`isAnnotationPresent(Class<? extends Annotation>)`
+
+判断字段是否有某个注解，返回 `true/false`
+
+```java
+if (clazz.isAnnotationPresent(MyAnnotation.class)) {
+    System.out.println("类上存在 @MyAnnotation");
+}
+```
+
+`getAnnotation(Class<A>)`
+
+获取指定类型的注解对象，如果不存在返回 `null`
+
+```java
+// getAnnotation
+MyAnnotation classAnno = clazz.getAnnotation(MyAnnotation.class);
+System.out.println("类注解 value: " + classAnno.value());
+```
+
+`getAnnotations()`
+
+获取所有注解（包含继承的）
+
+`getDeclaredAnnotations()`
+
+获取本类声明的所有注解（不含继承）
+
+
+
+**示例**
+
+```java
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@interface MyFieldAnnotation {
+    String value();
+    int count() default 1;
+}
+```
+
+```java
+class Person {
+    @MyFieldAnnotation(value = "姓名字段", count = 2)
+    private String name;
+
+    private int age;
+}
+```
+
+```java
+import java.lang.reflect.*;
+
+public class FieldAnnotationTest {
+    public static void main(String[] args) throws Exception {
+        Class<?> clazz = Person.class;
+        Field[] fields = clazz.getDeclaredFields();
+
+        for (Field field : fields) {
+            System.out.println("字段名: " + field.getName());
+
+            // 判断是否有注解
+            if (field.isAnnotationPresent(MyFieldAnnotation.class)) {
+                System.out.println("  有注解 @MyFieldAnnotation");
+
+                // 获取注解对象
+                MyFieldAnnotation annotation = field.getAnnotation(MyFieldAnnotation.class);
+
+                // 获取注解内容
+                System.out.println("  注解 value: " + annotation.value());
+                System.out.println("  注解 count: " + annotation.count());
+            } else {
+                System.out.println("  无注解");
+            }
+
+            System.out.println("------------");
+        }
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+### 获取方法
+
+1. `Method getMethod(String name, Class<?>... parameterTypes)`：获取**public** 方法
+
+   方法名匹配、参数数量匹配、参数类型顺序匹配
+
+   ```java
+   public class Person {
+       public void sayHello() {
+           System.out.println("Hello");
+       }
+   
+       public void setInfo(String name, int age) {
+           System.out.println("Name: " + name + ", Age: " + age);
+       }
+   }
+   ```
+
+   ```java
+   Method m1 = Person.class.getMethod("sayHello");
+   ```
+
+   ```java
+   Method m2 = Person.class.getMethod("setInfo", String.class, int.class);
+   ```
+
+2. `Method[] getMethods()`获取所有 **public** 方法（包括继承的）
+
+   ```java
+   public class Test1 {
+       public static void main(String[] args) throws Exception {
+           Car car = new Car();
+           Class clazz = car.getClass();
+           Method[] methods = clazz.getMethods();
+           for (Method method : methods) {
+               System.out.println(method.getName());  // 当前类（Car）以及它的父类（Object）中所有的 public 方法，包括继承的！
+           }
+       }
+   }
+   
+   class Car {
+       public void Driving() {
+           System.out.println("Driving");
+       }
+   
+       public void Show(int i, String s) {
+           System.out.println("i = " + i + ", s = " + s);
+       }
+   }
+   ```
+
+   来自 `Car` 类的方法：
+
+   - `Driving`
+   - `Show`
+
+   来自 `Object` 类继承的方法（这些都是 `public` 的）：
+
+   - `toString`
+   - `equals`
+   - `hashCode`
+   - `getClass`
+   - `notify`
+   - `notifyAll`
+   - `wait`
+   - `wait(long)`
+   - `wait(long, int)`
+
+3. `Method getDeclaredMethod(String name, Class<?>... parameterTypes)`
+
+   获取当前类中指定名称的方法（包括 private）
+
+   ```java
+   public class Test1 {
+       public static void main(String[] args) throws Exception {
+           Car car = new Car();
+           Class clazz = car.getClass();
+           Method drivingMethod = clazz.getDeclaredMethod("Driving");
+           Method showMethod = clazz.getDeclaredMethod("Show", int.class, String.class);
+   
+           // 允许访问 private 方法
+           drivingMethod.setAccessible(true);
+           showMethod.setAccessible(true);
+   		
+           drivingMethod.invoke(car);
+           showMethod.invoke(car, 10, "Hello");
+       }
+   }
+   
+   class Car {
+       private void Driving() {
+           System.out.println("Driving");
+       }
+   
+       private void Show(int i, String s) {
+           System.out.println("i = " + i + ", s = " + s);
+       }
+   }
+   ```
+
+4. `Method[] getDeclaredMethods()`
+
+   获取当前类中定义的所有方法（包括 private）
+
+   
+
+#### Method
+
+##### 基本信息获取
+
+1. `getName()`
+
+   获取方法名。
+
+   ```java
+   System.out.println(method.getName()); // 输出: sayHello
+   ```
+
+2. `getReturnType()`
+
+   获取返回值类型。
+
+   ```java
+   Class<?> returnType = method.getReturnType();
+   System.out.println(returnType.getName()); // 输出: void 或 java.lang.String 等
+   ```
+
+3. `getParameterTypes()`
+
+   获取参数类型数组。
+
+   ```java
+   Class<?>[] params = method.getParameterTypes();
+   for (Class<?> param : params) {
+       System.out.println(param.getName());
+   }
+   ```
+
+4. `getDeclaringClass()`
+
+   获取声明该方法的类。
+
+   ```java
+   System.out.println(method.getDeclaringClass().getName());
+   ```
+
+5. `getModifiers()`
+
+   获取修饰符（如 public、private），返回一个 `int`，可以用 `Modifier.toString()` 转成字符串。
+
+   ```java
+   int modifiers = method.getModifiers();
+   System.out.println(Modifier.toString(modifiers)); // 输出: public, private 等
+   ```
+
+##### 参数相关
+
+1. `getParameterCount()getParameterCount()`
+
+   获取参数个数。
+
+   ```java
+   System.out.println(method.getParameterCount()); // 输出: 2
+   ```
+
+2. `getParameters()`
+
+   返回 `Parameter[]`，可以获取每个参数的名字
+
+   ````java
+   Parameter[] parameters = method.getParameters();
+   for (Parameter p : parameters) {
+       System.out.println(p.getName()); // name1, name2 等
+   }
+   ````
+
+3. `getGenericParameterTypes()`
+
+   获取泛型参数类型（用于泛型方法）。
+
+   ```java
+   Type[] types = method.getGenericParameterTypes();
+   for (Type type : types) {
+       System.out.println(type.getTypeName());
+   }
+   ```
+
+##### 调用方法
+
+1. `invoke(Object obj, Object... args)`
+
+   - 如果方法为静态方法，形参obj可为null
+
+   ```java
+   drivingMethod.invoke(car);
+   showMethod.invoke(car, 10, "Hello");
+   ```
+
+##### 权限控制
+
+1. `setAccessible(boolean flag)`
+
+   设置是否允许访问私有方法。
+
+   ```java
+   method.setAccessible(true); // 允许访问 private 方法
+   ```
+
+##### 注解相关
+
+1. `getAnnotations()`
+
+   获取所有注解（包括继承的）。
+
+   ```java
+   Annotation[] annotations = method.getAnnotations();
+   for (Annotation a : annotations) {
+       System.out.println(a.toString());
+   }
+   ```
+
+2. `getDeclaredAnnotations()`
+
+   获取当前方法上定义的所有注解（不包含继承的）。
+
+   ```java
+   Annotation[] annotations = method.getDeclaredAnnotations();
+   ```
+
+3. `isAnnotationPresent(Class<? extends Annotation>)`
+
+   检查是否存在某个注解。
+
+   ```java
+   if (method.isAnnotationPresent(MyAnnotation.class)) {
+       System.out.println("方法上有 @MyAnnotation");
+   }
+   ```
+
+
+
+### 获取构造器
+
+构造器（Constructor）是 Java 类中的一种特殊方法，它的作用是**在创建对象时初始化对象的状态**（即为对象的属性赋初值、执行初始化逻辑）。
+
+示例
+
+```java
+class Student {
+    String name;
+    int age;
+
+    // 无参构造器
+    public Student() {
+        name = "默认名";
+        age = 18;
+    }
+
+    // 有参构造器
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+
+
+### 反射创建对象
+
+调用Class对象的`newInstance()`方法
+
+- 类必须有一个无参的构造器，只能用于无参构造器
+- 类的构造器的访问权限需要足够
+
+```java
+public class Test1 {
+    public static void main(String[] args) throws Exception {
+        // 获取Class对象
+        Class carClass = Car.class;
+
+        // 构造一个Car对象
+        Car c = (Car) carClass.newInstance();
+    }
+}
+
+class Car {
+    private int speed;
+    private String name;
+
+    public Car() {
+    }
+
+    public Car(int speed, String name) {
+        this.speed = speed;
+        this.name = name;
+    }
+}
+```
+
+可以通过反射获取set函数设置值
+
+```java
+public class Test1 {
+    public static void main(String[] args) throws Exception {
+        Class clazz = Car.class;
+        Car car = (Car) clazz.newInstance();
+        Method setSpeed = car.getClass().getMethod("setSpeed", int.class);
+        setSpeed.invoke(car, 100);
+        Method setName = car.getClass().getMethod("setName", String.class);
+        setName.invoke(car, "BMW");
+        System.out.println(car.getSpeed());
+        System.out.println(car.getName());
+
+    }
+}
+
+class Car {
+    private int speed;
+    private String name;
+
+    public Car() {
+    }
+
+    public Car(int speed, String name) {
+        this.speed = speed;
+        this.name = name;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+调用`Constructor`的`newInstance`方法
+
+使用 `Class.getConstructor(...)` 或 `getDeclaredConstructor(...)` 获取构造器对象
+
+调用 `newInstance(...)` 传入参数创建对象
+
+```java
+public class Test1 {
+    public static void main(String[] args) throws Exception {
+        // 获取Class对象
+        Class carClass = Car.class;
+
+        // 获取带参数的构造器
+        Constructor constructor = carClass.getConstructor(int.class, String.class);
+
+        // 创建对象
+        Car car = (Car) constructor.newInstance(100, "BMW");
+    }
+}
+
+class Car {
+    private int speed;
+    private String name;
+
+    public Car() {
+    }
+}
+```
+
+
+
+### 获取注解
+
+#### 常用方法
+
+| 方法名                                                       | 定义位置                                     | 作用                                   |
+| ------------------------------------------------------------ | -------------------------------------------- | -------------------------------------- |
+| `isAnnotationPresent(Class<? extends Annotation> annotationClass)` | `Class`, `Method`, `Field`, `Constructor` 等 | 判断是否标注了某个注解                 |
+| `getAnnotation(Class<T> annotationClass)`                    | 同上                                         | 获取指定类型的注解实例                 |
+| `getAnnotations()`                                           | 同上                                         | 获取所有注解（包括继承的）             |
+| `getDeclaredAnnotations()`                                   | 同上                                         | 获取当前声明的所有注解（不包括继承的） |
+| `getAnnotationsByType(Class<T> annotationClass)`             | 同上                                         | 获取重复注解（Java 8+ 支持）           |
+
+
+
+#### 示例
+
+```java
+@Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Student {
+    String name() default "";
+
+    int age() default 0;
+}
+```
+
+```java
+public class Test2 {
+    public static void main(String[] args) {
+        Class c = TestClass.class;
+        Field[] fields = c.getDeclaredFields();
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(Student.class)) {  // 判断是否包含Student注解
+                Student student = field.getAnnotation(Student.class);  // 生成一个注解的代理对象实例
+                // 当你调用 student.name() 或 student.age()，其实是访问这个代理对象中保存的值。
+                System.out.println(student.name() + " " + student.age());
+            }
+        }
+    }
+}
+
+class TestClass {
+    @Student(name = "John", age = 20)
+    private int x;
+    @Student(name = "Jane", age = 23)
+    private int y;
+}
+```
+
+
+
+在你调用 `field.getAnnotation(Student.class)` 的时候，**JVM 会在运行时自动生成一个注解的代理对象实例**，你就可以像操作普通对象那样调用它的方法（例如 `student.name()`）。
+
+当你调用 `student.name()` 或 `student.age()`，其实是访问这个代理对象中保存的值。
+
+
 
 
 
@@ -4984,7 +5588,7 @@ public class classTest1 {
 
 
 
-##### 双亲委派模型
+##### 双亲委派机制
 
 双亲委派机制是一种**类加载委托机制**：当一个类加载器需要加载某个类时，它并不会自己去尝试加载，而是**先将请求交给父类加载器**去加载。只有当父类加载器无法加载该类时，子类加载器才会尝试自己加载。
 
