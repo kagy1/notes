@@ -3770,6 +3770,40 @@ ECMA国际 (Ecma international) 前身为 欧洲计算机制造商协会 ECMA（
 
 
 
+
+
+### es6简写语法
+
+```javascript
+const calculatro = {
+    add: function (a, b) {
+        return a + b
+    },
+    substract(a, b) {   // ES6简写语法
+        return a - b
+    }
+}
+
+console.log(calculatro.add(1, 2))
+console.log(calculatro.substract(1, 2)) 
+```
+
+```javascript
+const name = "小明";
+const age = 25;
+
+// 属性名与变量名相同时的简写
+const user = {
+  name,  // 相当于 name: name
+  age,   // 相当于 age: age
+  sayHi() {  // 方法简写
+    return `我是${this.name}`;
+  }
+};
+```
+
+
+
 ### es6模块化
 
 在es6模块化诞生之前，javascript社区已经尝试并提出了AMD、CMD、CommonJS等模块化规范
@@ -5086,6 +5120,71 @@ var ctx = "\/jf_view\/"
 ### 0.1+0.2
 
 在js中，0.1 + 0.2 不等于 0.3 的原因是由于浮点数的表示和计算精度问题。浮点数在计算机中的存储和运算遵IEEE 754标准，这种标准使用二进制格式来存储浮点数，包括符号位、指数和尾数三部分。由于二进制表示法对于某些十进制小数的不精确性，特别是像0.1和0.2这样的数在二进制中是无限循环小数，计算机只能存储它们的近似值。因此，当这两个近似值相加时，结果并不是精确的0.3，而是一个近似的值，如0.30000000000000004。
+
+## API
+
+### Notification 
+
+`Notification` 是浏览器提供的一个构造函数，用于创建桌面通知。它是 HTML5 引入的一部分，可以在浏览器外层显示系统级通知提示。
+
+使用 `Notification` 的流程一般是：
+
+1. 请求用户授权
+2. ****创建通知****
+
+#### 示例
+
+```javascript
+// 第一步：请求用户授权
+if (Notification.permission === 'granted') {
+    // 已授权，可以发送通知
+    new Notification('Hello!', {
+        body: '这是通知的内容',
+        icon: 'https://example.com/icon.png'
+    });
+} else if (Notification.permission !== 'denied') {
+    // 请求授权
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            new Notification('Hello!', {
+                body: '你刚刚允许了通知',
+                icon: 'https://example.com/icon.png'
+            });
+        }
+    });
+}
+```
+
+#### 构造函数
+
+```javascript
+new Notification(title, options);
+```
+
+- `title`：通知的标题（必填）
+- options（可选）：
+  - `body`：通知的正文内容
+  - `icon`：通知图标
+  - `tag`：用于避免重复通知
+  - `requireInteraction`：是否要求用户点击通知才消失
+  - `silent`：是否静音通知
+
+```javascript
+new Notification("新消息", {
+    body: "你有一条新消息来自 John。",
+    icon: "https://example.com/message-icon.png"
+});
+```
+
+#### 权限管理
+
+浏览器有三种权限状态：
+
+- `granted`：用户已授权
+- `denied`：用户已拒绝
+- `default`：用户还未作出选择
+
+可以通过 `Notification.permission` 查看当前状态。
 
 
 

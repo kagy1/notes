@@ -159,6 +159,16 @@ AOP（Aspect Oriented Programming）面向切面编程
 
 
 
+#### 通知类型
+
+| 通知类型          | 描述                                     |
+| ----------------- | ---------------------------------------- |
+| `@Before`         | 在目标方法执行前执行                     |
+| `@After`          | 在目标方法执行后执行（无论是否抛出异常） |
+| `@AfterReturning` | 在目标方法成功返回后执行                 |
+| `@AfterThrowing`  | 在目标方法抛出异常后执行                 |
+| `@Around`         | 环绕通知，自定义控制目标方法执行前后     |
+
 #### 示例
 
 ```java
@@ -355,6 +365,105 @@ private int age;
 
 
 
+## 常见数据传输方式
+
+| 场景编号 | 请求方式 | 数据类型 / Content-Type           | 前端传参方式                   | 后端接收注解                         | 示例说明         |
+| -------- | -------- | --------------------------------- | ------------------------------ | ------------------------------------ | ---------------- |
+| 1        | GET      | URL 查询参数                      | `/api/user?name=Tom`           | `@RequestParam`                      | 查询参数         |
+| 2        | GET      | URL 路径参数                      | `/api/user/123`                | `@PathVariable`                      | RESTful 风格     |
+| 3        | GET/POST | 请求头参数                        | `Authorization: Bearer xxx`    | `@RequestHeader`                     | Header 信息      |
+| 4        | POST     | 表单（x-www-form-urlencoded）     | `name=Tom&age=20`              | `@RequestParam` 或 `@ModelAttribute` | 表单字段         |
+| 5        | POST/PUT | JSON 数据（application/json）     | `{ "name": "Tom", "age": 20 }` | `@RequestBody`                       | JSON 请求体      |
+| 6        | POST     | 多部分表单（multipart/form-data） | 文件上传 + 表单字段            | `@RequestParam` + `MultipartFile`    | 文件上传         |
+| 7        | GET      | 不加注解的参数绑定                | `/api/user?name=Tom`           | 无注解（默认绑定）                   | 简单参数自动绑定 |
+
+1. GET 查询参数
+
+   ```
+   GET /api/user?name=Tom&age=20
+   ```
+
+   ```java
+   @GetMapping("/api/user")
+   public String getUser(@RequestParam String name, @RequestParam int age) {
+       return name + " is " + age + " years old.";
+   }
+   ```
+
+2. GET 路径参数（RESTful）
+
+   ```
+   GET /api/user/123
+   ```
+
+   ```java
+   @GetMapping("/api/user/{id}")
+   public String getUser(@PathVariable Long id) {
+       return "User ID: " + id;
+   }
+   ```
+
+3. 请求头参数
+
+   ```
+   GET /api/user
+   Authorization: Bearer abc123
+   ```
+
+   ```java
+   @GetMapping("/api/user")
+   public String getUser(@RequestHeader("Authorization") String token) {
+       return "Token: " + token;
+   }
+   ```
+
+4. POST 表单数据（`application/x-www-form-urlencoded`）
+
+   ```
+   POST /api/user
+   Content-Type: application/x-www-form-urlencoded
+   
+   name=Tom&age=20
+   ```
+
+   ```java
+   @PostMapping("/api/user")
+   public String createUser(@RequestParam String name, @RequestParam int age) {
+       return "User: " + name + ", Age: " + age;
+   }
+   ```
+
+   或者，用对象接收
+
+   ```java
+   @PostMapping("/api/user")
+   public String createUser(@ModelAttribute User user) {
+       return user.getName();
+   }
+   ```
+
+5. POST JSON 数据（`application/json`）
+
+   ```
+   axios.post('/api/user', {
+     name: 'Tom',
+     age: 20
+   });
+   ```
+
+   **Content-Type**: `application/json`
+
+   ```java
+   @PostMapping("/api/user")
+   public String createUser(@RequestBody User user) {
+       return "User: " + user.getName();
+   }
+   ```
+
+   
+
+
+
 
 
 
@@ -429,11 +538,11 @@ public User createUser(@RequestBody User user) {
 - 对于复杂对象，Spring 会尝试通过属性名匹配查询参数或表单字段
 - 请求体中的 JSON 数据将被忽略
 
-### @RequestParam
+### `@RequestParam`
 
 数据位于URL查询字符串或表单中
 
-后端需要从请求中精准提取这些参数，而@RequestParam** 的核心作用就是：
+后端需要从请求中精准提取这些参数，而@RequestParam 的核心作用就是：
 
 - **绑定请求参数到方法参数**（解决参数名不一致问题）。
 - **提供默认值**（避免参数缺失导致的错误）。
@@ -628,7 +737,7 @@ private Optional<MyService> myService;
 
 
 
-#### @Qualifier
+#### `@Qualifier`
 
 在 Spring 中，`@Qualifier` 注解通常与 `@Autowired` 一起使用
 
@@ -686,6 +795,57 @@ public class AppConfig {
 
 使用`@Bean`管理第三方Bean
 
+| 注解         | 用途                          | 谁来创建对象？             | 常用于哪种场景？                         |
+| ------------ | ----------------------------- | -------------------------- | ---------------------------------------- |
+| `@Bean`      | 创建 Bean 放入 IOC 容器       | 由开发者手动创建（写方法） | 用于第三方类或自定义创建方式             |
+| `@Component` | 标记类为组件，自动注册为 Bean | Spring 自动扫描并创建      | 用于自己写的类（如 Service、Controller） |
+
+
+
+#### `@Bean`和`@Component`区别
+
+`@Bean` 注解
+
+- 用在 **方法上**。
+- 这个方法写在一个 `@Configuration` 或 `@SpringBootApplication` 类中。
+- 你自己手动写代码来创建对象。
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public UserService userService() {
+        return new UserService(); // 手动 new
+    }
+}
+```
+
+`@Component`
+
+| 注解          | 说明                  |
+| ------------- | --------------------- |
+| `@Controller` | 表示控制器层（Web）   |
+| `@Service`    | 表示业务层            |
+| `@Repository` | 表示数据访问层（DAO） |
+
+- 用在 **类上**
+
+- 让 Spring 扫描到这个类，并自动创建一个对象放进容器。
+
+- 需要配合 `@ComponentScan` 或 `@SpringBootApplication` 使用。
+
+```java
+@Component
+public class OrderService {
+    // Spring 会自动 new 一个 OrderService 对象
+}
+```
+
+
+
+
+
 
 
 ### 添加大佛
@@ -702,13 +862,23 @@ public class AppConfig {
 
 ### `@SpringBootApplication`
 
-这是一个组合注解，包括了`@Configuration`、`@EnableAutoConfiguration`和`@ComponentScan`三个注解。用于标识SpringBoot应用程序的入口类。
+这是一个组合注解，包括了`@SpringBootConfiguration`、`@EnableAutoConfiguration`和`@ComponentScan`三个注解。用于标识SpringBoot应用程序的入口类。
 
-**@Configuration**：指示这个类是一个配置类，它定义了一个或多个@Bean方法，用于创建和配置Spring应用程序上下文中的Bean。
+**@SpringBootConfiguration**：
+
+这是 `@Configuration` 的一个特化形式。
+
+表示当前类是 Spring Boot 的配置类，等同于传统 Spring 项目的 `@Configuration` 注解。
+
+指示这个类是一个配置类，它定义了一个或多个@Bean方法，用于创建和配置Spring应用程序上下文中的Bean。
 
 **@EnableAutoConfiguration**：启用Spring Boot的自动配置机制，它会自动添加所需的依赖项和配置，以使应用程序能够运行。
 
-**@ComponentScan**：指示Spring Boot扫描当前包及其子包中的所有@Component、@Service、@Repository和@Controller注解的类，并将它们注册为Spring Bean。
+**@ComponentScan**：
+
+启用组件扫描，默认从当前类所在的包及其子包开始扫描。
+
+指示Spring Boot扫描当前包及其子包中的所有@Component、@Service、@Repository和@Controller注解的类，并将它们注册为Spring Bean。
 
 @SpringBootApplication注解通常被用于Spring Boot应用程序的入口类上，用于启动Spring Boot应用程序。它可以简化Spring应用程序的配置和启动过程。
 
@@ -1308,13 +1478,151 @@ public class CommonController {
 
 
 
+# `Resource` 接口
+
+## 实现类
+
+Spring 提供了多个 `Resource` 接口的实现类，分别用于不同类型的资源访问
+
+| 实现类                       | 资源来源           | 示例路径                                                | 说明                                           |
+| ---------------------------- | ------------------ | ------------------------------------------------------- | ---------------------------------------------- |
+| **`ClassPathResource`**      | 类路径             | `classpath:config/app.properties`                       | 读取编译后的类路径资源                         |
+| **`FileSystemResource`**     | 文件系统           | `/etc/config/app.properties`                            | 读取本地文件系统中的资源                       |
+| **`UrlResource`**            | 网络 URL、本地 URL | `https://example.com/file.txt`<br>`file:/data/file.txt` | 支持任意合法 URL                               |
+| **`ServletContextResource`** | Web 应用上下文     | `/WEB-INF/config.xml`                                   | 通过 `ServletContext` 加载资源（Web 应用专用） |
+| **`InputStreamResource`**    | 任意 `InputStream` | -                                                       | 包装一个已存在的 `InputStream`                 |
+| **`ByteArrayResource`**      | 字节数组           | -                                                       | 包装一个字节数组为资源                         |
+| **`VfsResource`**            | JBoss VFS          | -                                                       | 用于兼容 JBoss 虚拟文件系统                    |
+| **`PathResource`**           | Java NIO `Path`    | `Paths.get("file.txt")`                                 | Spring 5+ 新增，基于 Java 7 的 `Path`          |
+
+
+
+## ClassPathResource
+
+`ClassPathResource` 是 Spring 框架中用于从 **类路径（Classpath）** 中加载资源的一个工具类，属于 Spring 的资源抽象体系（Resource API）的一部分。它实现了 `org.springframework.core.io.Resource` 接口。
+
+类路径资源可以是：
+
+- 配置文件（如 `.properties`, `.yml`）
+- 模板文件（如 `.html`, `.ftl`）
+- 静态资源（如 `.css`, `.js`, `.json`）
+- 任何打包在 JAR/WAR 里的资源文件
+
+
+
+### 类路径(ClassPath)
 
 
 
 
-## Springboot
 
-### 系统属性
+
+
+### 常用方法
+
+| 方法               | 说明                                    |
+| ------------------ | --------------------------------------- |
+| `getInputStream()` | 获取资源的输入流                        |
+| `exists()`         | 判断资源是否存在                        |
+| `getFilename()`    | 获取资源文件名                          |
+| `getDescription()` | 返回资源描述信息                        |
+| `getURL()`         | 返回资源的 `URL` 对象                   |
+| `getURI()`         | 返回资源的 `URI` 对象                   |
+| `getFile()`        | 返回 `File` 对象（不适用于 JAR 中资源） |
+| `contentLength()`  | 获取资源内容长度                        |
+| `lastModified()`   | 获取资源最后修改时间                    |
+
+### 使用示例
+
+加载类路径下的配置文件
+
+```java
+Resource resource = new ClassPathResource("config/app.properties");
+InputStream input = resource.getInputStream();
+Properties properties = new Properties();
+properties.load(input);
+```
+
+
+
+```java
+@SpringBootTest(classes = KagyDemoApplication.class)
+public class Test2 {
+
+    @Test
+    public void read() throws IOException {
+        // 获取资源文件
+        ClassPathResource classPathResource = new ClassPathResource("T1.json");
+        InputStream inputStream = classPathResource.getInputStream();
+
+        // 使用InputStreamReader和BufferedReader读取内容
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while((line = reader.readLine()) != null){
+                sb.append(line);
+            }
+            String jsonContent = sb.toString();
+            System.out.println(jsonContent);
+        }
+    }
+}
+```
+
+
+
+
+
+# 测试
+
+## `@SpringBootTest`
+
+### 什么是 `@SpringBootTest`
+
+`@SpringBootTest` 是 Spring Boot 提供的一个测试注解，用于在 **测试类中启动完整的 Spring 应用上下文**，让你可以像在生产环境中那样对 Bean、配置、依赖注入等进行测试。
+
+它等同于在测试中启动一个 mini Spring Boot 应用。
+
+**在 Spring Boot 中，测试通常分为两类：**
+
+1. **单元测试**（Unit Test）
+   - 只测试一个类或方法，不依赖 Spring 容器
+   - 不使用 `@SpringBootTest`
+2. **集成测试（Integration Test）**
+   - 测试多个组件之间的协作，如 Controller、Service、Repository 是否协同工作
+   - 需要 Spring 容器来加载 Bean
+   - 使用 `@SpringBootTest` 来加载完整 Spring Boot 环境
+
+
+
+### 多个启动类
+
+Spring Boot 的启动流程会自动扫描当前 classpath 中的类，并寻找一个主配置类（带有 `@SpringBootApplication` 的类，它是 `@SpringBootConfiguration` 的封装）。
+
+但如果你的测试类（比如 `KagyDemoApplicationTest`）也被错误地识别为一个配置类，就会造成冲突。
+
+可以使用 `@SpringBootTest(classes = KagyDemoApplication.class)` 显式指定主配置类
+
+```java
+@SpringBootTest(classes = KagyDemoApplication.class)
+public class Test2 {
+
+    @Test
+    public void read() throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource("T1.json");
+        InputStream inputStream = classPathResource.getInputStream();
+        // 读取文件逻辑
+    }
+}
+```
+
+
+
+
+
+# Springboot
+
+## 系统属性
 
 **用户相关**：
 
@@ -1364,7 +1672,81 @@ reggie:
 
 
 
+## 启动方式
 
+传统XML方式
+
+```java
+ApplicationContext ctx = new ClassPathXmlApplicationContext("application.xml")
+```
+
+**启动方式**：手动加载 Spring 的 XML 配置文件。
+
+**配置方式**：基于 XML，比如 `application.xml` 中配置 bean。
+
+**依赖注入**：需要手动配置 bean、依赖关系等。
+
+**适用场景**：早期项目或不使用 Spring Boot 的项目。
+
+**开发效率**：配置繁琐，启动流程较为复杂。
+
+现代Spring方式
+
+```java
+@SpringBootApplication
+public class KagyDemoApplication {
+    public static void main(String[] args) {
+        // 这是 Spring Boot 启动应用的入口方法。
+        SpringApplication.run(KagyDemoApplication.class, args);
+    }
+}
+```
+
+```java
+@SpringBootApplication
+public class KagyDemoApplicationTest {
+    public static void main(String[] args) {
+        ApplicationContext context = SpringApplication.run(KagyDemoApplicationTest.class, args);
+        // 从Spring容器中获取Test1的实例
+        Test1 test1 = context.getBean(Test1.class);
+        test1.add();
+    }
+}
+```
+
+**属于 Spring Boot（现代开发方式）**
+
+- **启动方式**：通过 `main` 方法一键启动整个 Spring Boot 应用。
+- **配置方式**：基于注解 + `application.properties` 或 `application.yml`。
+- **依赖注入**：自动扫描和注入（通过注解如 `@Component`, `@Service`, `@Autowired` 等）。
+- **适用场景**：现代 Web 开发、微服务架构。
+- **开发效率**：开箱即用，大量自动配置，快速开发。
+
+**返回值：**
+
+`ConfigurableApplicationContext`，Spring 容器
+
+```java
+ConfigurableApplicationContext context = SpringApplication.run(KagyDemoApplication.class, args);
+```
+
+这其实是 Spring 的 **应用上下文对象**（ApplicationContext 的一个子接口），是整个 Spring 容器的核心。
+
+1. 获取 Spring 管理的 Bean
+
+   ```java
+   MyService myService = context.getBean(MyService.class);
+   ```
+
+2. 手动关闭应用：
+
+   ```java
+   context.close();
+   ```
+
+
+
+## SpringApplication
 
 
 

@@ -4,7 +4,7 @@
 
 ### 定义类
 
-一个java文件中最多只能有一个`public`类，并且这个`public`类的名字必须和文件名相同
+一个java文件中最多只能有一个`public`顶层类，并且这个`public`类的名字必须和文件名相同
 
 在 Java 中，一个 `.java` 文件中可以定义 **多个非 `public` 的类**。
 
@@ -330,6 +330,7 @@ public class StaticVariableExample {
 - **不能访问非静态成员**：因为静态方法在类加载时就存在，而非静态成员只有在对象创建后才存在。非静态成员依赖于实例，而静态方法不依赖于实例。
 - **常用于工具类方法**：如 `Math` 类中的 `Math.sqrt()`，因为不需要保存状态。
 - 静态方法不能使用 `this` 和 `super` 关键字。
+- 在 `static` 方法中，**没有 this 对象**，也就**无法调用实例方法**
 - **静态方法**是可以通过类的实例来调用的，但 **不推荐** 这样做。
 - <span style="color:blue">静态方法（`static` methods）不能被子类或实现类重写（override）</span>
 
@@ -975,13 +976,15 @@ class OuterClass3Test {
 
 - **不能通过外部类类名访问，因为匿名内部类没有名字**。
 
-- **必须实现或继承**：<span style="color:red">匿名内部类必须继承一个类或者实现一个接口。</span>
+- **必须实现或继承**：<span style="color:red">匿名内部类必须继承一个类或者实现一个接口。</span>可以继承抽象类或者具体类
 
 - **直接创建对象**：匿名内部类会在定义的同时直接实例化对象。
 
 - **只能有一个实例**：因为没有类名，无法重复实例化。
 
-- **可以重写多个方法**
+- 匿名内部类 **必须是某个类的子类**，**或者是某个接口的实现类**
+
+- **可以重写多个方法**，也可以不重写方法（具体类）
 
   ```java
   abstract class Animal {
@@ -1028,6 +1031,25 @@ class OuterClass3Test {
           };
   
           animal.speak(); // 输出：这只动物 3 岁了
+      }
+  }
+  ```
+
+- 匿名内部类可以继承具体类但**不重写任何方法**
+
+  ```java
+  class HelloWorld {
+      public void say() {
+          System.out.println("Hello World!");
+      }
+  }
+  
+  public class Test {
+      public static void main(String[] args) {
+          HelloWorld hw = new HelloWorld() {
+              // 没有重写任何方法
+          };
+          hw.say(); // 输出 Hello World!
       }
   }
   ```
@@ -1135,7 +1157,7 @@ public class Main {
 
 
 
-### `@FunctionalInterface`
+## `@FunctionalInterface`
 
 `@FunctionalInterface` 是 Java 8 引入的一个**注解**，用于标记一个接口是 **函数式接口（Functional Interface）**。
 
@@ -1231,6 +1253,23 @@ Thread t1 = new Thread(new Runnable() {
         System.out.println("hello world");
     }
 });
+```
+
+
+
+```java
+@FunctionalInterface
+public interface IGreeting {
+    void sayHello();
+}
+```
+
+```java
+public class GreetTest1 {
+    public static void main(String[] args) {
+        IGreeting greet = () -> System.out.println("Hello World!");
+    }
+}
 ```
 
 
@@ -1513,8 +1552,8 @@ public class test {
 
    - 对每个元素执行操作。
 
-   ```
-   java复制代码List<String> list = List.of("a", "b", "c");
+   ```java
+   List<String> list = List.of("a", "b", "c");
    list.stream()
        .forEach(System.out::println); // 打印每个元素
    ```
@@ -1523,8 +1562,8 @@ public class test {
 
    - 将流转换为数组。
 
-   ```
-   java复制代码List<Integer> list = List.of(1, 2, 3);
+   ```java
+   List<Integer> list = List.of(1, 2, 3);
    Integer[] array = list.stream()
                          .toArray(Integer[]::new); // 转换为数组
    ```
@@ -1533,8 +1572,8 @@ public class test {
 
    - 收集流的元素到集合或其他容器中。
 
-   ```
-   java复制代码List<String> list = List.of("a", "b", "c");
+   ```java
+   List<String> list = List.of("a", "b", "c");
    List<String> result = list.stream()
                              .collect(Collectors.toList()); // 转换为列表
    ```
@@ -1543,8 +1582,8 @@ public class test {
 
    - 返回流中的元素数量。
 
-   ```
-   java复制代码List<Integer> list = List.of(1, 2, 3, 4, 5);
+   ```java
+   List<Integer> list = List.of(1, 2, 3, 4, 5);
    long count = list.stream().filter(x -> x > 2).count(); // 统计大于 2 的元素数量
    ```
 
@@ -1552,8 +1591,8 @@ public class test {
 
    - 聚合操作，结合流的元素为一个值。
 
-   ```
-   java复制代码List<Integer> list = List.of(1, 2, 3, 4, 5);
+   ```java
+   List<Integer> list = List.of(1, 2, 3, 4, 5);
    int sum = list.stream()
                  .reduce(0, Integer::sum); // 计算总和
    ```
@@ -1562,8 +1601,8 @@ public class test {
 
    - 检查是否有任意元素匹配条件。
 
-   ```
-   java复制代码List<Integer> list = List.of(1, 2, 3);
+   ```java
+   List<Integer> list = List.of(1, 2, 3);
    boolean result = list.stream().anyMatch(x -> x > 2); // 是否有大于 2 的元素
    ```
 
@@ -1571,8 +1610,8 @@ public class test {
 
    - 检查是否所有元素都匹配条件。
 
-   ```
-   java复制代码List<Integer> list = List.of(1, 2, 3);
+   ```java
+   List<Integer> list = List.of(1, 2, 3);
    boolean result = list.stream().allMatch(x -> x > 0); // 是否所有元素大于 0
    ```
 
@@ -1580,8 +1619,8 @@ public class test {
 
    - 检查是否没有元素匹配条件。
 
-   ```
-   java复制代码List<Integer> list = List.of(1, 2, 3);
+   ```java
+   List<Integer> list = List.of(1, 2, 3);
    boolean result = list.stream().noneMatch(x -> x > 5); // 是否没有元素大于 5
    ```
 
@@ -1589,8 +1628,8 @@ public class test {
 
    - 返回第一个元素。
 
-   ```
-   java复制代码List<String> list = List.of("a", "b", "c");
+   ```java
+   List<String> list = List.of("a", "b", "c");
    String first = list.stream().findFirst().orElse("default");
    ```
 
@@ -1598,8 +1637,8 @@ public class test {
 
     - 返回任意一个元素（并行流中表现不确定）。
 
-    ```
-    java复制代码List<String> list = List.of("a", "b", "c");
+    ```java
+    List<String> list = List.of("a", "b", "c");
     String any = list.stream().findAny().orElse("default");
     ```
 
@@ -1607,8 +1646,8 @@ public class test {
 
     - 返回最大值。
 
-    ```
-    java复制代码List<Integer> list = List.of(1, 2, 3);
+    ```java
+    List<Integer> list = List.of(1, 2, 3);
     int max = list.stream().max(Integer::compareTo).orElse(-1);
     ```
 
@@ -1616,8 +1655,8 @@ public class test {
 
     - 返回最小值。
 
-    ```
-    java复制代码List<Integer> list = List.of(1, 2, 3);
+    ```java
+    List<Integer> list = List.of(1, 2, 3);
     int min = list.stream().min(Integer::compareTo).orElse(-1);
     ```
 
@@ -1822,7 +1861,62 @@ Arrays.stream(array).forEach(System.out::println);
 
 方法引用（**Method Reference**）是 Java 8 引入的一种简洁的写法，主要目的是**简化**Lambda表达式（`lambda expressions`）的代码。
 
+<span style="color:red">方法引用实际上是lambda表达式的一种简化形式或语法糖。</span>
+
+<span style="color:red">方法引用 和 Lambda 表达式 都是用来创建函数式接口实例的</span>
+
+<span style="color:blue">Lambda 表达式可以直接写逻辑，也可以调用已有方法；方法引用只能引用已有的方法，不能写新逻辑！</span>
+
 方法引用属于**函数式编程**的一部分，它允许我们直接引用已有的方法，而不用重复写lambda表达式。
+
+- 不是所有的lambda表达式都能转换为方法引用。方法引用是lambda表达式的一种特殊简化形式，但它有一些限制条件。
+- 所有可以使用方法引用的地方都可以改写为等效的lambda表达式
+
+
+
+**Lambda表达式创建函数式接口实例**
+
+- 直接写逻辑
+
+  ```java
+  Runnable r = () -> {
+      System.out.println("Running...");
+  };
+  ```
+
+- 调用已有方法
+
+  ```java
+  public class Test4 {
+      public static void main(String[] args) {
+          Runnable r = () -> say();
+      }
+  
+      public static void say() {
+          System.out.println("Hello World");
+      }
+  }
+  ```
+
+  
+
+**方法引用创建函数式接口实例**
+
+- 调用已有方法
+
+  ```java
+  public class Test4 {
+      public static void main(String[] args) {
+          Runnable r = Test4::say;
+      }
+  
+      public static void say() {
+          System.out.println("Hello World");
+      }
+  }
+  ```
+
+
 
 
 
@@ -1851,6 +1945,162 @@ String lower = str.toLowerCase();
 ```
 
 
+
+### 示例
+
+**静态方法引用**
+
+字符串列表中的每个元素转换为整数
+
+```java
+public class StaticMethodReferenceExample {
+    public static void main(String[] args) {
+        List<String> strNumbers = Arrays.asList("1", "2", "3", "4", "5");
+        
+        // 使用Lambda表达式
+        List<Integer> numbersLambda = strNumbers.stream()
+                .map(s -> Integer.parseInt(s))
+                .collect(Collectors.toList());
+        
+        // 使用方法引用（静态方法引用）
+        List<Integer> numbersMethodRef = strNumbers.stream()
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+        
+        System.out.println("使用Lambda表达式: " + numbersLambda);
+        System.out.println("使用方法引用: " + numbersMethodRef);
+    }
+}
+```
+
+
+
+**实例方法引用**
+
+创建一个程序，使用方法引用对字符串列表进行排序。
+
+```java
+public class InstanceMethodReferenceExample {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("张三", "李四", "王五", "赵六");
+        
+        // 使用Lambda表达式
+        Collections.sort(names, (s1, s2) -> s1.compareTo(s2));
+        System.out.println("使用Lambda表达式排序: " + names);
+        
+        // 打乱顺序
+        Collections.shuffle(names);
+        
+        // 使用方法引用（实例方法引用）
+        Collections.sort(names, String::compareTo);
+        System.out.println("使用方法引用排序: " + names);
+    }
+}
+```
+
+```java
+// 方法引用
+String prefix = "Hello, ";
+Function<String, String> greeter = prefix::concat;
+
+// 等效的lambda表达式
+Function<String, String> greeter = s -> prefix.concat(s);
+```
+
+```java
+// 方法引用
+Comparator<String> comp = String::compareTo;
+
+// 等效的lambda表达式
+Comparator<String> comp = (s1, s2) -> s1.compareTo(s2);
+```
+
+
+
+**构造函数引用**
+
+```java
+class Person {
+    private String name;
+    
+    public Person(String name) {
+        this.name = name;
+    }
+    
+    @Override
+    public String toString() {
+        return "Person{name='" + name + "'}";
+    }
+}
+
+public class ConstructorReferenceExample {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("张三", "李四", "王五");
+        
+        // 使用Lambda表达式
+        List<Person> peopleWithLambda = names.stream()
+                .map(name -> new Person(name))
+                .collect(Collectors.toList());
+        
+        // 使用构造函数引用
+        List<Person> peopleWithConstructorRef = names.stream()
+                .map(Person::new)
+                .collect(Collectors.toList());
+        
+        System.out.println("使用Lambda表达式: " + peopleWithLambda);
+        System.out.println("使用构造函数引用: " + peopleWithConstructorRef);
+    }
+}
+```
+
+
+
+### 其他示例
+
+mp
+
+```java
+userWrapper.eq(User::getPhone, loginForm.getPhone());
+```
+
+```java
+user -> user.getPhone()
+```
+
+```java
+userWrapper.eq(new SFunction<User, String>() {
+    @Override
+    public String apply(User user) {
+        return user.getPhone();
+    }
+}, loginForm.getPhone());
+```
+
+
+
+
+
+```java
+@FunctionalInterface
+interface Printer {
+    void print(String message);
+}
+```
+
+```java
+public class Util {
+    public static void printMsg(String msg) {
+        System.out.println("Message: " + msg);
+    }
+}
+```
+
+可以这样写
+
+```java
+Printer p = Util::printMsg;
+p.print("Hello");
+```
 
 
 
@@ -1968,15 +2218,42 @@ public class StringPoolTest {
 
 
 
+## 数据类型
+
+### BLOB
+
+BLOB（Binary Large Object）
+
+`BLOB` 是用于存储**二进制数据**的大型对象，比如图像、音频、视频、PDF 文件等。
+
+```
+java.sql.Blob
+```
 
 
 
+### CLOB
+
+CLOB（Character Large Object）
+
+`CLOB` 是用于存储**大文本数据**的类型，比如 XML、HTML、长篇文章等。
+
+```
+java.sql.Clob
+```
 
 
 
+### BLOB 与 CLOB 的区别
 
-
-
+| 特性     | **BLOB**                            | **CLOB**                           |
+| -------- | ----------------------------------- | ---------------------------------- |
+| 全称     | Binary Large Object                 | Character Large Object             |
+| 存储内容 | 二进制数据（图像、音频、视频等）    | 字符数据（文本、XML、HTML等）      |
+| 数据编码 | 不进行字符编码                      | 依据字符集（如 UTF-8、UTF-16）编码 |
+| 操作方式 | 使用 `InputStream` / `OutputStream` | 使用 `Reader` / `Writer`           |
+| 示例用途 | 存储图片、PDF、音频、加密数据等     | 存储长篇文本、文章、日志、HTML等   |
+| 数据类型 | 原始字节（byte[]）                  | 字符串（String）                   |
 
 
 
@@ -3336,6 +3613,67 @@ Map<Integer, OrderStatus> map = new HashMap<>();
 
 
 
+#### Map.Entry<K, V>
+
+当你使用 `Map`（如 `HashMap`、`TreeMap` 等）时，数据是以键值对形式存储的。`Map.Entry` 就是表示这些键值对的对象。
+
+#### 获取方法
+
+`map.entrySet()` 是主要方式
+
+```java
+Set<Map.Entry<String, Integer>> entries = map.entrySet();
+```
+
+```java
+for (Map.Entry<K, V> entry : map.entrySet()) {
+    K key = entry.getKey();
+    V value = entry.getValue();
+}
+```
+
+##### 常用方法
+
+| 方法                  | 描述                   |
+| --------------------- | ---------------------- |
+| `K getKey()`          | 返回键                 |
+| `V getValue()`        | 返回值                 |
+| `V setValue(V value)` | 设置新的值，并返回旧值 |
+
+##### 示例
+
+```java
+public static void main(String[] args) {
+    // 创建一个 HashMap
+    Map<String, Integer> map = new HashMap<>();
+    // 添加键值对
+    map.put("苹果", 3);
+    map.put("香蕉", 5);
+    map.put("橘子", 2);
+    // 遍历 Map 中的键值对
+    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+        String key = entry.getKey();       // 获取键
+        Integer value = entry.getValue();  // 获取值
+        System.out.println("水果: " + key + ", 数量: " + value);
+    }
+    // 修改其中一个 entry 的值
+    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+        if (entry.getKey().equals("苹果")) {
+            entry.setValue(10); // 修改值
+        }
+    }
+    System.out.println("修改后的 Map: " + map);
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 ## 枚举
@@ -4180,7 +4518,7 @@ public class NameFormatException extends RuntimeException {
 
 jdk5引入，可以在编译阶段约束操作的数据类型并进行检查
 
-- 泛型只支持引用数据类型，不能写基本数据类型
+- <span style="color:red">Java的泛型只能使用引用类型（类和接口），不能使用基本数据类型（如int、double、boolean等）</span>
 
 - 指定泛型的具体类型之后，传递数据后，可以传入该类类型或者其子类类型
 
@@ -5925,6 +6263,57 @@ IO流（Input/Output Stream）是 Java 中用于处理数据传输的机制，�
 
 #### 字节流
 
+##### InputStream
+
+**InputStream** 是所有字节输入流的**抽象基类**
+
+###### 子类
+
+常见的 InputStream 子类
+
+**FileInputStream**
+
+- 从文件中读取字节数据
+- 示例：`FileInputStream fis = new FileInputStream("file.txt");`
+
+**ByteArrayInputStream**
+
+- 从字节数组中读取数据
+- 示例：`ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);`
+
+**PipedInputStream**
+
+- 从管道中读取数据，通常与PipedOutputStream配对使用
+- 用于线程间通信
+
+**BufferedInputStream**
+
+- 为其他输入流提供缓冲功能，提高读取效率
+- 示例：`BufferedInputStream bis = new BufferedInputStream(inputStream);`
+
+**DataInputStream**
+
+- 允许应用程序以与机器无关的方式从底层输入流中读取基本Java数据类型
+- 示例：`DataInputStream dis = new DataInputStream(inputStream);`
+
+**ObjectInputStream**
+
+- 用于读取之前用ObjectOutputStream写入的对象
+- 实现了对象的反序列化
+- 示例：`ObjectInputStream ois = new ObjectInputStream(inputStream);`
+
+**FilterInputStream**
+
+- 所有过滤输入流的基类
+- 其子类包括BufferedInputStream、DataInputStream等
+
+**SequenceInputStream**
+
+- 将多个输入流串联成一个输入流
+- 示例：`SequenceInputStream sis = new SequenceInputStream(is1, is2);`
+
+
+
 ##### FileInputStream
 
 1. 创建对象
@@ -6247,7 +6636,7 @@ public static void main(String[] args) {
 
 #### Reader
 
-在 Java 中，`Reader` 是 **字符流**（character streams）体系的基础抽象类，属于 `java.io` 包。它专门用于读取**字符（char）**数据。
+在 Java 中，`Reader` 是 **字符流**（character streams）体系的<span style="color:red">基础抽象类</span>，属于 `java.io` 包。它专门用于读取**字符（char）**数据。
 
 `Reader` 是 **抽象类**
 
@@ -6266,7 +6655,179 @@ public static void main(String[] args) {
 
 
 
+##### InputStreamReader
 
+`InputStreamReader` 是 Java 中的一个类，位于 `java.io` 包中，用于将 **字节输入流（InputStream）转换为字符输入流（Reader）**。
+
+这使得我们可以读取以字节形式输入的数据，并将其正确地转换为字符，尤其适用于处理文本数据（如文件、网络流）时涉及字符编码的问题。
+
+<span style="color:red">现在在实际开发中读取文本文件，推荐并且普遍使用的是 `InputStreamReader`（+ `BufferedReader`）</span>
+
+```java
+public class InputStreamReader extends Reader
+```
+
+###### 主要作用
+
+- 将字节流转换为字符流
+- 处理字符编码问题（如 UTF-8、GBK 等）
+- 通常与 `BufferedReader` 结合使用，提高读取效率
+
+```
+字节流（InputStream）
+        ↓
+InputStreamReader（编码转换）
+        ↓
+字符流（Reader）
+```
+
+###### 为什么不直接使用FIleReader
+
+1. `FIleReader`、`FileWriter`不能指定编码，默认使用系统编码
+
+   而 `InputStreamReader` 和 `OutputStreamWriter` 支持
+
+   ```java
+   new InputStreamReader(new FileInputStream("a.txt"), "UTF-8");
+   ```
+
+2. `FileReader` / `FileWriter` 已经过时（不推荐使用）
+
+###### 构造方法
+
+```java
+// 使用平台默认字符集
+public InputStreamReader(InputStream in)
+
+// 指定字符集名称（如 "UTF-8"、"GBK"）
+public InputStreamReader(InputStream in, String charsetName)
+InputStreamReader reader = new InputStreamReader(new FileInputStream("file.txt"), "UTF-8");
+
+// 指定 Charset 对象
+public InputStreamReader(InputStream in, Charset cs)
+
+// 指定 CharsetDecoder 对象
+public InputStreamReader(InputStream in, CharsetDecoder dec)
+```
+
+###### 方法
+
+| 方法签名                                  | 说明                                                  |
+| ----------------------------------------- | ----------------------------------------------------- |
+| `int read()`                              | 读取一个字符，返回字符的 Unicode 编码，或 -1 表示 EOF |
+| `int read(char[] cbuf, int off, int len)` | 批量读取字符                                          |
+| `void close()`                            | 关闭流，释放资源                                      |
+
+###### 示例
+
+```java
+InputStream input = new FileInputStream("example.txt");
+InputStreamReader reader = new InputStreamReader(input, "UTF-8");
+```
+
+```java
+import java.io.*;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            // 创建 FileInputStream（字节流）
+            FileInputStream fis = new FileInputStream("example.txt");
+
+            // 创建 InputStreamReader（字节流 -> 字符流），指定 UTF-8 编码
+            InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+
+            // 读取字符
+            int data = reader.read();
+            while (data != -1) {
+                System.out.print((char) data);
+                data = reader.read();
+            }
+
+            // 关闭流
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+使用`BufferedReader`
+
+```java
+import java.io.*;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            BufferedReader br = new BufferedReader(
+                new InputStreamReader(
+                    new FileInputStream("example.txt"), "UTF-8"
+                )
+            );
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
+##### OutputStreamWriter
+
+Java IO 系统中用于将字符流转换为字节流的桥梁类
+
+`OutputStreamWriter` 把 Java 中的字符（`char`）编码成字节，并输出到底层的 `OutputStream` 中。
+
+```java
+public class OutputStreamWriter extends Writer
+```
+
+###### 构造方法
+
+1. `OutputStreamWriter(OutputStream out)`
+
+   使用默认编码（⚠️不推荐）
+
+2. ``OutputStreamWriter(OutputStream out, String charsetName)`
+
+   字符集名称是字符串，如 `"UTF-8"`、`"GBK"`、`"ISO-8859-1"`
+
+   ```java
+   OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("file.txt"), "UTF-8");
+   writer.write("你好，世界！");
+   writer.close();
+   ```
+
+3. `OutputStreamWriter(OutputStream out, Charset charset)`
+
+   使用标准类 `StandardCharsets.UTF_8`，类型安全
+
+   ```java
+   OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("file.txt"), StandardCharsets.UTF_8);
+   ```
+
+4. `OutputStreamWriter(OutputStream out, CharsetEncoder encoder)`
+
+
+
+###### 常见方法
+
+| 方法名                                 | 说明                   |
+| -------------------------------------- | ---------------------- |
+| `write(String str)`                    | 写入整个字符串         |
+| `write(char[] cbuf, int off, int len)` | 写字符数组             |
+| `flush()`                              | 刷新缓冲区（强制写入） |
+| `close()`                              | 关闭流并刷新缓冲区     |
 
 
 
@@ -6518,6 +7079,11 @@ public class BufferedReaderExample {
 }
 ```
 
+```java
+// 本质上也是用 InputStreamReader 实现的，是现代写法的封装版，同样支持编码指定。
+BufferedReader reader = Files.newBufferedReader(Paths.get("file.txt"),StandardCharsets.UTF_8);
+```
+
 
 
 #### BufferWriter
@@ -6560,6 +7126,36 @@ public class BufferedWriterExample {
 ```
 
 ```java
+public class TestDemo3 {
+    public static void main(String[] args) throws IOException {
+        File file = new File(".\\src\\IODemo\\TestDemo3\\1.txt");
+        File file1 = new File(".\\src\\IODemo\\TestDemo3\\2.txt");
+        if (file.exists()) {
+            if (!file1.exists()) {
+                file1.createNewFile();
+            }
+
+            try (BufferedReader br = new BufferedReader(new FileReader(file));
+                 BufferedWriter bw = new BufferedWriter(new FileWriter(file1))) {
+                
+                String line;
+                // 逐行读取1.txt的内容并写入2.txt
+                while ((line = br.readLine()) != null) {
+                    bw.write(line);
+                    bw.newLine(); // 写入换行符
+                }
+                bw.flush(); // 确保所有数据都写入文件
+                
+                System.out.println("文件复制完成！");
+            }
+        } else {
+            System.out.println("源文件不存在！");
+        }
+    }
+}
+```
+
+```java
 public static void main(String[] args) {
     File file1 = new File(".\\src\\IODemo\\TestDemo2\\1.txt");
     File file2 = new File(".\\src\\IODemo\\TestDemo2\\2.txt");
@@ -6587,8 +7183,6 @@ public static void main(String[] args) {
     }
 }
 ```
-
-
 
 
 
@@ -6827,48 +7421,65 @@ public class SpliteratorExample {
 
 
 
-## Spring工具类
 
-### DigestUtils
 
-`org.springframework.util.DigestUtils` 是 Spring 框架中的简单工具类，主要用于生成 **MD5 哈希值**。
+
+
+
+
+## Java正则
+
+Java 正则表达式通过 `java.util.regex` 包下的 Pattern 类与 Matcher 类实现
+
+### Pattern类
+
+- `Pattern` 是一个正则表达式的编译表示。
+- 它是不可变的（immutable），线程安全的。
+- 使用 `Pattern.compile(String regex)` 来创建一个 `Pattern` 实例。
+
+
+
+#### 常用方法
+
+| 方法                               | 说明                               |
+| ---------------------------------- | ---------------------------------- |
+| `compile(String regex)`            | 编译正则表达式为 Pattern 对象      |
+| `compile(String regex, int flags)` | 指定标志位（如忽略大小写）进行编译 |
+| `matcher(CharSequence input)`      | 根据输入字符串创建 Matcher         |
+| `split(CharSequence input)`        | 用正则表达式分割字符串             |
+| `pattern()`                        | 返回原始正则表达式字符串           |
+
+#### 示例
 
 ```java
-import org.springframework.util.DigestUtils;
+import java.util.regex.*;
 
-public class SpringDigestUtilsExample {
+public class PatternExample {
     public static void main(String[] args) {
-        String input = "hello world";
+        String text = "hello123world456";
+        String regex = "\\d+";
 
-        // 将字符串转为字节数组
-        byte[] bytes = input.getBytes();
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
 
-        // 生成 MD5 的十六进制字符串
-        String md5Hex = DigestUtils.md5DigestAsHex(bytes);
-        System.out.println("MD5 Hex: " + md5Hex);
+        while (matcher.find()) {
+            System.out.println("Found number: " + matcher.group());
+        }
     }
 }
 ```
 
 
 
-### UUID
 
-```java
-String FileName = UUID.randomUUID().toString();
-```
 
 
 
-### BeanUtils
 
 
 
-### Jackson
 
-Spring Boot 默认集成了 **Jackson** 作为 JSON 的序列化与反序列化库。
 
-当你使用 `@RestController` 返回一个对象时，Spring Boot 会自动使用 Jackson 将对象转换为 JSON。
 
 
 
@@ -6880,159 +7491,17 @@ Spring Boot 默认集成了 **Jackson** 作为 JSON 的序列化与反序列化�
 
 
 
-## 第三方库
 
-### Hutool
 
-Hutool是一个小而全的Java工具类库，通过静态方法封装
 
 
 
-### Lombok
 
-#### java17 record 类
 
-在java17之后可以用记录类型（record类）来快速得到一个自带的构造方法，Getter以及重写ToString
 
-自动生成的 Getter、没有 Setter
 
-```java
-package test.dto;
 
-public record StudentRecord(String name, int age, String gender) {
-}
-```
 
-```java
-public class test2 {
-    public static void main(String[] args) {
-        StudentRecord r = new StudentRecord("Li", 12, "male");
-        System.out.println(r.name());
-        System.out.println(r.age());
-        System.out.println(r.toString());
-        System.out.println(r.hashCode());
-    }
-}
-```
-
-#### @Data
-
-包含`@Getter`,`@Setter`,`@RequiredArgsConstructor`,`@ToString`,`@EqualsAndHashCode`
-
-#### @Getter
-
-自动生成getter方法，可以添加到类或者字段上
-
-boolean类型的`get方法`会被编译成`isXXX`
-
-```java
-private boolean isDeleted;
-
-@Generated
-public boolean isDeleted() {
-    return this.isDeleted;
-}
-```
-
-限制生成为`private`的get方法
-
-```java
-@Getter(AccessLevel.PRIVATE)
-```
-
-给`get方法`加上其他注解
-
-```java
-@Getter(onMethod_ = {@Deprecated})
-```
-
-如果手动编写了该字段的getter或者setter就不会生成
-
-
-
-#### @Setter
-
-#### @Tolerate
-
-忽略
-
-#### 构造方法
-
-##### @AllArgsConstructor
-
-##### @NoArgsConstructor
-
-##### @RequiredArgsConstructor
-
-#### @ToString
-
-#### @EqualsAndHashCode
-
-#### var & val
-
-从 **Java 10** 开始，Java 引入了 **`var`** 关键字，用于局部变量类型推断。这意味着你可以在声明变量时省略显式的类型，Java 编译器会根据右侧的赋值表达式推断出变量的类型。
-
-- **`var` 只能用于局部变量**，不能用于类成员变量或方法参数。
-- **类型是静态的**。虽然你省略了类型声明，但变量的类型在编译时就已经确定，不会因为赋值改变。
-- **`var` 不等于动态类型**。
-
-
-
-Lombok 的 `val` 会将变量标记为 `final`，并且会自动进行类型推断
-
-```java
-import lombok.val;
-
-public class Main {
-    public static void main(String[] args) {
-        val name = "John"; // 推断为 final String
-        val list = new ArrayList<String>(); // 推断为 final ArrayList<String>
-    }
-}
-```
-
-
-
-#### 日志框架
-
-`@Slf4j`
-
-- 作用：生成一个 **`org.slf4j.Logger`** 类型的日志记录器。
-
-- 常用于项目中广泛使用的 **SLF4J** 日志框架。
-
-  ```java
-  import lombok.extern.slf4j.Slf4j;
-  
-  @Slf4j
-  public class Demo {
-      public void doSomething() {
-          log.info("This is an info message.");
-          log.error("This is an error message.");
-      }
-  }
-  ```
-
-  相当于手动定义
-
-  ```java
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Demo.class);
-  ```
-
-`@Log`
-
-- 作用：生成一个 **`java.util.logging.Logger`** 类型的日志记录器。
-- 使用的是 Java 自带的日志框架 **`java.util.logging`**。
-
-`@Log4j`
-
-- 作用：生成一个 **`org.apache.log4j.Logger`** 类型的日志记录器。
-- 使用的是 **Log4j 1.x** 框架。
-
-`@Log4j2`
-
-- 作用：生成一个 **`org.apache.logging.log4j.Logger`** 类型的日志记录器。
-- 使用的是 **Log4j 2.x** 框架，常用于现代 Java 项目。
 
 
 

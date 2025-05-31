@@ -61,6 +61,8 @@ echo 'export const LdAjaxBaseUrl = "";' > ajaxBase.ts
 
 暂停脚本执行，等待用户按任意键后继续。
 
+不关闭控制台
+
 
 
 #### `rem`

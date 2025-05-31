@@ -3259,7 +3259,35 @@ export default defineComponent({
 
 # 路由
 
-- useRoute
+## 工作模式
+
+`history`模式
+
+优点：`URL`更加美观，不带有`#`，更接近传统的网站`URL`。
+
+缺点：后期项目上线，需要服务端配合处理路径问题，否则刷新会有`404`错误。
+
+```js
+const router = createRouter({
+	history:createWebHistory(), //history模式
+	/******/
+})
+```
+
+`hash`模式
+
+优点：兼容性更好，因为不需要服务器端处理路径。
+
+缺点：`URL`带有`#`不太美观，且在`SEO`优化方面相对较差。
+
+```js
+const router = createRouter({
+	history:createWebHashHistory(), //hash模式
+	/******/
+})
+```
+
+## useRoute
 
 ```tsx
 const route = useRoute();
@@ -3287,7 +3315,7 @@ route.matched：一个数组，包含当前路由匹配到的所有路由记录�
 
 
 
-- useRouter
+## useRouter
 
 ```tsx
 const router = useRouter()
@@ -3361,7 +3389,7 @@ const routes = router.getRoutes();
 
 
 
-- 路由自动显示
+## 路由自动显示
 
 ```tsx
 import { ElIcon, ElMenu, ElSubMenu, ElMenuItemGroup, ElMenuItem } from "element-plus"

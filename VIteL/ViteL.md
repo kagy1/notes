@@ -538,6 +538,14 @@ Rollup 是一款基于 ES Module 模块规范实现的 JavaScript 打包工具
 
 
 
+## package.json
+
+#### `cross-env `
+
+用 cross-env 设置 NODE_ENV，设置环境变量
+
+
+
 
 
 ## 配置文件 vite.config.ts
