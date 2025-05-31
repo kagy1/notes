@@ -659,6 +659,72 @@ public class User {
 }
 ```
 
+## ServiceImpl
+
+### 示例
+
+```java
+@Service
+@Slf4j
+public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService {}
+```
+
+### 方法
+
+`query()`
+
+返回 QueryChainWrapper，用于链式调用
+
+```java
+User user = query().eq("phone", phone).one();
+```
+
+`lambdaQuery()`
+
+返回 LambdaQueryChainWrapper，更安全
+
+```java
+User user = lambdaQuery().eq(User::getPhone, phone).one();
+```
+
+
+
+
+
+## 条件构造器
+
+### `QueryWrapper<T>`
+
+使用字符串字段名，例如 `.eq("phone", "123")`
+
+写法直观，但不安全，重构时容易出错
+
+适合简单情况，也常用于 Mapper 层
+
+### `LambdaQueryWrapper<T>`
+
+支持 **方法引用**：`User::getPhone`
+
+类型安全、字段名自动解析
+
+推荐在 Mapper 层使用
+
+### `QueryChainWrapper<T>`
+
+是对 `QueryWrapper` 的封装
+
+支持 **链式调用**
+
+用于 Service 层，不需要你 new，直接用 `query()`
+
+### `LambdaQueryChainWrapper<T>`
+
+是对 `LambdaQueryWrapper` 的链式封装
+
+类型安全，链式书写
+
+推荐用于 Service 层
+
 
 
 

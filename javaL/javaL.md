@@ -275,6 +275,12 @@ animal.sleep(); // 输出: Tom is sleeping.
 
 
 
+### 接口
+
+所有抽象方法默认是 `public abstract`，如果尝试使用其他访问修饰符会报错
+
+ Java 8+ 支持接口中的 `default` 和 `static` 方法
+
 
 
 ### static
