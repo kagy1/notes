@@ -480,6 +480,18 @@ private int age;
 2. **支持@Bean方法定义**：配置类中可以使用@Bean注解定义Bean实例，用于取代bean.xml配置文件注册bean对象。
 3. **启用CGLIB代理**：默认情况下，Spring会用CGLIB创建配置类的子类代理
 
+#### 需要添加`@Configuration`的类
+
+1. **定义Bean的类**：如果一个类中包含多个使用`@Bean`注解的方法，用于创建和配置Spring Bean，那么这个类应该加上`@Configuration`。
+2. **替代XML配置的类**：传统上使用XML配置的Spring应用，如果转为Java配置，这些配置类需要加`@Configuration`。
+3. **模块化配置类**：当你需要将应用配置拆分成多个模块时，每个模块的配置类通常都需要`@Configuration`。
+4. **启用某些功能的类**：使用`@Enable...`注解（如`@EnableWebMvc`、`@EnableTransactionManagement`等）的类通常也是配置类。
+5. **导入其他配置的类**：使用`@Import`注解导入其他配置的类也应该是一个配置类。
+
+
+
+
+
 ### `@Bean`
 
 **方法级注解**：用在方法上，声明这个方法返回一个 Spring 管理的 bean。该方法的返回值会被注册到 Spring IoC 容器中。
@@ -802,6 +814,56 @@ public class AppConfig {
 
 
 
+#### `@Repository` 和 `@Mapper` 区别
+
+`@Repository`
+
+**@Repository** 是 Spring 框架提供的一个注解，属于 Spring 的构造型（stereotype）注解家族，其他成员包括 @Component, @Service 和 @Controller。
+
+主要用于标识数据访问层（DAO）类。
+
+- `@Repository` 是一个Spring组件注解，表示该类是一个Spring管理的bean。
+- 可以与Spring的`@ComponentScan`一起使用，自动扫描和检测这些类。
+
+
+
+
+
+`@Mapper`
+
+**@Mapper** 是 MyBatis-Spring 集成框架提供的注解，专门用于标记MyBatis的映射器接口。
+
+MyBatis会自动为这些接口生成代理对象，用于执行SQL操作。
+
+**作用和功能**
+
+1. **接口代理生成**
+   - 告诉MyBatis-Spring这个接口需要创建代理实现
+   - MyBatis会在运行时动态生成这个接口的实现类
+2. **SQL映射**
+   - 将接口方法与XML或注解中定义的SQL语句关联起来
+   - 使开发者可以专注于SQL编写，而非JDBC代码
+3. **自动注册为Spring Bean**
+   - 被@Mapper标注的接口会被MyBatis-Spring自动注册到Spring容器
+   - 这使得可以通过@Autowired等方式注入这些Mapper
+4. **避免显式XML配置**
+   - 减少了在XML中手动配置映射器接口的需要
+
+
+
+
+
+##### 选择使用 @Repository 还是 @Mapper
+
+- **使用 `@Repository`**：
+  - 如果你在使用Spring Data JPA或其他Spring支持的持久化框架，`@Repository`是一个很好的选择。
+  - 当你需要Spring的异常转换功能时，使用`@Repository`。
+- **使用 `@Mapper`**：
+  - 如果你在使用MyBatis作为持久化框架，`@Mapper`是必需的。
+  - 当你需要使用MyBatis的动态SQL、SQL映射文件或MyBatis特定功能时，使用`@Mapper`。
+
+
+
 #### `@Bean`和`@Component`区别
 
 `@Bean` 注解
@@ -883,7 +945,15 @@ public class OrderService {
 @SpringBootApplication注解通常被用于Spring Boot应用程序的入口类上，用于启动Spring Boot应用程序。它可以简化Spring应用程序的配置和启动过程。
 
 
+
 ### `@EnableAutoConfiguration`
+
+@EnableAutoConfiguration 注解是Spring Boot中的一个重要注解，用于启用自动配置特性。当我们在Spring Boot应用程序的主类上添@EnableAutoConfiguration 注解时，Spring Boot会根据类路径中的内容和其他条件自动配置应用程序所需的bean。
+
+
+### `@AutoConfiguration`
+
+`@AutoConfiguration` 是 Spring Boot 自动配置系统的核心组件之一，它是 Spring Boot 3.0 引入的注解，用于替代和改进旧版本中的 `@Configuration` + `@ConditionalOnXXX` 组合模式。
 
 
 

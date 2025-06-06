@@ -121,6 +121,88 @@ mybatis:
     object-factory: org.apache.ibatis.reflection.DefaultObjectFactory
 ```
 
+### mapper-locations
+
+作用：告诉 MyBatis/MyBatis-Plus 去哪里扫描并加载 SQL 映射文件（即 *Mapper.xml或者 *Dao.xml文件）。
+
+默认会去`resources/com/xxx/mapper`下
+
+如果你的 XML 文件不放在默认位置（如 `resources/com/example/mapper/`），需要通过此配置自定义路径。
+
+#### 配置示例
+
+```yaml
+mybatis:
+  mapper-locations: classpath:mapper/*.xml  # 指定 Mapper 映射文件（即 .xml 文件）的路径。
+  #  放在resources/mapper文件夹下面
+  mapper-locations: classpath*:/mapper/**/*.xml  # mapper文件夹下以及所有子文件夹
+```
+
+- `classpath:` - 表示在类路径下查找资源，但只会查找第一个匹配的资源。在标准的Spring Boot项目中，这通常指向`src/main/resources`目录。
+- `classpath*:` - 表示在类路径下查找所有匹配的资源，包括:
+  - 主项目的resources目录
+  - 所有依赖的jar包中的资源
+  - 如果有多个类路径（比如在多模块项目中），会在所有类路径中查找
+
+
+
+- `mapper/*.xml`：直接在mapper文件夹下的xml文件
+- `classpath*:/mapper/*/*.xml`：`*/` - 匹配mapper的直接子文件夹（只有一级子文件夹）下的xml文件
+
+- `/mapper/**/*.xml`：`**` 表示包含 `mapper` 文件夹及其所有层级的子文件夹
+
+
+
+
+
+## Ant风格的路径模式
+
+### 基本语法元素
+
+1. **`?`** - 匹配单个字符
+2. **`\*`** - 匹配零个或多个字符（不包括路径分隔符"/"）
+3. **`\**`** - 匹配零个或多个目录层级（可以跨越路径分隔符"/"）
+
+
+
+#### `?`匹配单个字符
+
+- `file?.txt` 匹配 `file1.txt`, `fileA.txt`, 但不匹配 `file12.txt`, `file.txt`
+- `data/user?.xml` 匹配 `data/user1.xml`, `data/userA.xml`, 但不匹配 `data/user12.xml`
+
+
+
+#### `*` 匹配零个或多个字符（不跨目录）
+
+- `*.txt` 匹配 `file.txt`, `document.txt`, 但不匹配 `file.doc` 或 `folder/file.txt`
+- `config/*.properties` 匹配 `config/app.properties`, `config/database.properties`, 但不匹配 `config/folder/app.properties`
+- `user-*.xml` 匹配 `user-admin.xml`, `user-client.xml`
+- `*Service.java` 匹配 `UserService.java`, `ProductService.java`
+
+
+
+#### `**` 匹配零个或多个目录层级
+
+`**/*.txt` 匹配任何目录下的.txt文件，包括：
+
+- `file.txt`
+- `folder/file.txt`
+- `folder/subfolder/file.txt`
+
+`data/**/config.xml` 匹配：
+
+- `data/config.xml`
+- `data/app/config.xml`
+- `data/app/db/config.xml`
+
+`**/service/**/*.java` 匹配任何包含"service"目录的路径下的Java文件：
+
+- `service/UserService.java`
+- `com/example/service/ProductService.java`
+- `api/service/impl/OrderService.java`
+
+
+
 **type-aliases-package**
 
 配置后，在Mybatis的XMl文件中直接使用类名作为类型别名，不需要使用全限定名
@@ -210,6 +292,41 @@ Map参数如果不使用`@Param`，MyBatis 会直接将 `Map` 中的键作为参
 
 
 
+### mapper与xml关联
+
+XML 和接口之间的**关键绑定**是通过 `namespace` 实现的。
+
+xml示例
+
+```xml
+<!-- UserMapper.xml -->
+<mapper namespace="com.example.mapper.UserMapper">
+    <select id="selectUserById" resultType="com.example.model.User" parameterType="int">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+</mapper>
+```
+
+接口对应
+
+```java
+package com.example.mapper;
+
+public interface UserMapper {
+    User selectUserById(int id);
+}
+```
+
+- `namespace="com.example.mapper.UserMapper"`：告诉 MyBatis，这个 XML 是为哪个接口服务的。
+- `<select id="selectUserById">`：这里的 `id` 必须与 `UserMapper` 接口中的方法名一致。
+- 参数和返回类型由 `parameterType` 和 `resultType` 指定。
+
+
+
+## mybatis动态代理
+
+MyBatis 在运行时会使用 **JDK 动态代理**，为每个 Mapper 接口创建一个代理对象，这个代理对象会根据方法调用信息去执行对应的 SQL。
+
 
 
 
@@ -296,21 +413,49 @@ CDATA是"Character Data"（字符数据）的缩写，是一种在XML文档中�
 
 ### 占位符
 
-**#{}**
+#### **#{}**
 
 \#{}是MyBatis最常用的占位符,用于SQL语句的参数设置
+
+**#{}** 是参数占位符，会被预编译处理，参数会被自动添加单引号
 
 MyBatis会将#{}占位符替换为?,然后使用PreparedStatement的set方法来赋值
 
 使用#{}可以有效防止SQL注入,提高系统安全性
 
-**${}**
+
+
+如果
+
+```
+SELECT * FROM user ORDER BY #{orderBy};  # orderBy 传入 phone
+```
+
+生成的 SQL 实际是
+
+```sql
+SELECT * FROM user ORDER BY 'phone';
+```
+
+
+
+
+
+#### **${}**
 
 ${}主要用于动态生成SQL语句,可以在SQL语句中插入一个不做任何修改的字符串
 
 使用${}时,MyBatis不会修改或转义字符串,而是直接插入SQL语句中
 
 有SQL注入的风险,一般用于ORDER BY、表名等不能使用参数化查询的场合
+
+
+
+`${}` 主要用于需要动态替换表名、列名或SQL关键字的场景
+
+
+
+##### 示例
 
 如果要对表名、列名 进行动态设置，只能使用${}拼接
 
@@ -319,6 +464,28 @@ ${}主要用于动态生成SQL语句,可以在SQL语句中插入一个不做任�
   SELECT * FROM user ORDER BY ${sortColumn}
 </select>
 ```
+
+
+
+```sql
+SELECT * FROM user WHERE name = ${name}
+```
+
+如果name的值是"张三"，则直接替换：
+
+```sql
+SELECT * FROM user WHERE name = 张三
+```
+
+这会导致SQL语法错误，因为字符串需要加引号。正确的用法应该是：
+
+```sql
+SELECT * FROM user WHERE name = '${name}'
+```
+
+
+
+
 
 
 
